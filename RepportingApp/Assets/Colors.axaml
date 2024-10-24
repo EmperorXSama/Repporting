@@ -1,0 +1,13 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style>
+        <Style.Resources>
+            <SolidColorBrush x:Key="Primary" Color="#847577" />
+            <SolidColorBrush x:Key="Secondary" Color="#A6A2A2" />
+            <SolidColorBrush x:Key="TentGrey" Color="#CFD2CD" />
+            <SolidColorBrush x:Key="LightGrey" Color="#E5E6E4" />
+            <SolidColorBrush x:Key="MainWhite" Color="#FBFBF2" />
+            <SolidColorBrush x:Key="MainRed" Color="#EC4067" />
+        </Style.Resources>
+    </Style>
+</Styles>

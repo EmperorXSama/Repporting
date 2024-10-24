@@ -1,0 +1,32 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RepportingApp.App"
+             xmlns:local="using:RepportingApp"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:helper="clr-namespace:RepportingApp.Helper"
+             RequestedThemeVariant="Light">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://RepportingApp/Assets/icons.axaml"></StyleInclude>
+        <StyleInclude Source="avares://RepportingApp/Assets/Colors.axaml"></StyleInclude>
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"></StyleInclude>
+        
+        
+    </Application.Styles>
+     <Application.Resources>
+         <FontFamily x:Key="Roboto">avares://RepportingApp/Assets/Font#Roboto</FontFamily>
+         <helper:BooleanToWidthConverter x:Key="BooleanToWidthConverter"/>
+         <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+         <helper:AngleToYConverter x:Key="AngleToYConverter"/>
+         <helper:AngleToXConverter x:Key="AngleToXConverter"/>
+         
+         <Color x:Key="Primary">#847577</Color>
+     </Application.Resources>
+             
+</Application>

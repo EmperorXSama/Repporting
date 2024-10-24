@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RepportingApp.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="RepportingApp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="RepportingApp"
+         ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="0"
+        CornerRadius="2222">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+    
+    <SplitView IsPaneOpen="{Binding IsPaneOpen}"
+               OpenPaneLength="150"
+               CompactPaneLength="52"
+               Background="#1e1e1e"
+               PaneBackground="#FBFBF2"
+               DisplayMode="CompactInline">
+        <SplitView.Pane>
+            <Grid >
+                <!-- Pane content (buttons, listbox, etc.) -->
+                <StackPanel Spacing="5" Margin="5">
+                    <Button Command="{Binding OpenClosePaneCommand}" Margin="0,0,0,10" Background="Transparent">
+                        <PathIcon Foreground="#363636" Data="{StaticResource MainMenuIcn}"></PathIcon>
+                    </Button>
+                    <ListBox ItemsSource="{Binding navigationItems}"
+                             SelectedItem="{Binding SelectedListItem}"
+                             Background="Transparent"
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <!-- Update DataType definition -->
+                            <DataTemplate DataType="vm:ListItemTemplate">
+                                <StackPanel Spacing="15" Orientation="Horizontal">
+                                    <PathIcon Data="{Binding icon}"  />
+                                    <TextBlock Text="{Binding Label}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                        <ListBox.Styles>
+                            <!-- Normal ListBoxItem Style -->
+                            <Style Selector="ListBoxItem /template/ ContentPresenter">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                            <Style Selector="ListBoxItem PathIcon">
+                                <Setter Property="Foreground" Value="#847577" /> <!-- Default Foreground -->
+                            </Style>
+                            <Style Selector="ListBoxItem TextBlock">
+                                <Setter Property="Foreground" Value="#847577" /> <!-- Default Foreground -->
+                            </Style>
+
+                            <!-- Background color and PathIcon hover effect -->
+                            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#847577" />
+                                
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover PathIcon">
+                                <Setter Property="Foreground" Value="#eeeeee" />
+                            </Style> 
+                            <Style Selector="ListBoxItem:pointerover TextBlock">
+                                <Setter Property="Foreground" Value="#eeeeee" />
+                            </Style>
+
+                            <!-- Background and PathIcon color for selected items -->
+                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#847577" />
+                            </Style>
+
+                            <Style Selector="ListBoxItem:selected PathIcon">
+                                <Setter Property="Foreground" Value="#eeeeee" />
+                            </Style> 
+                            <Style Selector="ListBoxItem:selected TextBlock">
+                                <Setter Property="Foreground" Value="#eeeeee" />
+                            </Style>
+                        </ListBox.Styles>
+                    </ListBox>
+                    <Border BorderBrush="#d6d6d6" Margin="0,4,0,0" BorderThickness="0,0,0,1"  />
+                    
+                </StackPanel>
+            
+                <!-- Right Border -->
+                <Border BorderBrush="#d6d6d6" BorderThickness="0,0,1,0" HorizontalAlignment="Right" />
+                
+                <Border Width="52"  HorizontalAlignment="Left">
+                    <StackPanel  Orientation="Vertical" VerticalAlignment="Bottom" >
+                        <!-- Minimize Button -->
+                        <Button Padding="9" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Command="{Binding MinimizeWindowCommand}" Background="Transparent">
+                            <PathIcon Foreground="#262626"  Data="{StaticResource MinimizeAppIcon}"  />
+                        </Button>
+
+                        <!-- Maximize Button -->
+                        <Button Padding="9" HorizontalAlignment="Center"  Command="{Binding MaximizeWindowCommand}" Background="Transparent">
+                            <PathIcon  Foreground="#262626" Data="{StaticResource MaximizeAppIcon}" />
+                        </Button>
+
+                        <!-- Close Button -->
+                        <Button  Padding="9" HorizontalAlignment="Center"  Command="{Binding CloseWindowCommand}" Background="Transparent">
+                            <PathIcon  Foreground="#B3001B" Data="{StaticResource CloseAppIcon}"  />
+                        </Button>
+                    </StackPanel>
+                   
+                </Border>
+            </Grid>
+        </SplitView.Pane>
+
+        <SplitView.Content>
+            <Grid RowDefinitions="20,*">
+                <Border PointerPressed="OnPointerPressed" Background="#eeeeee">
+                    
+                </Border>
+                <Border Grid.Row="1" Background="#eeeeee"  >
+                    <TransitioningContentControl Content="{Binding CurrentPage}" />
+                </Border>
+            </Grid>
+           
+        </SplitView.Content>
+    </SplitView>
+
+</Window>

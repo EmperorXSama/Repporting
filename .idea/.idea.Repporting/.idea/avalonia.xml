@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="RepportingApp/App.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Assets/Colors.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Assets/Colors.xaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Assets/Styles.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Assets/icons.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/AutomationPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/DashboardPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/HomePageView.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/MainWindow.axaml" value="RepportingApp/RepportingApp.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

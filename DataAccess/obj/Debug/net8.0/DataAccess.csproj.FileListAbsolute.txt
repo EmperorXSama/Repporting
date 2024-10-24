@@ -1,0 +1,11 @@
+C:\Users\khali\RiderProjects\Repporting\DataAccess\bin\Debug\net8.0\DataAccess.deps.json
+C:\Users\khali\RiderProjects\Repporting\DataAccess\bin\Debug\net8.0\DataAccess.dll
+C:\Users\khali\RiderProjects\Repporting\DataAccess\bin\Debug\net8.0\DataAccess.pdb
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\DataAccess.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\DataAccess.AssemblyInfoInputs.cache
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\DataAccess.AssemblyInfo.cs
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\DataAccess.csproj.CoreCompileInputs.cache
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\DataAccess.dll
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\refint\DataAccess.dll
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\DataAccess.pdb
+C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\ref\DataAccess.dll

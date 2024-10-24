@@ -1,0 +1,246 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:HomePageViewModel"
+             x:Class="RepportingApp.Views.HomePageView">
+    <Border Padding="10">
+         <Grid 
+         ColumnDefinitions="*"
+         >
+       <Grid.RowDefinitions>
+           <RowDefinition Height="*" />  <!-- First Row -->
+           <RowDefinition Height="10" /> <!-- Gap Row -->
+           <RowDefinition Height="3*" />  <!-- Second Row -->
+           <RowDefinition Height="20" /> <!-- Gap Row -->
+           <RowDefinition Height="10*" />  <!-- Third Row -->
+           <RowDefinition Height="2*" />  <!-- Third Row -->
+       </Grid.RowDefinitions>
+       <Border Background="Azure"
+               HorizontalAlignment="Center"
+               MinWidth="300"
+               
+               CornerRadius="11">
+           <Border.Effect>
+               <DropShadowEffect Color="#847577"
+                                 Opacity="0.5"
+                                 BlurRadius="10"
+                                 OffsetX="2"   
+                                 OffsetY="2"   
+               />
+           </Border.Effect>
+
+           <Grid ColumnDefinitions="*,6*">
+               <!-- Panel with Background and Icon -->
+               <Border Background="#847577"
+                       CornerRadius="11,0,0,11">
+                   <PathIcon Data="{StaticResource ClockIcon}" />
+               </Border>
+
+               <!-- Grid with TextBlocks -->
+               <Grid Grid.Column="1" ColumnDefinitions="*,2*,*">
+                   <!-- CurrentHour TextBlock -->
+                   <TextBlock Grid.Column="1"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Foreground="Black"
+                              FontSize="25"
+                              Text="{Binding CurrentHour}"
+                              FontFamily="{StaticResource Roboto}" />
+                   <!-- CurrentYear TextBlock -->
+                   <TextBlock Grid.Column="0"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Foreground="Black"
+                              FontSize="12"
+                              Text="{Binding CurrentYear}"
+                              FontFamily="{StaticResource Roboto}" />
+                   <!-- CurrentMonthDay TextBlock -->
+                   <TextBlock Grid.Column="2"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Foreground="Black"
+                              FontSize="12"
+                              Text="{Binding CurrentMonthDay}"
+                              FontFamily="{StaticResource Roboto}" />
+               </Grid>
+           </Grid>
+       </Border>
+      <Border Grid.Row="2" >
+          <StackPanel HorizontalAlignment="Center" 
+                      MinWidth="450"
+                      >
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5"
+                          Background="White">
+                  <StackPanel.RenderTransform>
+                      <RotateTransform Angle="-13" /> <!-- Rotating the StackPanel by 90 degrees -->
+                  </StackPanel.RenderTransform>
+
+                  <PathIcon Foreground="#540B0E" Data="{StaticResource TerminalIcon}" />
+    
+                  <TextBlock
+                      Margin="4,0,0,0"
+                      FontFamily="{StaticResource Roboto}"
+                      FontWeight="Bold"
+                      Foreground="#540B0E">
+                      v1.0
+                  </TextBlock>
+              </StackPanel>
+
+              
+              <TextBlock
+                  FontFamily="{StaticResource Roboto}"
+                  FontWeight="Bold"
+                  FontSize="28"
+                  Foreground="#847577"
+                  HorizontalAlignment="Center">
+                  Open choose ,click
+              </TextBlock>
+              <TextBlock  FontFamily="{StaticResource Roboto}"
+                         FontWeight="Bold"
+                         FontSize="28"
+                         Foreground="#847577"
+                         HorizontalAlignment="Center">
+                  and go sleep
+              </TextBlock>
+          </StackPanel>
+      </Border>
+      <Border Grid.Row="4"
+              Padding="60,0,60,0">
+          <Grid ColumnDefinitions="*,20,*,20,*">
+            <Border Grid.Column="0"
+                  Background="White"
+                  CornerRadius="22"
+                  Padding="10">
+                  <Grid 
+                        RowDefinitions="2*,40,*">
+                      
+                      <Border>
+                          <Grid>
+                                  <!--<Image Source="avares://RepportingApp/Assets/image/OQHXG10.jpg"
+                                         Stretch="UniformToFill"
+                                         RenderOptions.BitmapInterpolationMode="HighQuality"
+                                         Opacity="01"
+                                  />-->
+                                  <Svg Path="/Assets/image/undraw_no_data_re_kwbl.svg" />
+                          </Grid>
+
+                      </Border>  
+                      <Border Grid.Row="2"
+                          Background="White">
+                          <StackPanel>
+                              <TextBlock Text="Data management" 
+                                         HorizontalAlignment="Center"
+                                         FontSize="13"
+                                         FontFamily="{StaticResource Roboto}"
+                                         FontWeight="Heavy"
+                                         Foreground="#1E1A1D"
+                                         Margin="0,0,0,5"
+                              />
+                              <TextBlock
+                                         HorizontalAlignment="Center"
+                                         FontSize="12"
+                                         FontFamily="{StaticResource Roboto}"
+                                         FontWeight="Light"
+                                         Foreground="#1E1A1D"
+                                         TextWrapping="Wrap"
+                                         TextAlignment="Center"
+                              >
+                                 in every process we collect data , so we make sure you get your hands on every small and big about your process even when you away
+                              </TextBlock>
+                          </StackPanel>
+                        
+                          
+                      </Border>
+                  </Grid>
+                  
+              </Border>
+              <Border Grid.Column="2"
+                  Background="White"
+                  CornerRadius="22"
+                  Padding="10">
+                  <Grid 
+                        RowDefinitions="2*,40,*">
+                      
+                      <Border>
+                          <Svg Path="/Assets/image/undraw_search_re_x5gq.svg" />
+                      </Border>  
+                      <Border Grid.Row="2"
+                          Background="White">
+                          <StackPanel>
+                              <TextBlock Text="Automation" 
+                                         HorizontalAlignment="Center"
+                                         FontSize="13"
+                                         FontFamily="{StaticResource Roboto}"
+                                         FontWeight="Heavy"
+                                         Foreground="#1E1A1D"
+                                         Margin="0,0,0,5"
+                              />
+                              <TextBlock
+                                         HorizontalAlignment="Center"
+                                         FontSize="12"
+                                         FontFamily="{StaticResource Roboto}"
+                                         FontWeight="Light"
+                                         Foreground="#1E1A1D"
+                                         TextWrapping="Wrap"
+                                         TextAlignment="Center"
+                              >
+                                  laveraging the power of python to run very precise script that uses both 
+                                  selenium and playwright to preform very high complex automation tasks
+                              </TextBlock>
+                          </StackPanel>
+                        
+                          
+                      </Border>
+                  </Grid>
+                  
+              </Border>
+              <Border Grid.Column="4"
+                  Background="White"
+                  CornerRadius="22"
+                  Padding="10">
+                  <Grid 
+                        RowDefinitions="2*,40,*">
+                      
+                      <Border>
+                          <Svg Path="/Assets/image/Automa.svg" />
+                      </Border>  
+                      <Border Grid.Row="2"
+                          Background="White">
+                          <StackPanel>
+                              <TextBlock Text="Reporting" 
+                                         HorizontalAlignment="Center"
+                                         FontSize="13"
+                                         FontFamily="{StaticResource Roboto}"
+                                         FontWeight="Heavy"
+                                         Foreground="#1E1A1D"
+                                         Margin="0,0,0,5"
+                              />
+                              <TextBlock
+                                         HorizontalAlignment="Center"
+                                         FontSize="12"
+                                         FontFamily="{StaticResource Roboto}"
+                                         FontWeight="Light"
+                                         Foreground="#1E1A1D"
+                                         TextWrapping="Wrap"
+                                         TextAlignment="Center"
+                              >
+                                      using the most power and time saving scripts to achieve the most flawless reporting experience 
+                                      you could ask for . report hundereds of accounts in no time
+                              </TextBlock>
+                          </StackPanel>
+                        
+                          
+                      </Border>
+                  </Grid>
+                  
+              </Border>
+          </Grid>
+      </Border>
+   </Grid>
+    </Border>
+   
+
+</UserControl>
