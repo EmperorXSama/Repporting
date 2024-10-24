@@ -12,6 +12,8 @@
         <entry key="RepportingApp/Views/DashboardPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/HomePageView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/MainWindow.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/ProxyManagementPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/ToastNotificationView.axaml" value="RepportingApp/RepportingApp.csproj" />
       </map>
     </option>
   </component>

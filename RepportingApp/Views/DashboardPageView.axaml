@@ -6,6 +6,7 @@
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:skiaSharpView="clr-namespace:LiveChartsCore.SkiaSharpView;assembly=LiveChartsCore.SkiaSharpView"
+             xmlns:views="clr-namespace:RepportingApp.Views"
              x:DataType="viewModels:DashboardPageViewModel"
              mc:Ignorable="d"
              x:Class="RepportingApp.Views.DashboardPageView"
@@ -22,7 +23,7 @@
             <!-- Side menu column, this will be adjusted dynamically in the code-behind -->
             <ColumnDefinition Width="0" /> <!-- Default width for menu column is 0 (collapsed) -->
         </Grid.ColumnDefinitions>
-
+        <views:ToastNotificationView ZIndex="10000" DataContext="{Binding ToastNotificationViewModel}" />
         <!-- Side Menu -->
         <Border Grid.Column="1"
                 Background="{StaticResource MainWhite}"

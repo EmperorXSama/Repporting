@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace RepportingApp.ViewModels;
 
@@ -18,7 +19,7 @@ public partial class HomePageViewModel : ViewModelBase
 
 
 
-    public HomePageViewModel()
+    public HomePageViewModel(IMessenger messenger) : base(messenger)
     {
         var timer = new DispatcherTimer
         {

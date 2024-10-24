@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
 using Avalonia.Interactivity;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using RepportingApp.ViewModels;
 
 namespace RepportingApp.Views
@@ -12,7 +14,7 @@ namespace RepportingApp.Views
         public DashboardPageView()
         {
             InitializeComponent();
-            DataContext = new DashboardPageViewModel();
+            DataContext = App.Services.GetRequiredService<DashboardPageViewModel>();
         }
 
         private void DashboardPageView_DataContextChanged(object sender, EventArgs e)

@@ -1,0 +1,44 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:ToastNotificationViewModel"
+             x:Class="RepportingApp.Views.ToastNotificationView">
+    <Border Padding="10" IsVisible="{Binding IsVisible}">
+        <Border Background="#222725" 
+                CornerRadius="10"
+                Padding="10"
+                Width="300"
+                Height="110"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+            
+                Opacity="{Binding Opacity}">
+            <Grid ColumnDefinitions="10,12,*">
+                <PathIcon
+                    VerticalAlignment="Top"
+                    Foreground="{Binding IconColor}" Data="{Binding Icon}" />
+                <Grid Grid.Column="2" 
+                      RowDefinitions="*,3,*,3,*">
+                    
+                    <DockPanel>
+                        <TextBlock Foreground="White"> Hello message</TextBlock>
+                        <Button Foreground="Azure" HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Command="{Binding CloseToastCommand}">x</Button>
+                    </DockPanel>
+                  
+                    <TextBlock Grid.Row="2" Text="{Binding Message}" 
+                               Foreground="White"
+                               FontWeight="Bold"/>
+                    
+                </Grid>
+              
+            </Grid>
+       
+        </Border>
+    </Border>
+  
+</UserControl>

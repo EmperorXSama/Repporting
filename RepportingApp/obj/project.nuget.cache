@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "UQAubPSvsuc=",
+  "dgSpecHash": "CRKZtztOLJ8=",
   "success": true,
   "projectFilePath": "C:\\Users\\khali\\RiderProjects\\Repporting\\RepportingApp\\RepportingApp.csproj",
   "expectedPackageFiles": [
@@ -32,6 +32,8 @@
     "C:\\Users\\khali\\.nuget\\packages\\livechartscore.skiasharpview\\2.0.0-rc3.3\\livechartscore.skiasharpview.2.0.0-rc3.3.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\livechartscore.skiasharpview.avalonia\\2.0.0-rc3.3\\livechartscore.skiasharpview.avalonia.2.0.0-rc3.3.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\8.0.1\\microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\shimskiasharp\\2.0.0.1\\shimskiasharp.2.0.0.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\skiasharp\\2.88.8\\skiasharp.2.88.8.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\skiasharp.harfbuzz\\2.88.8\\skiasharp.harfbuzz.2.88.8.nupkg.sha512",

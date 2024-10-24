@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,23 +7,28 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RepportingApp.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty] private string _greeting = "Hello";
+    private static readonly Dictionary<Type, ViewModelBase> _viewModelCache = new();
+    
     [ObservableProperty] private bool _isPaneOpen = false;
-    [ObservableProperty] private ViewModelBase _currentPage = new HomePageViewModel();
+    [ObservableProperty] private ViewModelBase _currentPage = GetOrCreateViewModel(typeof(HomePageViewModel));
     [ObservableProperty] private ListItemTemplate _selectedListItem;
+
+    public MainWindowViewModel(IMessenger messenger) : base(messenger)
+    {
+      
+    }
 
     partial void OnSelectedListItemChanged(ListItemTemplate? value)
     {
         if (value is null) return;
-
-        var instance = Activator.CreateInstance(value.ModelType);
-        if (instance is null) return;
-        CurrentPage = (ViewModelBase)instance;
+        CurrentPage = GetOrCreateViewModel(value.ModelType);
     }
     public ObservableCollection<ListItemTemplate> navigationItems { get; } = new()
     {
@@ -32,6 +38,19 @@ public partial class MainWindowViewModel : ViewModelBase
         new ListItemTemplate(typeof(ProxyManagementPageViewModel),"ProxyIcon"),
     };
 
+
+    private static ViewModelBase GetOrCreateViewModel(Type viewBaseModelType)
+    {
+        if (_viewModelCache.TryGetValue(viewBaseModelType, out var viewModel))
+        {
+            return viewModel;
+        }
+        
+        var instance = (ViewModelBase)App.Services.GetRequiredService(viewBaseModelType);
+        _viewModelCache[viewBaseModelType] = instance;
+        return instance;
+    }
+    
     [RelayCommand]
     private void OpenClosePane()
     {
