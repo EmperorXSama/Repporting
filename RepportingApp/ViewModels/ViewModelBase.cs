@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using RepportingApp.CoreSystem.Broadcast;
@@ -16,33 +17,32 @@ public class ViewModelBase : ObservableObject,IDisposable
         _messenger = messenger;
         RegisterForMessages();
     }
-
-    // Register common messages like ProcessStart and ProcessFinish
-    protected virtual void RegisterForMessages()
+    
+    protected virtual async Task RegisterForMessages()
     {
         _messenger.Register<ProcessStartMessage>(this, (r, m) =>
         {
-            OnProcessStarted(m.ProcessName, m.Parameters);
+            _ = OnProcessStarted(m.Type,m.ProcessName, m.Parameters);
         });
 
         _messenger.Register<ProcessFinishedMessages>(this, (r, m) =>
         {
-            OnProcessFinished(m.ProcessName, m.Result);
+            _ = OnProcessFinished(m.Type,m.ProcessName, m.Result);
         });
     }
 
-    // Virtual methods to be overridden in child view models if needed
-    protected virtual void OnProcessStarted(string processName, object parameters)
+    
+    protected virtual async Task OnProcessStarted(string type,string processName, object parameters)
     {
-        // Default implementation (optional), can be empty
+        //  base 
     }
 
-    protected virtual void OnProcessFinished(string processName, object result)
+    protected virtual async Task OnProcessFinished(string type,string processName, object result)
     {
-        // Default implementation (optional), can be empty
+        // base
     }
 
-    // Clean up and unregister messages when the view model is disposed
+    
     public void Dispose()
     {
         _messenger.UnregisterAll(this);

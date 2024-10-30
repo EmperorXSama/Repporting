@@ -20,7 +20,7 @@
     </Design.DataContext>
     
     <SplitView IsPaneOpen="{Binding IsPaneOpen}"
-               OpenPaneLength="150"
+               OpenPaneLength="185"
                CompactPaneLength="52"
                Background="#1e1e1e"
                PaneBackground="#FBFBF2"

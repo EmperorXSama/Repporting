@@ -36,6 +36,7 @@ public partial class MainWindowViewModel : ViewModelBase
         new ListItemTemplate(typeof(DashboardPageViewModel),"Dashboard"),
         new ListItemTemplate(typeof(AutomationPageViewModel),"AutomationIcon"),
         new ListItemTemplate(typeof(ProxyManagementPageViewModel),"ProxyIcon"),
+        new ListItemTemplate(typeof(ReportingPageViewModel),"Reporting"),
     };
 
 

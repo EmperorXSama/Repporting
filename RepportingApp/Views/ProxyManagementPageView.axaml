@@ -4,7 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-            
+            x:DataType="viewModels:ProxyManagementPageViewModel"
              x:Class="RepportingApp.Views.ProxyManagementPageView">
-   
+     
+    <Grid>
+        <Button Command="{Binding ProcessAStartCommand}" HorizontalAlignment="Center" VerticalAlignment="Center">Start Process B</Button>
+    </Grid>
 </UserControl>

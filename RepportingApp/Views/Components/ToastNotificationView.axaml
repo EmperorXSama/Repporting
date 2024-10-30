@@ -24,7 +24,7 @@
                       RowDefinitions="*,3,*,3,*">
                     
                     <DockPanel>
-                        <TextBlock Foreground="White"> Hello message</TextBlock>
+                        <TextBlock Foreground="White" Text="{Binding Title}" />
                         <Button Foreground="Azure" HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Command="{Binding CloseToastCommand}">x</Button>

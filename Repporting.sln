@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepportingApp", "Repporting
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{293850EA-67C8-4E94-B39B-E24261D675C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reporting.lib", "Reporting.lib\Reporting.lib.csproj", "{B791393B-47DB-4C69-8EF9-E61CCDA681ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reporting.Api", "Reporting.Api\Reporting.Api.csproj", "{3AF9A58D-4F6E-483B-BD08-A3D05992392C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{293850EA-67C8-4E94-B39B-E24261D675C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{293850EA-67C8-4E94-B39B-E24261D675C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{293850EA-67C8-4E94-B39B-E24261D675C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B791393B-47DB-4C69-8EF9-E61CCDA681ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B791393B-47DB-4C69-8EF9-E61CCDA681ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B791393B-47DB-4C69-8EF9-E61CCDA681ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B791393B-47DB-4C69-8EF9-E61CCDA681ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AF9A58D-4F6E-483B-BD08-A3D05992392C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AF9A58D-4F6E-483B-BD08-A3D05992392C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AF9A58D-4F6E-483B-BD08-A3D05992392C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AF9A58D-4F6E-483B-BD08-A3D05992392C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

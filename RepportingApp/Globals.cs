@@ -1,0 +1,13 @@
+﻿global using CommunityToolkit.Mvvm.ComponentModel;
+global using CommunityToolkit.Mvvm.Input;
+global using CommunityToolkit.Mvvm.Messaging;
+global using Reporting.lib.enums;
+global using RepportingApp.Models;
+global using System.Collections.ObjectModel;
+global using Reporting.lib.Models.Settings;
+global using System.Threading.Tasks;
+global using CommunityToolkit.Mvvm.Input;
+global using CommunityToolkit.Mvvm.Messaging;
+global using DataAccess.Models;
+global using RepportingApp.CoreSystem.Broadcast;
+global using System;

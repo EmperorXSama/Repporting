@@ -23,7 +23,19 @@
             <!-- Side menu column, this will be adjusted dynamically in the code-behind -->
             <ColumnDefinition Width="0" /> <!-- Default width for menu column is 0 (collapsed) -->
         </Grid.ColumnDefinitions>
-        <views:ToastNotificationView ZIndex="10000" DataContext="{Binding ToastNotificationViewModel}" />
+        
+        <Grid  ZIndex="10000">
+            
+            <ItemsControl ItemsSource="{Binding ToastNotificationsModel}"
+                          VerticalAlignment="Top" HorizontalAlignment="Right">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <views:ToastNotificationView />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+     
         <!-- Side Menu -->
         <Border Grid.Column="1"
                 Background="{StaticResource MainWhite}"

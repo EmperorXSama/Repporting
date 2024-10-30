@@ -81,3 +81,14 @@ C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\DataAcces
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\obj\Debug\net8.0\RepportingApp.sourcelink.json
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Reporting.lib.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Reporting.lib.pdb
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Json.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.FileProviders.Physical.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.FileSystemGlobbing.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\appsettings.json

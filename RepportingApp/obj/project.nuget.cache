@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "CRKZtztOLJ8=",
+  "dgSpecHash": "7XZ2Y3rcHKo=",
   "success": true,
   "projectFilePath": "C:\\Users\\khali\\RiderProjects\\Repporting\\RepportingApp\\RepportingApp.csproj",
   "expectedPackageFiles": [
@@ -28,12 +28,20 @@
     "C:\\Users\\khali\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\7.3.0.2\\harfbuzzsharp.nativeassets.macos.7.3.0.2.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\7.3.0.2\\harfbuzzsharp.nativeassets.webassembly.7.3.0.2.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\7.3.0.2\\harfbuzzsharp.nativeassets.win32.7.3.0.2.nupkg.sha512",
-    "C:\\Users\\khali\\.nuget\\packages\\livechartscore\\2.0.0-rc3.3\\livechartscore.2.0.0-rc3.3.nupkg.sha512",
-    "C:\\Users\\khali\\.nuget\\packages\\livechartscore.skiasharpview\\2.0.0-rc3.3\\livechartscore.skiasharpview.2.0.0-rc3.3.nupkg.sha512",
-    "C:\\Users\\khali\\.nuget\\packages\\livechartscore.skiasharpview.avalonia\\2.0.0-rc3.3\\livechartscore.skiasharpview.avalonia.2.0.0-rc3.3.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\livechartscore\\2.0.0-rc4.5\\livechartscore.2.0.0-rc4.5.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\livechartscore.skiasharpview\\2.0.0-rc4.5\\livechartscore.skiasharpview.2.0.0-rc4.5.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\livechartscore.skiasharpview.avalonia\\2.0.0-rc4.5\\livechartscore.skiasharpview.avalonia.2.0.0-rc4.5.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.configuration\\8.0.0\\microsoft.extensions.configuration.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\8.0.0\\microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.configuration.fileextensions\\8.0.0\\microsoft.extensions.configuration.fileextensions.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.configuration.json\\8.0.0\\microsoft.extensions.configuration.json.8.0.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\8.0.1\\microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\8.0.0\\microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\8.0.0\\microsoft.extensions.fileproviders.physical.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\8.0.0\\microsoft.extensions.filesystemglobbing.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\shimskiasharp\\2.0.0.1\\shimskiasharp.2.0.0.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\skiasharp\\2.88.8\\skiasharp.2.88.8.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\skiasharp.harfbuzz\\2.88.8\\skiasharp.harfbuzz.2.88.8.nupkg.sha512",
@@ -45,11 +53,34 @@
     "C:\\Users\\khali\\.nuget\\packages\\svg.model\\2.0.0.1\\svg.model.2.0.0.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\svg.skia\\2.0.0.1\\svg.skia.2.0.0.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\tmds.dbus.protocol\\0.20.0\\tmds.dbus.protocol.0.20.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.10\\microsoft.netcore.app.ref.8.0.10.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.10\\microsoft.windowsdesktop.app.ref.8.0.10.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.10\\microsoft.aspnetcore.app.ref.8.0.10.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.10\\microsoft.netcore.app.host.win-x64.8.0.10.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-8g4q-xg66-9fp4",
+      "libraryId": "System.Text.Json",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-hh2w-p6rv-4g7w",
+      "libraryId": "System.Text.Json",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

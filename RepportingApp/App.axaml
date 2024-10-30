@@ -23,9 +23,11 @@
          <FontFamily x:Key="Roboto">avares://RepportingApp/Assets/Font#Roboto</FontFamily>
          <helper:BooleanToWidthConverter x:Key="BooleanToWidthConverter"/>
          <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+         <helper:EnumToBooleanConverter x:Key="EnumToBooleanConverter "/>
          <helper:AngleToYConverter x:Key="AngleToYConverter"/>
          <helper:AngleToXConverter x:Key="AngleToXConverter"/>
-         
+         <helper:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter"/>
+         <helper:IconNameToResourceConverter x:Key="IconNameToResourceConverter"/>
          <Color x:Key="Primary">#847577</Color>
      </Application.Resources>
              

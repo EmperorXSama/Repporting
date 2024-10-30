@@ -34,6 +34,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/AutomationPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/ToastNotificationView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/DashboardPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
@@ -46,5 +49,5 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/ProxyManagementPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/ToastNotificationView.axaml]
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/ReportingPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

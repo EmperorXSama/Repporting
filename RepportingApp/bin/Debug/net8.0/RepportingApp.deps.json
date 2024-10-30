@@ -17,8 +17,11 @@
           "Avalonia.Themes.Fluent": "11.2.0-rc1",
           "CommunityToolkit.Mvvm": "8.3.2",
           "DataAccess": "1.0.0",
-          "LiveChartsCore.SkiaSharpView.Avalonia": "2.0.0-rc3.3",
-          "Microsoft.Extensions.DependencyInjection": "8.0.1"
+          "LiveChartsCore.SkiaSharpView.Avalonia": "2.0.0-rc4.5",
+          "Microsoft.Extensions.Configuration": "8.0.0",
+          "Microsoft.Extensions.Configuration.Json": "8.0.0",
+          "Microsoft.Extensions.DependencyInjection": "8.0.1",
+          "Reporting.lib": "1.0.0"
         },
         "runtime": {
           "RepportingApp.dll": {}
@@ -361,7 +364,7 @@
           }
         }
       },
-      "LiveChartsCore/2.0.0-rc3.3": {
+      "LiveChartsCore/2.0.0-rc4.5": {
         "runtime": {
           "lib/net8.0/LiveChartsCore.dll": {
             "assemblyVersion": "2.0.0.0",
@@ -369,9 +372,9 @@
           }
         }
       },
-      "LiveChartsCore.SkiaSharpView/2.0.0-rc3.3": {
+      "LiveChartsCore.SkiaSharpView/2.0.0-rc4.5": {
         "dependencies": {
-          "LiveChartsCore": "2.0.0-rc3.3",
+          "LiveChartsCore": "2.0.0-rc4.5",
           "SkiaSharp": "2.88.8",
           "SkiaSharp.HarfBuzz": "2.88.8"
         },
@@ -382,11 +385,11 @@
           }
         }
       },
-      "LiveChartsCore.SkiaSharpView.Avalonia/2.0.0-rc3.3": {
+      "LiveChartsCore.SkiaSharpView.Avalonia/2.0.0-rc4.5": {
         "dependencies": {
           "Avalonia": "11.2.0-rc1",
           "Avalonia.Skia": "11.2.0-rc1",
-          "LiveChartsCore.SkiaSharpView": "2.0.0-rc3.3"
+          "LiveChartsCore.SkiaSharpView": "2.0.0-rc4.5"
         },
         "runtime": {
           "lib/net8.0/LiveChartsCore.SkiaSharpView.Avalonia.dll": {
@@ -400,6 +403,59 @@
           "lib/net5.0/MicroCom.Runtime.dll": {
             "assemblyVersion": "0.11.0.0",
             "fileVersion": "0.11.0.0"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Configuration.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Abstractions/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Configuration.Abstractions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.FileExtensions/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "8.0.0",
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Microsoft.Extensions.FileProviders.Abstractions": "8.0.0",
+          "Microsoft.Extensions.FileProviders.Physical": "8.0.0",
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Configuration.FileExtensions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Json/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "8.0.0",
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Configuration.FileExtensions": "8.0.0",
+          "Microsoft.Extensions.FileProviders.Abstractions": "8.0.0",
+          "System.Text.Json": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Configuration.Json.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
           }
         }
       },
@@ -419,6 +475,46 @@
           "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.1024.46610"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileProviders.Abstractions/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileProviders.Physical/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.FileProviders.Abstractions": "8.0.0",
+          "Microsoft.Extensions.FileSystemGlobbing": "8.0.0",
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.FileProviders.Physical.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileSystemGlobbing/8.0.0": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Extensions.Primitives/8.0.0": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Primitives.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
           }
         }
       },
@@ -555,6 +651,12 @@
           }
         }
       },
+      "System.Text.Encodings.Web/8.0.0": {},
+      "System.Text.Json/8.0.0": {
+        "dependencies": {
+          "System.Text.Encodings.Web": "8.0.0"
+        }
+      },
       "Tmds.DBus.Protocol/0.20.0": {
         "dependencies": {
           "System.IO.Pipelines": "8.0.0"
@@ -569,6 +671,17 @@
       "DataAccess/1.0.0": {
         "runtime": {
           "DataAccess.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Reporting.lib/1.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "8.0.0"
+        },
+        "runtime": {
+          "Reporting.lib.dll": {
             "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -750,26 +863,26 @@
       "path": "harfbuzzsharp.nativeassets.win32/7.3.0.2",
       "hashPath": "harfbuzzsharp.nativeassets.win32.7.3.0.2.nupkg.sha512"
     },
-    "LiveChartsCore/2.0.0-rc3.3": {
+    "LiveChartsCore/2.0.0-rc4.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-wPkTgVh3GDlPnOz5Gijb3i1jMRiJmrT6rO7SGq3KlmVb4MoTkZS2HlGn0AYf9TjPafEGf4EdJFSbiHUchKx+8A==",
-      "path": "livechartscore/2.0.0-rc3.3",
-      "hashPath": "livechartscore.2.0.0-rc3.3.nupkg.sha512"
+      "sha512": "sha512-BFbYQ6DYNlg6AodfRxB26R311IxaUla0DfmFTyO0jhaDrgxbiIDt5+CvU1TQxNUijDEH95SI/OHCw2p9DF3rGg==",
+      "path": "livechartscore/2.0.0-rc4.5",
+      "hashPath": "livechartscore.2.0.0-rc4.5.nupkg.sha512"
     },
-    "LiveChartsCore.SkiaSharpView/2.0.0-rc3.3": {
+    "LiveChartsCore.SkiaSharpView/2.0.0-rc4.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-u/m6ows9xI/o2eZUBUARE6CM6AVb9ujNjYY5ytD9FPvNbAmF2Sw1Mye28K3C4QpR0VvRM5BEXh+bOMeTpjx46w==",
-      "path": "livechartscore.skiasharpview/2.0.0-rc3.3",
-      "hashPath": "livechartscore.skiasharpview.2.0.0-rc3.3.nupkg.sha512"
+      "sha512": "sha512-9WX8/trgbcpe2dHNMSve2ZXGVgeAFBqbg9u9HwWeX7IITh+gHUg0bfzc66JUSH6A/tYrZ00xltOMh4nzLE1f3g==",
+      "path": "livechartscore.skiasharpview/2.0.0-rc4.5",
+      "hashPath": "livechartscore.skiasharpview.2.0.0-rc4.5.nupkg.sha512"
     },
-    "LiveChartsCore.SkiaSharpView.Avalonia/2.0.0-rc3.3": {
+    "LiveChartsCore.SkiaSharpView.Avalonia/2.0.0-rc4.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-1BTlnYrjZluwwEqr8vsYCi9OuGtaRZ5SYkH/FPQKxEIWIXncazn+i7uyh29Kg7znnHWbNgFyvVkX4WZ6Sa8yEg==",
-      "path": "livechartscore.skiasharpview.avalonia/2.0.0-rc3.3",
-      "hashPath": "livechartscore.skiasharpview.avalonia.2.0.0-rc3.3.nupkg.sha512"
+      "sha512": "sha512-FBCLxm/TYWcih6SYhRkOCEzSvTV7I+NLmHnifeaoE/1pCuLKIHQ+LvNEMoWhIGM1zMZDSDEZYtkwUaQtGeKYUw==",
+      "path": "livechartscore.skiasharpview.avalonia/2.0.0-rc4.5",
+      "hashPath": "livechartscore.skiasharpview.avalonia.2.0.0-rc4.5.nupkg.sha512"
     },
     "MicroCom.Runtime/0.11.0": {
       "type": "package",
@@ -777,6 +890,34 @@
       "sha512": "sha512-MEnrZ3UIiH40hjzMDsxrTyi8dtqB5ziv3iBeeU4bXsL/7NLSal9F1lZKpK+tfBRnUoDSdtcW3KufE4yhATOMCA==",
       "path": "microcom.runtime/0.11.0",
       "hashPath": "microcom.runtime.0.11.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-0J/9YNXTMWSZP2p2+nvl8p71zpSwokZXZuJW+VjdErkegAnFdO1XlqtA62SJtgVYHdKu3uPxJHcMR/r35HwFBA==",
+      "path": "microsoft.extensions.configuration/8.0.0",
+      "hashPath": "microsoft.extensions.configuration.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Abstractions/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3lE/iLSutpgX1CC0NOW70FJoGARRHbyKmG7dc0klnUZ9Dd9hS6N/POPWhKhMLCEuNN5nXEY5agmlFtH562vqhQ==",
+      "path": "microsoft.extensions.configuration.abstractions/8.0.0",
+      "hashPath": "microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.FileExtensions/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-McP+Lz/EKwvtCv48z0YImw+L1gi1gy5rHhNaNIY2CrjloV+XY8gydT8DjMR6zWeL13AFK+DioVpppwAuO1Gi1w==",
+      "path": "microsoft.extensions.configuration.fileextensions/8.0.0",
+      "hashPath": "microsoft.extensions.configuration.fileextensions.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Json/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-C2wqUoh9OmRL1akaCcKSTmRU8z0kckfImG7zLNI8uyi47Lp+zd5LWAD17waPQEqCz3ioWOCrFUo+JJuoeZLOBw==",
+      "path": "microsoft.extensions.configuration.json/8.0.0",
+      "hashPath": "microsoft.extensions.configuration.json.8.0.0.nupkg.sha512"
     },
     "Microsoft.Extensions.DependencyInjection/8.0.1": {
       "type": "package",
@@ -791,6 +932,34 @@
       "sha512": "sha512-3iE7UF7MQkCv1cxzCahz+Y/guQbTqieyxyaWKhrRO91itI9cOKO76OHeQDahqG4MmW5umr3CcCvGmK92lWNlbg==",
       "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.2",
       "hashPath": "microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileProviders.Abstractions/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZbaMlhJlpisjuWbvXr4LdAst/1XxH3vZ6A0BsgTphZ2L4PGuxRLz7Jr/S7mkAAnOn78Vu0fKhEgNF5JO3zfjqQ==",
+      "path": "microsoft.extensions.fileproviders.abstractions/8.0.0",
+      "hashPath": "microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileProviders.Physical/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UboiXxpPUpwulHvIAVE36Knq0VSHaAmfrFkegLyBZeaADuKezJ/AIXYAW8F5GBlGk/VaibN2k/Zn1ca8YAfVdA==",
+      "path": "microsoft.extensions.fileproviders.physical/8.0.0",
+      "hashPath": "microsoft.extensions.fileproviders.physical.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileSystemGlobbing/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OK+670i7esqlQrPjdIKRbsyMCe9g5kSLpRRQGSr4Q58AOYEe/hCnfLZprh7viNisSUUQZmMrbbuDaIrP+V1ebQ==",
+      "path": "microsoft.extensions.filesystemglobbing/8.0.0",
+      "hashPath": "microsoft.extensions.filesystemglobbing.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Primitives/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bXJEZrW9ny8vjMF1JV253WeLhpEVzFo1lyaZu1vQ4ZxWUlVvknZ/+ftFgVheLubb4eZPSwwxBeqS1JkCOjxd8g==",
+      "path": "microsoft.extensions.primitives/8.0.0",
+      "hashPath": "microsoft.extensions.primitives.8.0.0.nupkg.sha512"
     },
     "ShimSkiaSharp/2.0.0.1": {
       "type": "package",
@@ -869,6 +1038,20 @@
       "path": "system.io.pipelines/8.0.0",
       "hashPath": "system.io.pipelines.8.0.0.nupkg.sha512"
     },
+    "System.Text.Encodings.Web/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ==",
+      "path": "system.text.encodings.web/8.0.0",
+      "hashPath": "system.text.encodings.web.8.0.0.nupkg.sha512"
+    },
+    "System.Text.Json/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OdrZO2WjkiEG6ajEFRABTRCi/wuXQPxeV6g8xvUJqdxMvvuCCEk86zPla8UiIQJz3durtUEbNyY/3lIhS0yZvQ==",
+      "path": "system.text.json/8.0.0",
+      "hashPath": "system.text.json.8.0.0.nupkg.sha512"
+    },
     "Tmds.DBus.Protocol/0.20.0": {
       "type": "package",
       "serviceable": true,
@@ -877,6 +1060,11 @@
       "hashPath": "tmds.dbus.protocol.0.20.0.nupkg.sha512"
     },
     "DataAccess/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Reporting.lib/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

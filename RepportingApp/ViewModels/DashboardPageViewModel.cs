@@ -79,17 +79,17 @@ public partial class DashboardPageViewModel : ViewModelBase
     
 
     #region Services
-
-    private readonly IMessenger _messanger;
-    public ToastNotificationViewModel ToastNotificationViewModel { get; set; } = new ToastNotificationViewModel();
     
-   
+ 
+    public ObservableCollection<ToastNotificationViewModel> ToastNotificationsModel { get; } =
+        new ();
+
     #endregion
     public ObservableCollection<RegionProxyInfo> RegionProxyInfoList { get; set; }
 
     public DashboardPageViewModel(IMessenger messenger):base(messenger)
     {
-        _messanger = messenger;
+       
         #region main chart
         _errorProgressChart = new ErrorProgressChart();
         _errorProgressChart.GenerateChartData();
@@ -184,18 +184,6 @@ public partial class DashboardPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task FilterTable()
     {
-
-        // Log before sending
-        Debug.WriteLine("Sending ProcessStartMessage...");
-        
-        _messanger.Send(new ProcessStartMessage("Filtering Data", new { param1 = "value1" }));
-        await ShowToast();
-        await Task.Delay(10000);
-
-        // Log before sending the finish message
-        Debug.WriteLine("Sending ProcessFinishedMessages...");
-
-        _messanger.Send(new ProcessFinishedMessages("ProcessName", new { Result1 = "Success" }));
         var sd = SelectedDate;
         var st = SelectedTime;
 
@@ -285,15 +273,40 @@ private List<RegionProxyInfo> GetRegionProxyInfo(List<ProxyModel> proxies)
     return regionCounts;
 }
 
-public async Task ShowToast()
+public async Task ShowToast(string type,string message ,object parameters)
 {
-    await ToastNotificationViewModel.ShowToast("This is a toast message!","Success");
+    if (parameters is ProcessModel processModel)
+    {
+      
+        var toast = new ToastNotificationViewModel(RemoveToast);
+        ToastNotificationsModel.Add(toast);
+
+        await toast.ShowToast(message, $"{processModel.ProcessDate}",type);
+    }
+
+    if (parameters is StartProcessNotifierModel startProcessNotifierModel)
+    {
+        var toast = new ToastNotificationViewModel(RemoveToast);
+        ToastNotificationsModel.Add(toast);
+
+        await toast.ShowToast(message, $"{startProcessNotifierModel.ProcessDate}",type);
+    }
+  
 }
 
 
+private void RemoveToast(ToastNotificationViewModel toast)
+{
+    ToastNotificationsModel.Remove(toast);
+}
+protected override async Task OnProcessStarted(string type,string processName, object parameters)
+{
+    await ShowToast(type,processName, parameters);
+}
 
-
-
-
+protected override async Task OnProcessFinished(string type, string processName, object parameters)
+{
+    await ShowToast(type,processName, parameters);
+}
 }
 

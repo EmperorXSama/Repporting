@@ -4,7 +4,7 @@
     {
         public int ProcessId { get; set; }
         public string OperationName { get; set; }
-        public DateTime ProcessDate { get; set; }
+        public DateTime ProcessDate { get; set; } = DateTime.UtcNow;
         /*public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }*/
         public int NumberOfEmailsInProcess { get; set; }

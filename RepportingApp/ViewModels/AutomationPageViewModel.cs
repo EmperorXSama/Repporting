@@ -1,24 +1,37 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Data.Common;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DataAccess.Models;
 using RepportingApp.CoreSystem.Broadcast;
 
 namespace RepportingApp.ViewModels;
 
-public partial class AutomationPageViewModel(IMessenger messenger) : ViewModelBase(messenger)
+public partial class AutomationPageViewModel : ViewModelBase
 {
-    private readonly IMessenger _messenger = messenger;
-
-    [ObservableProperty] private string _text = "Hello World";
-
-
-    protected override void OnProcessStarted(string processName, object parameters)
+    
+    public AutomationPageViewModel(IMessenger messenger) : base(messenger)
     {
-       Text = $"Process: {processName} started";
+     
     }
 
-    protected override void OnProcessFinished(string processName, object result)
+
+    [RelayCommand]
+    private async Task ProcessAStart()
     {
-       Text = $"Process: {processName} finished";
+        _messenger.Send(new ProcessStartMessage("Success","Process A ",new ProcessModel()));
+       
+    }
+    
+    protected override async Task OnProcessStarted(string type,string processName, object parameters)
+    {
+      
+    }
+
+    protected override async Task OnProcessFinished(string type,string processName, object result)
+    {
+       
     }
     public void Dispose()
     {
