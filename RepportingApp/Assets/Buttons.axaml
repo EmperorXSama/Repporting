@@ -1,0 +1,35 @@
+﻿<!-- ButtonStyles.axaml -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTheme x:Key="{x:Type Button}" TargetType="Button">
+        <!-- Default styles for Button -->
+        <Setter Property="Background" Value="{StaticResource MainWhite}" />
+        <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}">
+                    <ContentPresenter x:Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Margin="{TemplateBinding Padding}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- PointerOver state -->
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{StaticResource Secondary}" />
+            <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <!-- Pressed state -->
+        <Style Selector="^:pressed">
+            <Setter Property="Background" Value="{StaticResource Secondary}" />
+            <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

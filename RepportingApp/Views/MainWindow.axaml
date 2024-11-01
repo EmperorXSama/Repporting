@@ -11,7 +11,8 @@
          ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="0"
-        CornerRadius="2222">
+        CornerRadius="2222"
+        WindowStartupLocation="CenterOwner">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,

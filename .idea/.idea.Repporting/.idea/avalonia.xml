@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="RepportingApp/App.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Assets/Buttons.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Assets/Colors.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Assets/Colors.xaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Assets/Styles.axaml" value="RepportingApp/RepportingApp.csproj" />

@@ -1,8 +1,13 @@
-﻿using Avalonia;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.VisualTree;
 using Microsoft.Extensions.DependencyInjection;
 using RepportingApp.ViewModels;
 
@@ -44,5 +49,61 @@ public partial class ReportingPageView : UserControl
         }
     }
 
+    private async void ChooseFileButton_Click(object sender, RoutedEventArgs e)
+    {
+        var parentWindow = this.GetVisualRoot() as Window;
 
+        if (parentWindow == null) return; // Ensure we have a valid window
+
+        var openFileDialog = new OpenFileDialog
+        {
+            AllowMultiple = false,
+            Filters = new List<FileDialogFilter>
+            {
+                new FileDialogFilter { Name = "Excel Files", Extensions = { "xls", "xlsx" } },
+                new FileDialogFilter { Name = "text Files", Extensions = { "txt" } },
+            }
+        };
+
+        var result = await openFileDialog.ShowAsync(parentWindow);
+
+        if (result != null && result.Length > 0 && DataContext is ReportingPageViewModel viewModel)
+        {
+            viewModel.OnDropFile(result[0]);
+        }
+    }
+
+    private async void Border_OnDrop(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = DragDropEffects.Copy;
+
+        // Check if any of the alternative formats contain file paths
+        if (e.Data.Contains("FileName") || e.Data.Contains("FileNameW") || e.Data.Contains("Files"))
+        {
+            var files = e.Data.GetFileNames();
+
+            if (files != null && DataContext is ReportingPageViewModel viewModel)
+            {
+                var filePath = files.First();
+                if (IsValidFile(filePath))
+                {
+                    viewModel.OnDropFile(filePath);
+                }
+                else
+                {
+                    // Handle invalid file type feedback if needed
+                }
+            }
+        }
+    }
+
+
+// Method to validate file extensions
+    private bool IsValidFile(string filePath)
+    {
+        var validExtensions = new[] { ".xlsx", ".xls", ".txt" };
+        var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
+
+        return validExtensions.Contains(fileExtension);
+    }
 }

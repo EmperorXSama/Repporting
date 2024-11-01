@@ -8,6 +8,7 @@
             <SolidColorBrush x:Key="LightGrey" Color="#E5E6E4" />
             <SolidColorBrush x:Key="MainWhite" Color="#FBFBF2" />
             <SolidColorBrush x:Key="MainRed" Color="#EC4067" />
+            <SolidColorBrush x:Key="TextMain" Color="#333333" />
         </Style.Resources>
     </Style>
 </Styles>

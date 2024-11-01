@@ -25,6 +25,9 @@ build_property.EnableCodeStyleSeverity =
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Assets/Buttons.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Assets/Colors.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

@@ -1,13 +1,3 @@
-using System;
-using System.IO;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Markup.Xaml;
-using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using RepportingApp.ViewModels;
-using RepportingApp.Views;
 
 namespace RepportingApp;
 
@@ -36,6 +26,10 @@ public partial class App : Application
         serviceCollection.AddSingleton<HomePageViewModel>();
         serviceCollection.AddSingleton<MainWindowViewModel>();
         serviceCollection.AddSingleton<ReportingPageViewModel>();
+        
+        
+        
+        serviceCollection.AddSingleton<SystemConfigurationEstimator>();
         _ServiceProvider = serviceCollection.BuildServiceProvider();
         
         #endregion

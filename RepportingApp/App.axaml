@@ -16,7 +16,7 @@
         <StyleInclude Source="avares://RepportingApp/Assets/icons.axaml"></StyleInclude>
         <StyleInclude Source="avares://RepportingApp/Assets/Colors.axaml"></StyleInclude>
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"></StyleInclude>
-        
+      
         
     </Application.Styles>
      <Application.Resources>
@@ -29,6 +29,38 @@
          <helper:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter"/>
          <helper:IconNameToResourceConverter x:Key="IconNameToResourceConverter"/>
          <Color x:Key="Primary">#847577</Color>
+         <ControlTheme x:Key="CustomBtn" TargetType="Button">
+             <!-- Default styles for Button -->
+             <Setter Property="Background" Value="{StaticResource MainWhite}" />
+             <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+             <Setter Property="Cursor" Value="Hand" />
+             <Setter Property="Padding" Value="8" />
+             <Setter Property="Template">
+                 <ControlTemplate>
+                     <Border Background="{TemplateBinding Background}">
+                         <ContentPresenter x:Name="PART_ContentPresenter"
+                                           Content="{TemplateBinding Content}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Margin="{TemplateBinding Padding}" />
+                     </Border>
+                 </ControlTemplate>
+             </Setter>
+
+             <!-- PointerOver state -->
+             <Style Selector="^:pointerover">
+                 <Setter Property="Background" Value="{StaticResource MainWhite}" />
+                 <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                 <Setter Property="FontWeight" Value="SemiBold" />
+             </Style>
+
+             <!-- Pressed state -->
+             <Style Selector="^:pressed">
+                 <Setter Property="Background" Value="{StaticResource MainWhite}" />
+                 <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+             </Style>
+         </ControlTheme>
+       
      </Application.Resources>
              
 </Application>
