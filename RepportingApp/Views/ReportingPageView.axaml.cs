@@ -8,8 +8,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
+using ExCSS;
 using Microsoft.Extensions.DependencyInjection;
 using RepportingApp.ViewModels;
+using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
 
 namespace RepportingApp.Views;
 
@@ -106,4 +108,8 @@ public partial class ReportingPageView : UserControl
 
         return validExtensions.Contains(fileExtension);
     }
+
+   
+
+
 }

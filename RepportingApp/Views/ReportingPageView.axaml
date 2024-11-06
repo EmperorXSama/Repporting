@@ -4,10 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:local="clr-namespace:Reporting.lib.enums;assembly=Reporting.lib"
+             xmlns:li="using:LoadingIndicators.Avalonia"
              mc:Ignorable="d"   d:DesignWidth="1620" d:DesignHeight="900"
              x:Class="RepportingApp.Views.ReportingPageView"
              x:DataType="viewModels:ReportingPageViewModel">
-    <Grid x:Name="MainGrid" Background="{StaticResource MainWhite}">
+    <Grid x:Name="MainGrid" Background="White">
         <Grid.ColumnDefinitions>
             <!-- Main content column -->
             <ColumnDefinition Width="*" /> 
@@ -17,7 +18,7 @@
         
         <!-- Side Menu -->
         <Border Grid.Column="1"
-                Background="{StaticResource MainWhite}"
+                Background="White"
                 IsVisible="{Binding IsMenuOpen}"
                 Padding="10">
        
@@ -462,31 +463,461 @@
                 Padding="3"
                 Margin="7"
                 CornerRadius="4"
-                Background="#eeeeee">
-            <Grid ColumnDefinitions="3*,2*" 
-                  RowDefinitions="40,*">
+               >
+            <Grid ColumnDefinitions="5*,1,2*" 
+                  RowDefinitions="40,*"
+                  >
                 <!--side progress area-->
-                <Border  Grid.Row="0" Grid.Column="1">
-                    <StackPanel>
-                        <TextBlock>
-                            <TextBlock Text="Logical Processors :"/>
-                            <TextBlock Text="{Binding LogicalProcessorCountDisplay}" />
-                           
-                        </TextBlock>
+                <Border  Grid.Row="0" Grid.Column="2"
+                         Grid.RowSpan="2"
+                        Margin="7,0,0,0"
+                        >
+                    <Grid RowDefinitions="170,*">
+                         <Grid ColumnDefinitions="*,10,*,10,*">
+                             <Border Background="#ffe9e1" CornerRadius="0,0,55,55"
+                                     Padding="9">
+                                 <Grid RowDefinitions="30,*">
+                                     <TextBlock Text="Logical Processors" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
+                                                FontSize="11" HorizontalAlignment="Center"/>
+                                     <TextBlock Grid.Row="1" Text="{Binding LogicalProcessorCountDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
+
+                                 </Grid>
+
+                             </Border>
+                             <Border Grid.Column="2" Background="#eaefe8" CornerRadius="0,0,55,55"
+                                     Padding="9">
+                                 <Grid RowDefinitions="30,*">
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
+                                                FontSize="11" HorizontalAlignment="Center">
+                                         <TextBlock Text="Recommended " /> <LineBreak /> <TextBlock Text="Batch Size" HorizontalAlignment="Center" />
+                                     </TextBlock>
+                                     <TextBlock Grid.Row="1" Text="{Binding RecommendedBatchSizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
+
+                                 </Grid>
+
+                             </Border>
+                             <Border Grid.Column="4" Background="#f0d7ed" CornerRadius="0,0,55,55"
+                                     Padding="9">
+                                 <Grid RowDefinitions="30,*">
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
+                                                FontSize="11" HorizontalAlignment="Center">
+                                         <TextBlock Text="Recommended " /> <LineBreak /> <TextBlock Text="maxDegreeOfParallelism" />
+                                     </TextBlock>
+                                     <TextBlock Grid.Row="1" Text="{Binding RecommendedMaxDegreeOfParallelismDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
+
+                                 </Grid>
+
+                             </Border>
+                             
+                        </Grid>
                         
-                        <TextBlock>
-                            <TextBlock Text="Recommended maxDegreeOfParallelism :"/>
-                            <TextBlock Text="{Binding RecommendedMaxDegreeOfParallelismDisplay}" />
-                           
-                        </TextBlock>
+                        <Border Grid.Row="1"
+                                Margin="0,40,0,0"
+                               Padding="10,0">
+                            <Grid RowDefinitions="60,*">
+                                <Border Background="White"
+                                        Padding="10"
+                                        Margin="0,0,0,10">
+                                    <DockPanel >
+                                        <TextBlock Text="Processes"
+                                                   HorizontalAlignment="Center"
+                                                   FontFamily="{StaticResource Roboto}"
+                                                   FontWeight="Medium"
+                                                   FontSize="20"></TextBlock>
+                                    </DockPanel>
+                                </Border>
+                                <Border Grid.Row="1" Background="#F3F5F7"
+                                        
+                                >
+                                    <DockPanel>
+                                        <TabControl  Background="White" >
+                                            
+                                            <TabItem Header="All" FontSize="14" >
+                                        <!-- Content for the 'All' section -->
+                                        <ListBox ItemsSource="{Binding ActiveTasks}" Background="White">
+                                            <ListBox.Styles>
+                                                <!-- Style for ListBoxItem -->
+                                                <Style Selector="ListBoxItem">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                </Style>
+                                                <!-- Hover effect -->
+                                                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </Style>
+                                                <!-- Selected effect -->
+                                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </Style>
+                                            </ListBox.Styles>
+
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border CornerRadius="5"
+                                                            Padding="0"
+                                                           Background="White"
+                                                            BoxShadow="0 0 0.5 1 LightGray"
+                                                            >
+                                                        <Grid RowDefinitions="*,4">
+                                                            <Border Padding="6,6,6,6">
+                                                                <Grid RowDefinitions="*,15,*">
+                                                                     <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <Ellipse  VerticalAlignment="Center" Width="10" Height="10" Fill="#027BCE" Margin="0,0,9,0"/>
+                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"  FontFamily="{StaticResource Roboto}"  ></TextBlock>
+                                                                        </StackPanel>
+                                                                         
+                                                                         <StackPanel Grid.Column="1"
+                                                                             HorizontalAlignment="Center" Orientation="Horizontal">
+                                                                    
+                                                                  
+                                                                    
+                                                                            <!-- Conditionally visible TextBlock for Success Messages -->
+                                                                            <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
+                                                                                    Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                    FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
+                                                                                    HorizontalAlignment="Center"
+                                                                                   />
+                                                                            </Border>    
+                                                                            <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                <!-- Conditionally visible TextBlock for Failed Messages -->
+                                                                                <TextBlock Text="{Binding ItemFailedMessasges.Count}"
+                                                                                    Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                    FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
+                                                                                    HorizontalAlignment="Center"
+                                                                                    VerticalAlignment="Center"
+                                                                                   />
+                                                                            </Border>
+                                                                       
+            
+                                                                      
+                                                                        </StackPanel>
+                                                                        <Border Grid.Column="2"
+                                                                            BorderBrush="{Binding Color}"
+                                                                                BorderThickness="0"
+                                                                                Background="{Binding SoftColor}"
+                                                                                Padding="8"
+                                                                                CornerRadius="15"
+                                                                                HorizontalAlignment="Right">
+                                                                            <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                    
+                                                                        <DockPanel Grid.Row="2" >
+                                                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource LightGrey}" />
+                                                                            <Button HorizontalAlignment="Right" Command="{Binding CancelCommand}" Margin="5" Background="Transparent" Cursor="Hand">
+                                                                                <PathIcon Data="{StaticResource CloseTaskIcon}" Foreground="{StaticResource MainRed}" ></PathIcon>
+                                                                            </Button>
+                                                                        </DockPanel>
+                                                           
+                                                                </Grid>
+                                                            </Border>
+                                                           
+                                                            <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </TabItem>
+
+                                            <TabItem Header="Cancelled" FontSize="14" >
+                                                <!-- Content for the 'Following' section -->
+                                            </TabItem>
+                                            <TabItem Header="Pending" FontSize="14" >
+                                                  <ListBox ItemsSource="{Binding CampaignTasks}" Background="White">
+                                                        <ListBox.Styles>
+                                                            <!-- Style for ListBoxItem -->
+                                                            <Style Selector="ListBoxItem">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                            </Style>
+                                                            <!-- Hover effect -->
+                                                            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                                                <Setter Property="Background" Value="Transparent" />
+                                                            </Style>
+                                                            <!-- Selected effect -->
+                                                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                                                <Setter Property="Background" Value="Transparent" />
+                                                            </Style>
+                                                        </ListBox.Styles>
+
+                                                        <ListBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border CornerRadius="5"
+                                                                        Padding="0"
+                                                                       Background="White"
+                                                                        BoxShadow="0 0 0.5 1 LightGray"
+                                                                        >
+                                                                    <Grid RowDefinitions="*,4">
+                                                                        <Border Padding="6,6,6,6">
+                                                                            <Grid RowDefinitions="*,15,*">
+                                                                                 <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
+                                                                                    <StackPanel Orientation="Horizontal">
+                                                                                        <Ellipse  VerticalAlignment="Center" Width="10" Height="10" Fill="#027BCE" Margin="0,0,9,0"/>
+                                                                                        <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"  FontFamily="{StaticResource Roboto}"  ></TextBlock>
+                                                                                    </StackPanel>
+                                                                                     
+                                                                                     <StackPanel Grid.Column="1"
+                                                                                         HorizontalAlignment="Center" Orientation="Horizontal">
+                                                                                
+                                                                              
+                                                                                
+                                                                                        <!-- Conditionally visible TextBlock for Success Messages -->
+                                                                                        <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
+                                                                                                Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                                FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
+                                                                                                HorizontalAlignment="Center"
+                                                                                               />
+                                                                                        </Border>    
+                                                                                        <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                            <!-- Conditionally visible TextBlock for Failed Messages -->
+                                                                                            <TextBlock Text="{Binding ItemFailedMessasges.Count}"
+                                                                                                Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                                FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
+                                                                                                HorizontalAlignment="Center"
+                                                                                                VerticalAlignment="Center"
+                                                                                               />
+                                                                                        </Border>
+                                                                                   
                         
-                        <TextBlock>
-                            <TextBlock Text="Recommended Batch Size :"/>
-                            <TextBlock Text="{Binding RecommendedBatchSizeDisplay}" />
-                           
-                        </TextBlock>
+                                                                                  
+                                                                                    </StackPanel>
+                                                                                    <Border Grid.Column="2"
+                                                                                        BorderBrush="{Binding Color}"
+                                                                                            BorderThickness="0"
+                                                                                            Background="{Binding SoftColor}"
+                                                                                            Padding="8"
+                                                                                            CornerRadius="15"
+                                                                                            HorizontalAlignment="Right">
+                                                                                        <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
+                                                                                    </Border>
+                                                                                </Grid>
+                                                                                
+                                                                                    <DockPanel Grid.Row="2" >
+                                                                                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource LightGrey}" />
+                                                                                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeUntilNextRun,Mode=TwoWay}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource MainRed}" />
+                                                                                        <Button HorizontalAlignment="Right" Command="{Binding CancelCommand}" Margin="5" Background="Transparent" Cursor="Hand">
+                                                                                            <PathIcon Data="{StaticResource CloseTaskIcon}" Foreground="{StaticResource MainRed}" ></PathIcon>
+                                                                                        </Button>
+                                                                                    </DockPanel>
+                                                                       
+                                                                            </Grid>
+                                                                        </Border>
+                                                                       
+                                                                        <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ListBox.ItemTemplate>
+                                                    </ListBox>
+                                                </TabItem>
+                                        </TabControl>
+
+                                    </DockPanel>
+                                    
+                                    
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Background="{StaticResource LightGrey}" />
+                <!--Content-->
+                <Border  Grid.RowSpan="2" Grid.Row="0" Grid.Column="0"
+                       >
+                    <Grid  
                         
-                        <StackPanel>
+                          ColumnDefinitions="*,10,Auto"
+                          RowDefinitions="40,*">
+                        <Button Grid.Row="0" Grid.Column="0"
+                                Background="Transparent"
+                                CornerRadius="100"
+                                Click="ToggleSideMenu"
+                                BorderThickness="3"
+                                Cursor="Hand"
+                                Margin="10">
+                            <Button.Styles>
+                                <Style Selector="Button">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="Transparent" />
+                                </Style>
+                                <Style Selector="Button:selected /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="Transparent" />
+                                </Style>
+                            </Button.Styles>
+                            <PathIcon  Data="{StaticResource GearIcon}" >
+                                <PathIcon.Styles>
+                                    <Style Selector="PathIcon">
+                                        <Setter Property="Foreground" Value="{StaticResource TentGrey}"/>
+                                    </Style>
+                                    <Style Selector="PathIcon:pointerover">
+                                        <Setter Property="Foreground" Value="{StaticResource MainGreen}" />
+                                    </Style>
+                                </PathIcon.Styles>
+                            </PathIcon>
+                        </Button>
+                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" >
+                            <Border BorderThickness="1"
+                                    BorderBrush="{StaticResource LightGrey}"
+                                    CornerRadius="6"
+                                    Height="">
+                                <Button HorizontalAlignment="Right"
+                                        Background="Transparent"
+                                        Theme="{StaticResource CustomBtn}"
+                                        Command="{Binding OpenFileUploadPopupCommand}">
+                                    <DockPanel>
+                                        <PathIcon Data="{StaticResource UploadIcon}"
+                                                  Width="14"
+                                                  Margin="0,0,12,0"
+                                                  Foreground="{StaticResource MainAlert}"/>
+                                        <TextBlock Text="upload"
+                                                   FontFamily="{StaticResource Roboto}" 
+                                                   Foreground="{StaticResource MainAlert}"/>
+                                    </DockPanel>
+                                </Button>
+                            </Border>
+                           
+                            
+                            <Border  Background="{StaticResource MainAlert}"
+                                     Margin="20,0,7,0"
+                                     Height="34"
+                                     Width="34"
+                                     CornerRadius="20">
+                                <Button 
+                                       
+                                        Background="Transparent"
+                                        x:Name="NotificationElement"
+                                        Theme="{StaticResource CustomBtn}"
+                                        Command="{Binding OpenNotificationopupCommand}">
+                             
+                                    <PathIcon Data="{StaticResource NotificationIcon}"
+                                              Width="16"
+                                           
+                                              Foreground="{StaticResource LightGrey}"/>
+                               
+                                </Button>
+                            </Border>
+                           
+                        </StackPanel> 
+                        <Grid RowDefinitions="*,*,3*"  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+                            <Border  Padding="10">
+                                <Grid ColumnDefinitions="*,20,*,20,*">
+                                    
+                                    <Border CornerRadius="20" Padding="15" Background="#ffe9e1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                        <Grid ColumnDefinitions="*,*" >
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding TasksCount , Mode=TwoWay}" FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"></TextBlock>
+                                                    <Border  VerticalAlignment="Center" Background="{StaticResource SecondaryGreen}" Padding="7" CornerRadius="12" Margin="9,0,0,0">
+                                                        <TextBlock Text="{Binding RemainingOpenTasks}" FontSize="14" FontFamily="{StaticResource Roboto}" Foreground="White" FontWeight="Black"
+                                                                   ></TextBlock>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="ON GOING" FontSize="14" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" >
+                                                <Svg Path="/Assets/image/binary-coding.svg"
+                                                     Width="100" 
+                                                     Height="100" 
+                                                     Stretch="Uniform" 
+                                                     StretchDirection="Both"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Column="2" CornerRadius="20" Padding="15" Background="#f0d7ed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                        <Grid ColumnDefinitions="*,*" >
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="3" FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"></TextBlock>
+                                                    <Border  VerticalAlignment="Center" Background="White" Padding="5" CornerRadius="12" Margin="9,0,0,0">
+                                                        <TextBlock Text="27 min" FontSize="14" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}" FontWeight="Black"
+                                                        ></TextBlock>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="PENDING" FontSize="14" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" >
+                                                <Svg Path="/Assets/image/deadline.svg"
+                                                     Width="100" 
+                                                     Height="100" 
+                                                     Stretch="Uniform" 
+                                                     StretchDirection="Both"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Column="4" CornerRadius="20" Padding="15" Background="#eaefe8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                        <Grid ColumnDefinitions="*,*" >
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="4h 30min" FontSize="30" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"></TextBlock>
+                                                </StackPanel>
+                                                <TextBlock Text="Begin at" FontSize="14" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" >
+                                                <Svg Path="/Assets/image/clock.svg"
+                                                     Width="100" 
+                                                     Height="100" 
+                                                     Stretch="Uniform" 
+                                                     StretchDirection="Both"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    
+                                </Grid>
+                            </Border>
+                           
+                            <Border Grid.Row="1" Padding="100,0">
+                                <StackPanel VerticalAlignment="Center"  HorizontalAlignment="Stretch" >
+                                    <Border 
+                                            BorderBrush="{StaticResource LightGrey}"
+                                            CornerRadius="20"
+                                            BorderThickness="1"
+                                            Padding="4">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <Button Theme="{StaticResource CustomBtn}" Background="Transparent" Command="{Binding AddSingleCampaignTaskCommand }">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon Width="13" Data="{StaticResource AddIcon}" Foreground="{StaticResource MainGreen}" Margin="0,0,10,0" />
+                                                    <TextBlock Text="Add campain" Foreground="{StaticResource MainGreen}" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <Border  Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                             Background="{StaticResource MainAlert}"
+                                            BorderThickness="1,0,1,1"
+                                            CornerRadius="0,0,9,9"> 
+                                        <Button Theme="{StaticResource CustomBtn}" Background="Transparent" VerticalAlignment="Top">
+                                            <StackPanel Orientation="Horizontal">
+                                                <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
+                                                <TextBlock Text="view full" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                            </StackPanel>
+                                        </Button>
+                                    </Border>
+                                </StackPanel>
+                               
+                            </Border>
+                            <DataGrid Grid.Row="2"  ItemsSource="{Binding EmailAccounts}" AutoGenerateColumns="False" HorizontalAlignment="Center">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Email Address" Binding="{Binding EmailAddress}" />
+                                    <DataGridTextColumn Header="Password" Binding="{Binding Password}" />
+                                    <DataGridTextColumn Header="Recovery Email" Binding="{Binding RecoveryEmail}" />
+                                    <DataGridTextColumn Header="Proxy IP" Binding="{Binding Proxy.ProxyIp}" />
+                                    <DataGridTextColumn Header="Port" Binding="{Binding Proxy.Port}" />
+                                    <DataGridTextColumn Header="Proxy Username" Binding="{Binding Proxy.Username}" />
+                                    <DataGridTextColumn Header="Proxy Password" Binding="{Binding Proxy.Password}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                        <!--<StackPanel Grid.Row="3" Grid.Column="2">
                             <TextBlock Text="Task Messages:" FontWeight="Bold"/>
                             <ListBox ItemsSource="{Binding TaskMessages,Mode=TwoWay}" />
 
@@ -494,47 +925,12 @@
                             <ListBox ItemsSource="{Binding ErrorMessages}" />
     
                             <Button Content="Start Tasks" Command="{Binding StartTasksCommand}" />
-                        </StackPanel>
-                        <StackPanel Margin="0,30,0,0">
-                            <ListBox ItemsSource="{Binding ActiveTasks}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" Margin="5" />
-                                            <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-                <!--Content-->
-            <Border >
-                <Button HorizontalAlignment="Center"
-                        Theme="{StaticResource CustomBtn}"
-                        Command="{Binding OpenFileUploadPopupCommand}">
-                    <DockPanel>
-                        <PathIcon Data="{StaticResource UploadIcon}"
-                                  Width="14"
-                                  Margin="0,0,12,0"
-                                  Foreground="{StaticResource Secondary}"/>
-                        <TextBlock Text="upload"
-                                   FontFamily="{StaticResource Roboto}" />
-                    </DockPanel>
-                </Button>
+                        </StackPanel>-->
+                       
+                    </Grid>
+                   
             </Border>
-                <DataGrid Grid.Row="1" Grid.Column="0" ItemsSource="{Binding EmailAccounts}" AutoGenerateColumns="False">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Email Address" Binding="{Binding EmailAddress}" />
-                        <DataGridTextColumn Header="Password" Binding="{Binding Password}" />
-                        <DataGridTextColumn Header="Recovery Email" Binding="{Binding RecoveryEmail}" />
-                        <DataGridTextColumn Header="Proxy IP" Binding="{Binding Proxy.ProxyIp}" />
-                        <DataGridTextColumn Header="Port" Binding="{Binding Proxy.Port}" />
-                        <DataGridTextColumn Header="Proxy Username" Binding="{Binding Proxy.Username}" />
-                        <DataGridTextColumn Header="Proxy Password" Binding="{Binding Proxy.Password}" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                
             
             </Grid>
         </Border>
@@ -549,12 +945,17 @@
         <Border IsVisible="{Binding IsUploadPopupOpen}" 
                 Background="LightGray" 
                 HorizontalAlignment="Center" 
+                BorderThickness="1"
+                BorderBrush="{StaticResource LightGrey}"
                 VerticalAlignment="Top"
-                Margin="0,20,0,0">
+                Margin="0,20,0,0"
+                IsEnabled="{Binding IsEnabled , Mode=TwoWay}">
+            
             <StackPanel Orientation="Horizontal">
-                 <Border Background="White"  Padding="10"
-                    Width="600"
-                    Height="500">
+             
+                <Border Background="White"  Padding="10"
+                        Width="600"
+                        Height="500">
                     <Grid RowDefinitions="40,*,40"
                          >
                         <Border>
@@ -586,7 +987,7 @@
                                             Background="Transparent"
                                            >
                                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <PathIcon Data="{StaticResource FileUploadIcon}" Foreground="#90A9B7" Width="50" Height="50"
+                                            <PathIcon Data="{StaticResource FileUploadIcon}" Foreground="{StaticResource MainAlert}" Width="50" Height="50"
                                                       Margin="0,0,0,50"/>
                                             <DockPanel>
                                                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource TextMain}"
@@ -648,7 +1049,7 @@
                                                          Value="{Binding UploadProgress}" 
                                                          Height="10"
                                                          Background="{StaticResource MainWhite}"
-                                                         Foreground="#90A9B7"
+                                                         Foreground="{StaticResource MainGreen}"
                                                          Margin="0,10,0,0"/>
                                             <TextBlock Grid.Column="1" HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"
@@ -675,27 +1076,111 @@
                         </Border>
                     </Grid>
                 
-            </Border>
-                <Border Background="White" 
-                        Margin="3,0,0,0"
-                        Width="200"
-                        Height="500">
-                    
                 </Border>
+                    <Border Background="White" 
+                            Margin="1,0,0,0"
+                            Width="350"
+                            Height="500"
+                            >
+                        <Grid >
+                            <Border Grid.RowSpan="5"   IsVisible="{Binding !IsEnabled , Mode=TwoWay}">
+                                <li:LoadingIndicator VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" IsActive="{Binding !IsEnabled , Mode=TwoWay}"  Mode="Arcs" SpeedRatio="1.2"/>
+                            </Border>
+                            <Border Padding="12,12,12,0">
+                                <Grid RowDefinitions="40,Auto,Auto,60,Auto,*"  >
+                                    <Border>
+                                        <TextBlock Text="group selection"
+                                                   FontFamily="{StaticResource Roboto}"
+                                                   Foreground="{StaticResource TextMain}"
+                                                   FontWeight="Medium"
+                                                   HorizontalAlignment="Center"
+                                                   FontStyle="Oblique"/>
+                                    </Border>
+                                    <RadioButton  Grid.Row="1" Content="this will provide you with a form to create new group and assign it to the uploaded list of emails"
+                                                  Tag="Create a new group"
+                                                  GroupName="VisitOption"
+                                                  Height="100"
+                                                  Command="{Binding SelectNewGroupCommand}"
+                                                  IsChecked="{Binding IsNewGroupSelected, Mode=TwoWay}"
+                                                  Theme="{StaticResource CustomRadioButtonTheme}" 
+                                                  Margin="0,0,0,10">
+                                    </RadioButton>
+                                     <RadioButton  Grid.Row="2" Content="this will provide you with a list that contain already pre created groups to choose from"
+                                                   Tag="select existing"
+                                                   GroupName="VisitOption"
+                                                   Command="{Binding SelectExistingGroupCommand}"
+                                                   IsChecked="{Binding IsExistingGroupSelected, Mode=TwoWay}"
+                                                   Theme="{StaticResource CustomRadioButtonTheme}" />
+                            
+                                    <StackPanel Grid.Row="4" IsVisible="{Binding IsNewGroupSelected}" Orientation="Vertical" Spacing="5">
+                                        <TextBox 
+                                                 Padding="9"
+                                                 BorderBrush="{StaticResource LightGrey}"
+                                                 CornerRadius="9"
+                                                 UseFloatingWatermark="False"
+                                                 Watermark="Enter new group name"
+                                                 FontFamily="{StaticResource Roboto}"
+                                                 
+                                                 Text="{Binding NewGroupName, Mode=TwoWay}" />
+                                        <Border   Width="140"
+                                                  BorderBrush="{StaticResource LightGrey}"
+                                                  BorderThickness="0"
+                                                  CornerRadius="9"
+                                                  Background="{StaticResource MainAlert}">
+                                            <Button Content="Create Group"
+                                                  
+                                                    Background="Transparent"
+                                                   Foreground="{StaticResource MainWhite}"
+                                                    Theme="{StaticResource CustomBtn}"
+                                                    Command="{Binding CreateNewGroupCommand}" />
+                                        </Border>
+                                      
+                                    </StackPanel>
+                                
+                                    <ComboBox Grid.Row="4" ItemsSource="{Binding Groups}"
+                                              SelectedItem="{Binding SelectedEmailGroup, Mode=TwoWay}"
+                                              IsEnabled="{Binding IsExistingGroupSelected}"
+                                              IsVisible="{Binding IsExistingGroupSelected}"
+                                              PlaceholderText="Select a group">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+
+                            <!-- Display selected group details, for demonstration purposes -->
+                                     <Border  Grid.Row="5" >
+                                         <Border Width="220"
+                                                 Height="30"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Bottom"
+                                                 Background="{StaticResource Primary}"
+                                                 Padding="4"
+                                                 CornerRadius="9,9,0,0">
+                                             <TextBlock 
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Bottom"
+                                                 FontFamily="{StaticResource Roboto}"
+                                                 Foreground="{StaticResource MainWhite}"
+                                                       >
+                                                 <TextBlock Text="Selected Group: "/><TextBlock  Foreground="{Binding SelectedEmailGroup.Name, Converter={StaticResource GroupNameToColorConverter}}"  Text="{Binding SelectedEmailGroup.Name}"/>
+                                             </TextBlock>
+                                         </Border>
+                                       
+                                     </Border>
+                          
+                        
+                                </Grid>
+                            </Border>
+                           
+                        </Grid>
+                        
+                    </Border>
             </StackPanel>
            
     </Border>
-        <Button
-            Background="#eeeeee"
-            CornerRadius="100"
-            Click="ToggleSideMenu"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            BorderThickness="3"
-            
-            Margin="10">
-            <PathIcon Foreground="Black" Data="{StaticResource AutomationIcon}" />
-        </Button>
+        
 
        <Popup IsOpen="{Binding IsPopupOpen ,Mode=TwoWay}" PlacementMode="Center">
     <Border Background="White" CornerRadius="10" Padding="10">
@@ -805,7 +1290,122 @@
         </StackPanel>
     </Border>
 </Popup>
+        <Popup IsLightDismissEnabled="True" 
+               Width="350"
+               Height="550"
+               
+               PlacementTarget="{Binding ElementName=NotificationElement}" 
+               IsOpen="{Binding IsNotificationOpen, Mode=TwoWay}">
+                    <Border BorderBrush="#CFD2CD" BorderThickness="1"  Background="White"
+                        CornerRadius="15"
+                        Padding="15"
+                        Width="350"
+                        Height="550"
+                    >
+                        
+                        <StackPanel>
+                            
+                            <Border BorderBrush="LightGray" BorderThickness="1" Cursor="Hand" Margin="0,0,0,10" >
+                                <Button Theme="{StaticResource CustomBtn}"
+                                        Command="{Binding ClearAllNotificationsCommand}"
+                                        Background="White">
+                                    <TextBlock Text="Clear All" ></TextBlock>
+                                </Button>
+                            </Border>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden">
+                                 <ListBox ItemsSource="{Binding NotificationTasks}" Background="White">
+                                            <ListBox.Styles>
+                                                <!-- Style for ListBoxItem -->
+                                                <Style Selector="ListBoxItem">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                </Style>
+                                                <!-- Hover effect -->
+                                                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                  
+                                                </Style>
+                                                <!-- Selected effect -->
+                                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </Style>
+                                            </ListBox.Styles>
 
+                                            <ListBox.ItemTemplate>
+                                               <DataTemplate>
+                                                    <Border CornerRadius="5"
+                                                            BorderThickness="1"
+                                                            Padding="0"
+                                                            BorderBrush="DarkGray"
+                                                           Background="White"
+                                                            >
+                                                        <Grid RowDefinitions="*,4">
+                                                            <Border Padding="6,6,6,6">
+                                                                <Grid RowDefinitions="*,15,*">
+                                                                     <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <Ellipse  VerticalAlignment="Center" Width="10" Height="10" Fill="#027BCE" Margin="0,0,5,0"/>
+                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"  FontFamily="{StaticResource Roboto}"  ></TextBlock>
+                                                                        </StackPanel>
+                                                                         
+                                                                         <StackPanel Grid.Column="1"
+                                                                             HorizontalAlignment="Center" Orientation="Horizontal">
+                                                                    
+                                                                  
+                                                                    
+                                                                            <!-- Conditionally visible TextBlock for Success Messages -->
+                                                                            <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
+                                                                                    Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                    FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
+                                                                                    HorizontalAlignment="Center"
+                                                                                   />
+                                                                            </Border>    
+                                                                            <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                <!-- Conditionally visible TextBlock for Failed Messages -->
+                                                                                <TextBlock Text="{Binding ItemFailedMessasges.Count}"
+                                                                                    Margin="5" FontSize="16" FontFamily="{StaticResource Roboto}" 
+                                                                                    FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
+                                                                                    HorizontalAlignment="Center"
+                                                                                    VerticalAlignment="Center"
+                                                                                   />
+                                                                            </Border>
+                                                                       
+            
+                                                                      
+                                                                        </StackPanel>
+                                                                        <Border Grid.Column="2"
+                                                                            BorderBrush="{Binding Color}"
+                                                                                BorderThickness="1"
+                                                                                Background="{Binding SoftColor}"
+                                                                                Padding="7"
+                                                                                CornerRadius="15"
+                                                                                HorizontalAlignment="Right">
+                                                                            <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                    
+                                                                        <DockPanel Grid.Row="2" >
+                                                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource LightGrey}" />
+                                                                        </DockPanel>
+                                                           
+                                                                </Grid>
+                                                            </Border>
+                                                           
+                                                            <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                            </ScrollViewer>
+                           
+                        </StackPanel>
+                        
+                       
+                         
+                    </Border>
+        </Popup>
     </Grid>
 </UserControl>
 

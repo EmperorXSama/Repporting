@@ -3,12 +3,19 @@
     <Style>
         <Style.Resources>
             <SolidColorBrush x:Key="Primary" Color="#847577" />
+            <SolidColorBrush x:Key="SecondaryCayan" Color="#00c9ad" />
             <SolidColorBrush x:Key="Secondary" Color="#A6A2A2" />
             <SolidColorBrush x:Key="TentGrey" Color="#CFD2CD" />
             <SolidColorBrush x:Key="LightGrey" Color="#E5E6E4" />
             <SolidColorBrush x:Key="MainWhite" Color="#FBFBF2" />
             <SolidColorBrush x:Key="MainRed" Color="#EC4067" />
-            <SolidColorBrush x:Key="TextMain" Color="#333333" />
+            <SolidColorBrush x:Key="MainAlert" Color="#FF5E2B" />
+            <SolidColorBrush x:Key="LightOrange" Color="#ffaf96 " />
+            <SolidColorBrush x:Key="TentOrange" Color="#F15025" />
+            <SolidColorBrush x:Key="SecondaryAlert" Color="#C0330C" />
+            <SolidColorBrush x:Key="MainGreen" Color="#517d3f" />
+            <SolidColorBrush x:Key="SecondaryGreen" Color="#7fd1ae" />
+            <SolidColorBrush x:Key="TextMain" Color="#171d0e" />
         </Style.Resources>
     </Style>
 </Styles>

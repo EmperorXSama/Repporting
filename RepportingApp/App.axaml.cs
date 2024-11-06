@@ -1,4 +1,7 @@
 
+using RepportingApp.ViewModels.ExtensionViewModel;
+using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
+
 namespace RepportingApp;
 
 public partial class App : Application
@@ -26,7 +29,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<HomePageViewModel>();
         serviceCollection.AddSingleton<MainWindowViewModel>();
         serviceCollection.AddSingleton<ReportingPageViewModel>();
-        
+        serviceCollection.AddSingleton<TaskInfoManager>();
         
         
         serviceCollection.AddSingleton<SystemConfigurationEstimator>();

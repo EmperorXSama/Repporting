@@ -2,15 +2,15 @@
 
 namespace Reporting.lib.Models.Core;
 
-public class DummyDataGenerator
+public static class DummyDataGenerator
 {
-     public List<EmailAccount> EmailAccounts { get; private set; } = new List<EmailAccount>();
-    public List<Proxy> Proxies { get; private set; } = new List<Proxy>();
-    public List<EmailGroup> EmailGroups { get; private set; } = new List<EmailGroup>();
-    public List<Process> Processes { get; private set; } = new List<Process>();
-    public List<Campaign> Campaigns { get; private set; } = new List<Campaign>();
+     public static List<EmailAccount> EmailAccounts { get; private set; } = new List<EmailAccount>();
+    public static List<Proxy> Proxies { get; private set; } = new List<Proxy>();
+    public static List<EmailGroup> EmailGroups { get; private set; } = new List<EmailGroup>();
+    public static List<Process> Processes { get; private set; } = new List<Process>();
+    public static List<Campaign> Campaigns { get; private set; } = new List<Campaign>();
 
-    public DummyDataGenerator()
+    static DummyDataGenerator()
     {
         GenerateProxies();
         GenerateEmailGroups();
@@ -19,7 +19,7 @@ public class DummyDataGenerator
         GenerateCampaigns();
     }
 
-    private void GenerateProxies()
+    private static void GenerateProxies()
     {
         for (int i = 1; i <= 5; i++)
         {
@@ -34,7 +34,7 @@ public class DummyDataGenerator
         }
     }
 
-    private void GenerateEmailGroups()
+    private static void GenerateEmailGroups()
     {
         for (int i = 1; i <= 3; i++)
         {
@@ -46,7 +46,7 @@ public class DummyDataGenerator
         }
     }
 
-    private void GenerateEmailAccounts()
+    private static void GenerateEmailAccounts()
     {
         for (int i = 1; i <= 10; i++)
         {
@@ -65,7 +65,7 @@ public class DummyDataGenerator
         }
     }
 
-    private void GenerateProcesses()
+    private static void GenerateProcesses()
     {
         for (int i = 1; i <= 5; i++)
         {
@@ -94,7 +94,7 @@ public class DummyDataGenerator
         }
     }
 
-    private void GenerateCampaigns()
+    private static void GenerateCampaigns()
     {
         for (int i = 1; i <= 2; i++)
         {

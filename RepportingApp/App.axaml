@@ -16,19 +16,85 @@
         <StyleInclude Source="avares://RepportingApp/Assets/icons.axaml"></StyleInclude>
         <StyleInclude Source="avares://RepportingApp/Assets/Colors.axaml"></StyleInclude>
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"></StyleInclude>
-      
-        
     </Application.Styles>
+
      <Application.Resources>
+         <ResourceDictionary>
+             <ResourceDictionary.MergedDictionaries>
+                 <ResourceInclude Source="avares://LoadingIndicators.Avalonia/LoadingIndicators.axaml" />
+             </ResourceDictionary.MergedDictionaries>
+         </ResourceDictionary>
          <FontFamily x:Key="Roboto">avares://RepportingApp/Assets/Font#Roboto</FontFamily>
          <helper:BooleanToWidthConverter x:Key="BooleanToWidthConverter"/>
          <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
          <helper:EnumToBooleanConverter x:Key="EnumToBooleanConverter "/>
-         <helper:AngleToYConverter x:Key="AngleToYConverter"/>
-         <helper:AngleToXConverter x:Key="AngleToXConverter"/>
          <helper:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter"/>
          <helper:IconNameToResourceConverter x:Key="IconNameToResourceConverter"/>
-         <Color x:Key="Primary">#847577</Color>
+         <helper:TaskInfoTypeToVisibilityConverter x:Key="TaskInfoTypeToVisibilityConverter"/>
+         <helper:CheckedToFillConverter x:Key="CheckedToFillConverter"/>
+         <helper:InverseCheckedConverter x:Key="InverseCheckedConverter"/>
+         <helper:GroupNameToColorConverter x:Key="GroupNameToColorConverter"/>
+         
+         
+         <ControlTheme x:Key="CustomInput" TargetType="TextBox">
+             <Setter Property="Background" Value="#F5F5F5" /> <!-- Light grey background -->
+             <Setter Property="Foreground" Value="#9E9E9E" /> <!-- Darker grey for text -->
+             <Setter Property="BorderBrush" Value="#D1D1D1" /> <!-- Border color -->
+             <Setter Property="BorderThickness" Value="1" />
+             <Setter Property="CornerRadius" Value="15" /> <!-- Rounded corners -->
+             <Setter Property="Padding" Value="10" /> <!-- Padding for inner spacing -->
+             <Setter Property="Watermark" Value="Type your question..."/>
+         </ControlTheme>
+         <ControlTheme x:Key="CustomRadioButtonTheme" TargetType="RadioButton">
+            <!-- Default styles for RadioButton -->
+            <Setter Property="Background" Value="{StaticResource LightGrey}" />
+            <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Template">
+        <ControlTemplate>
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1"
+                    Padding="10"
+                    Cursor="Hand"
+                    CornerRadius="{TemplateBinding CornerRadius}">
+                <Grid ColumnDefinitions="16,9,*"
+                      RowDefinitions="20,10,*"
+                     >
+                    <Ellipse Width="16" Height="16"
+                             Stroke="{TemplateBinding BorderBrush}"
+                             Fill="{TemplateBinding Foreground}">
+                    </Ellipse>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="{TemplateBinding Tag}" 
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Foreground="{TemplateBinding Foreground}" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{TemplateBinding Content}" 
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="{TemplateBinding Foreground}" />
+                </Grid>
+            </Border>
+        </ControlTemplate>
+    </Setter>
+
+    <!-- PointerOver state -->
+    <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{StaticResource MainWhite}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Primary}" />
+        <Setter Property="Foreground" Value="{StaticResource Primary}" />
+    </Style>
+
+    <!-- Checked state -->
+    <Style Selector="^:checked">
+        <Setter Property="Background" Value="{StaticResource LightOrange}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Primary}" />
+        <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+    </Style>
+</ControlTheme>
+
+      
          <ControlTheme x:Key="CustomBtn" TargetType="Button">
              <!-- Default styles for Button -->
              <Setter Property="Background" Value="{StaticResource MainWhite}" />
@@ -60,7 +126,8 @@
                  <Setter Property="Foreground" Value="{StaticResource Secondary}" />
              </Style>
          </ControlTheme>
-       
+
+         
      </Application.Resources>
              
 </Application>

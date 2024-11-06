@@ -1,17 +1,4 @@
 ﻿
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Avalonia.Controls;
-using Avalonia.Threading;
-using Reporting.lib.enums.Core;
-using Reporting.lib.Models.Core;
-
 namespace RepportingApp.ViewModels;
 
 public partial class ReportingPageViewModel : ViewModelBase
@@ -22,21 +9,21 @@ public partial class ReportingPageViewModel : ViewModelBase
     public ObservableCollection<string> TaskMessages { get; } = new();
     public ObservableCollection<string> ErrorMessages { get; } = new();
     
-    #endregion
+    
+    [ObservableProperty] private Guid _cancelUploadToken;
+    [ObservableProperty] private string _remainingOpenTasks;
+
     private readonly  SystemConfigurationEstimator  _configEstimator;
     [ObservableProperty] private int _logicalProcessorCountDisplay;
     [ObservableProperty] private int _recommendedMaxDegreeOfParallelismDisplay;
     [ObservableProperty] private int _recommendedBatchSizeDisplay;
-   
+    #endregion
     
-    
-    
-     public ObservableCollection<TaskInfo> ActiveTasks { get; } = new();
-     [ObservableProperty] private Guid _cancelUploadToken;
     
     #region UI
     [ObservableProperty] private bool _isMenuOpen = false;
     [ObservableProperty] private bool _isPopupOpen = false;
+    [ObservableProperty] private bool _isNotificationOpen = false;
 
     [ObservableProperty] private bool _isFixed;
     [ObservableProperty] private bool _isRandom; 
@@ -56,35 +43,45 @@ public partial class ReportingPageViewModel : ViewModelBase
     #region Upload Files/Data
 
     [ObservableProperty] private bool _isUploadPopupOpen = false;
-    [ObservableProperty]
-    private string _filePath;
+    [ObservableProperty] private string _filePath;
+    [ObservableProperty] private int _uploadProgress; 
+    [ObservableProperty] private string _fileName = "file name";
+    [ObservableProperty] private Double _fileSize = 0;
+    [ObservableProperty] private bool _isUploading; 
+    private CancellationTokenSource _cancellationTokenSource; 
+    [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new();
     #endregion
     
 
  
-  
-    public ReportingPageViewModel(IMessenger messenger,SystemConfigurationEstimator configEstimator) : base(messenger)
+    private readonly TaskInfoManager _taskInfoManager;
+    [ObservableProperty]
+    private int _tasksCount;
+    public ObservableCollection<TaskInfo> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
+    public ObservableCollection<TaskInfo> NotificationTasks => _taskInfoManager.GetTasks(TaskCategory.Notification);
+    public ObservableCollection<TaskInfo> CampaignTasks => _taskInfoManager.GetTasks(TaskCategory.Campaign);
+    public ReportingPageViewModel(IMessenger messenger,SystemConfigurationEstimator configEstimator,TaskInfoManager taskInfoManager) : base(messenger)
     {
+        _taskInfoManager = taskInfoManager;
         var systemEstimator = new SystemConfigurationEstimator();
-        _taskManager = new UnifiedTaskManager(systemEstimator.RecommendedMaxDegreeOfParallelism);
-     
+        _taskManager = new UnifiedTaskManager(systemEstimator.RecommendedMaxDegreeOfParallelism,_taskInfoManager);
         ReportingSettingsValuesDisplay = new ReportingSettingValues(App.Configuration);
         _configEstimator = configEstimator;
-        LogicalProcessorCountDisplay = _configEstimator.LogicalProcessorCount;
-        RecommendedMaxDegreeOfParallelismDisplay = _configEstimator.RecommendedMaxDegreeOfParallelism;
-        RecommendedBatchSizeDisplay = _configEstimator.RecommendedBatchSize;
-        
-        _taskManager.TaskCompleted += OnTaskCompleted;
-        _taskManager.TaskErrored += OnTaskErrored;
-        _taskManager.BatchCompleted += OnBatchCompleted;
-        _taskManager.ItemProcessed += OnItemProcessed;
+        taskInfoManager.PropertyChanged += TaskManager_PropertyChanged;
+        AssignThreadDefaultValues();
+        SubscribeEventToThread();
+
+        Groups = DummyDataGenerator.EmailGroups.ToObservableCollection();
+        IsNewGroupSelected = false;
+        IsExistingGroupSelected = false;
+        TasksCount = _taskInfoManager.GetTasksCount();
     }
 
 
     #region Relay commands
 
     [RelayCommand]
-    private async Task StartOperation()
+    private Task StartOperation()
     {
         var modifier = new StartProcessNotifierModel()
         {
@@ -96,6 +93,25 @@ public partial class ReportingPageViewModel : ViewModelBase
             SelectedReportSetting =  this.SelectedReportSetting,
         };
         _messenger.Send(new ProcessStartMessage("Success","Reporting",modifier));
+        // Example usage: Start a single task
+        var task1 = _taskManager.StartTask(async cancellationToken =>
+        {
+            // Simulate some asynchronous work
+            await Task.Delay(155000, cancellationToken);
+            
+        });
+        CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single, task1, "Preparation",Statics.UploadFileColor,Statics.UploadFileColor);
+        // Example usage: Start a batch process
+        var items = new[] { "Email1", "Email2", "Email3" }; // Sample batch items
+        var task2 = _taskManager.StartBatch(items, async (item,cancellationToken) =>
+        {
+            // Simulate processing each item
+            await Task.Delay(2500, cancellationToken);
+            if (item == "Email2") throw new Exception("Simulated failure"); // Simulate error
+            await Task.Delay(5500, cancellationToken);
+        }, batchSize: 3);
+        CreateAnActiveTask(TaskCategory.Active ,TakInfoType.Batch, task2, "Repporting",Statics.ReportingColor,Statics.ReportingSoftColor);
+        return Task.CompletedTask;
     }
     [RelayCommand]
     public async Task SaveSettingsAsync()
@@ -175,20 +191,70 @@ public partial class ReportingPageViewModel : ViewModelBase
     }
     [RelayCommand] private void OpenPopup()  => IsPopupOpen = true;
     [RelayCommand] private void ClosePopup()  => IsPopupOpen = false;
+    [RelayCommand] private void OpenNotificationopup()  => IsNotificationOpen = !IsNotificationOpen;
     #endregion
 
+    #region Group Selection and creation
 
-    #region Upload File/Data Func
-    [ObservableProperty] private int _uploadProgress; 
-    [ObservableProperty] private string _fileName = "file name";
-    [ObservableProperty] private Double _fileSize = 0;
-    [ObservableProperty] private bool _isUploading; 
-    private CancellationTokenSource _cancellationTokenSource; 
-    [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new();
-    [RelayCommand] private void OpenFileUploadPopup()  => IsUploadPopupOpen = true;
+    [ObservableProperty] private bool _isNewGroupSelected;
+    [ObservableProperty] private bool _isExistingGroupSelected; 
+    [ObservableProperty] private bool _isEnabled = true; 
+    public ObservableCollection<EmailGroup> Groups { get; }
+    [ObservableProperty] private string _newGroupName;
+    [ObservableProperty] private EmailGroup? _selectedEmailGroup = new EmailGroup(); 
+    [RelayCommand]
+    private void SelectNewGroup()
+    {
+        IsNewGroupSelected = true;
+        IsExistingGroupSelected = false;
+        SelectedEmailGroup = new EmailGroup();
+    }
 
     [RelayCommand]
-    private void CloseFileUploadPopup()
+    private void SelectExistingGroup()
+    {
+        IsNewGroupSelected = false;
+        IsExistingGroupSelected = true;
+    }
+
+    [RelayCommand]
+    private async Task CreateNewGroup()
+    {
+        IsEnabled = false;
+        if (!string.IsNullOrWhiteSpace(NewGroupName))
+        {
+            EmailGroup newGroup = new EmailGroup()
+            {
+                Id = Groups.Count + 1,
+                Name = NewGroupName
+            };
+
+            var taskId = _taskManager.StartTask(async cancellationToken =>
+            {
+                // todo : code to create ( call method ) group in database
+                await Task.Delay(2500, cancellationToken);
+                _taskManager.UpdateUiThreadValues(
+                    ()=>   Groups.Add(newGroup),
+                                ()=>   IsEnabled = true,
+                                ()=>    SelectedEmailGroup = newGroup);
+             
+            });
+            
+            NewGroupName = string.Empty;
+           
+        }
+        else
+        {
+            IsEnabled = true;
+        }
+    }
+    #endregion
+
+    #region Upload File/Data Func
+    
+    [RelayCommand] private void OpenFileUploadPopup()  => IsUploadPopupOpen = true;
+
+    [RelayCommand] private void CloseFileUploadPopup()
     {
         IsUploading = false;
         UploadProgress = 0;
@@ -229,14 +295,8 @@ public partial class ReportingPageViewModel : ViewModelBase
                 
             });
             CancelUploadToken = currentTaskId;
-            ActiveTasks.Add(new TaskInfo
-            {
-                TaskId = currentTaskId,
-                Name = "File Upload",
-                CancelCommand = new RelayCommand(() => CancelTask(currentTaskId))
-            });
+            CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single, currentTaskId, "File Upload",Statics.UploadFileColor,Statics.UploadFileSoftColor);
         
-      
     }
 
     private async Task UploadFileContentAsync(string filePath, IProgress<int> progress, CancellationToken cancellationToken)
@@ -303,84 +363,187 @@ public partial class ReportingPageViewModel : ViewModelBase
     {
         _taskManager.CancelTask(taskId);
     }
-    #endregion
-    
-   
-    [RelayCommand]
-    private void StartTasks()
-    {
-        // Example usage: Start a single task
-        _taskManager.StartTask(async cancellationToken =>
-        {
-            // Simulate some asynchronous work
-            await Task.Delay(15000);
-        });
 
-        // Example usage: Start a batch process
-        var items = new[] { "Email1", "Email2", "Email3" }; // Sample batch items
-        _taskManager.StartBatch(items, async (item,cancellationToken) =>
-        {
-            // Simulate processing each item
-            await Task.Delay(2500);
-            if (item == "Email2") throw new Exception("Simulated failure"); // Simulate error
-        }, batchSize: 3);
+    [RelayCommand]
+    private void ClearAllNotifications()
+    {
+        _taskInfoManager.ClearTasks(TaskCategory.Notification);
     }
-    // Event handlers to update the UI based on task events
-    private void OnTaskCompleted(object sender, TaskCompletedEventArgs e)
+    #endregion
+
+
+    #region Thread Logic
+
+    private void AssignThreadDefaultValues()
+    {
+        
+        LogicalProcessorCountDisplay = _configEstimator.LogicalProcessorCount;
+        RecommendedMaxDegreeOfParallelismDisplay = _configEstimator.RecommendedMaxDegreeOfParallelism;
+        RecommendedBatchSizeDisplay = _configEstimator.RecommendedBatchSize;
+        RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay - _taskInfoManager.GetTasks(TaskCategory.Active).Count} Open";
+    }
+    
+    public void CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor)
+    {
+        var taskInfo = new TaskInfo(type)
+        {
+            TaskId = taskId,
+            Name = name,
+            Color = color,
+            SoftColor = softColor,
+            CancelCommand = new RelayCommand(() =>
+            {
+                CancelTask(taskId);
+                _taskInfoManager.CompleteTask(taskId,category);
+                TasksCount = _taskInfoManager.GetTasksCount();
+            })
+        };
+
+        _taskInfoManager.AddTask(category, taskInfo);
+        TasksCount = _taskInfoManager.GetTasksCount();
+    }
+    
+    
+    private void TaskManager_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Notify the UI if the collection property itself is updated
+        if (e.PropertyName == nameof(_taskInfoManager.ActiveTasks))
+        {
+            OnPropertyChanged(nameof(ActiveTasks));
+            
+        }
+        else if (e.PropertyName == nameof(_taskInfoManager.NotificationTasks))
+        {
+            OnPropertyChanged(nameof(NotificationTasks));
+        }
+        else if (e.PropertyName == nameof(_taskInfoManager.CampaignTasks))
+        {
+            OnPropertyChanged(nameof(CampaignTasks));
+        }
+        
+        
+        
+    }
+    #endregion
+    #region events and subscription
+
+    private void SubscribeEventToThread()
+    {
+        _taskManager.TaskCompleted += OnTaskCompleted;
+        _taskManager.TaskErrored += OnTaskErrored;
+        _taskManager.BatchCompleted += OnBatchCompleted;
+        _taskManager.ItemProcessed += OnItemProcessed;
+        
+        _taskInfoManager.GetTasks(TaskCategory.Active).CollectionChanged += OnActiveTasksChanged;
+        _taskInfoManager.GetTasks(TaskCategory.Campaign).CollectionChanged += OnCampaignTasksChanged;
+    }
+    private void OnActiveTasksChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        
+        RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay -  _taskInfoManager.GetTasksCount()} Open";
+    } 
+    private void OnCampaignTasksChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        
+        RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay -  _taskInfoManager.GetTasksCount()} Open";
+    } 
+    private void OnTaskCompleted(object? sender, TaskCompletedEventArgs e)
     {
         TaskMessages.Add($"Task {e.TaskId} completed successfully.");
-        var taskInfo = ActiveTasks.FirstOrDefault(t => t.TaskId == e.TaskId);
-        if (taskInfo != null)
-        {
-            ActiveTasks.Remove(taskInfo);
-        }
+        _taskInfoManager.CompleteTask(e.TaskId);
     }
-
-    private void OnTaskErrored(object sender, TaskErrorEventArgs e)
+    
+    private void OnTaskErrored(object? sender, TaskErrorEventArgs e)
     {
         ErrorMessages.Add($"Task {e.TaskId} encountered an error: {e.Error.Message}");
-        var taskInfo = ActiveTasks.FirstOrDefault(t => t.TaskId == e.TaskId);
-        if (taskInfo != null)
-        {
-            ActiveTasks.Remove(taskInfo);
-        }
+        _taskInfoManager.CompleteTask(e.TaskId);
     }
 
-    private void OnBatchCompleted(object sender, BatchCompletedEventArgs e)
+    private void OnBatchCompleted(object? sender, BatchCompletedEventArgs e)
     {
         TaskMessages.Add($"Batch task {e.TaskId} completed.");
-        var taskInfo = ActiveTasks.FirstOrDefault(t => t.TaskId == e.TaskId);
-        if (taskInfo != null)
-        {
-            ActiveTasks.Remove(taskInfo);
-        }
+        _taskInfoManager.CompleteTask(e.TaskId);
+      
     }
 
-    private void OnItemProcessed(object sender, ItemProcessedEventArgs e)
+    private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     {
         if (e.Success)
         {
+            var taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
+            taskInfo.ItemSuccesMessasges.Add(new ItemInfo(){Message = $"Item {e.Item} processed successfully in task {e.TaskId}."});
             TaskMessages.Add($"Item {e.Item} processed successfully in task {e.TaskId}.");
-            var taskInfo = ActiveTasks.FirstOrDefault(t => t.TaskId == e.TaskId);
-            if (taskInfo != null)
-            {
-                ActiveTasks.Remove(taskInfo);
-            }
         }
         else
         {
+            var taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
+            taskInfo.ItemFailedMessasges.Add(new ItemInfo(){Message = $"Item {e.Item} failed in task {e.TaskId}: {e.Error?.Message}"});
             ErrorMessages.Add($"Item {e.Item} failed in task {e.TaskId}: {e.Error?.Message}");
-            var taskInfo = ActiveTasks.FirstOrDefault(t => t.TaskId == e.TaskId);
-            if (taskInfo != null)
-            {
-                ActiveTasks.Remove(taskInfo);
-            }
         }
     }
+
+    #endregion
+
+    #region campaign
+
+    [RelayCommand]
+    public Task AddSingleCampaignTask()
+    {
+        TimeSpan interval = TimeSpan.FromSeconds(10);
+        Func<CancellationToken, Task> taskFunc = async token =>
+        {
+            // Task logic goes here
+            await Task.Delay(6000, token); // Simulate some work
+        };
+        Guid taskId = _taskManager.StartLoopingTask(taskFunc, interval);
+        CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor);
+        return Task.CompletedTask;
+    }
+
+    #endregion
+   
 }
-public class TaskInfo
+public partial class TaskInfo : ObservableObject
 {
-    public Guid TaskId { get; set; }
-    public string Name { get; set; }
-    public ICommand CancelCommand { get; set; }
+    [ObservableProperty]
+    private TimeSpan _timeUntilNextRun;
+    
+    [ObservableProperty]
+    private Guid taskId;
+
+    [ObservableProperty]
+    private string name; 
+    [ObservableProperty]
+    private string color = ""; 
+    [ObservableProperty]
+    private string softColor = "";
+
+    [ObservableProperty]
+    private ICommand cancelCommand;
+    
+    [ObservableProperty] private string startTime;
+    [ObservableProperty] private string finishedTime;
+
+    public ObservableCollection<ItemInfo> ItemSuccesMessasges { get; set; } = new ObservableCollection<ItemInfo>();
+    public ObservableCollection<ItemInfo> ItemFailedMessasges { get; set; } = new ObservableCollection<ItemInfo>();
+
+    [ObservableProperty]
+    private string taskMessage;
+    
+    public TakInfoType TakInfoType { get; set; }
+    public TaskInfo(TakInfoType takInfoType)
+    {
+        TakInfoType = takInfoType;
+        startTime = DateTime.Now.ToString("t");
+    }
+}
+
+
+public class ItemInfo()
+{
+    public string Message { get; set; }
+}
+public enum TakInfoType{
+    Single,
+    Batch
 }

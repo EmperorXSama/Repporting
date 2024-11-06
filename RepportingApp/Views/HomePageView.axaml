@@ -36,7 +36,7 @@
                <!-- Panel with Background and Icon -->
                <Border Background="#847577"
                        CornerRadius="11,0,0,11">
-                   <PathIcon Data="{StaticResource ClockIcon}" />
+                   <PathIcon Data="{StaticResource ClockIcon}" Foreground="White" />
                </Border>
 
                <!-- Grid with TextBlocks -->
