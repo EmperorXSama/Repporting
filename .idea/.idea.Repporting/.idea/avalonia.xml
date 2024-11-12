@@ -10,6 +10,8 @@
         <entry key="RepportingApp/Assets/Styles.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Assets/icons.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/AutomationPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/Components/ErrorIndecator.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/Components/ErrorIndicatorView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/ToastNotificationView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/DashboardPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/HomePageView.axaml" value="RepportingApp/RepportingApp.csproj" />

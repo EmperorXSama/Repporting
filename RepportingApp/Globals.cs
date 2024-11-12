@@ -43,3 +43,6 @@ global using RepportingApp.Static;
 global using System.ComponentModel;
 global using RepportingApp.ViewModels.ExtensionViewModel;
 global using NAudio.Wave;
+global using RepportingApp.Models.UI;
+global using RepportingApp.ViewModels.BaseServices;
+global using RepportingApp.ViewModels.Components;

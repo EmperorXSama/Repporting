@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using RepportingApp.ViewModels.BaseServices;
 
 namespace RepportingApp.ViewModels;
 
@@ -39,7 +40,13 @@ public partial class MainWindowViewModel : ViewModelBase
         new ListItemTemplate(typeof(ReportingPageViewModel),"Reporting"),
     };
 
-
+    partial void OnCurrentPageChanged(ViewModelBase value)
+    {
+        if (value is ILoadableViewModel loadablePage)
+        {
+            loadablePage.LoadDataIfFirstVisitAsync();
+        }
+    }
     private static ViewModelBase GetOrCreateViewModel(Type viewBaseModelType)
     {
         if (_viewModelCache.TryGetValue(viewBaseModelType, out var viewModel))

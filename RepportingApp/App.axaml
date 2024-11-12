@@ -4,6 +4,7 @@
              xmlns:local="using:RepportingApp"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:helper="clr-namespace:RepportingApp.Helper"
+             xmlns:converters="clr-namespace:RepportingApp.Converters"
              RequestedThemeVariant="Light">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -34,6 +35,8 @@
          <helper:CheckedToFillConverter x:Key="CheckedToFillConverter"/>
          <helper:InverseCheckedConverter x:Key="InverseCheckedConverter"/>
          <helper:GroupNameToColorConverter x:Key="GroupNameToColorConverter"/>
+         <converters:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
+         <converters:WorkingStatusToColorConverter x:Key="WorkingStatusToColorConverter"/>
          
          
          <ControlTheme x:Key="CustomInput" TargetType="TextBox">

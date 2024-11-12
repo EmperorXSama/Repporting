@@ -1,6 +1,7 @@
 ﻿
 using Avalonia.Threading;
 using RepportingApp.ViewModels.ExtensionViewModel;
+using TaskStatus = RepportingApp.Models.UI.TaskStatus;
 
 namespace RepportingApp.CoreSystem.Multithread
 {
@@ -82,7 +83,11 @@ namespace RepportingApp.CoreSystem.Multithread
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     DateTime nextRunTime = DateTime.Now + interval;
-
+                    var taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign).FirstOrDefault(t => t.TaskId == taskId);
+                    UpdateUiThreadValues(()=>
+                    {
+                        if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Waiting;
+                    });
                     // Update remaining time every second
                     while (DateTime.Now < nextRunTime)
                     {
@@ -91,7 +96,6 @@ namespace RepportingApp.CoreSystem.Multithread
                         // Use Dispatcher to update the UI-bound TaskInfo object
                         UpdateUiThreadValues(() =>
                         {
-                            var taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign).FirstOrDefault(t => t.TaskId == taskId);
                             if (taskInfo != null)
                             {
                                 taskInfo.TimeUntilNextRun = remainingTime;
@@ -100,12 +104,20 @@ namespace RepportingApp.CoreSystem.Multithread
                        
                         await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
                     }
+                    
                     var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
                     using var audioFile = new AudioFileReader(relativePath);
                     using var outputDevice = new WaveOutEvent();
+                    outputDevice.Volume = 0.1f;
                     outputDevice.Init(audioFile);
                     outputDevice.Play();
-                    await taskFunc(cancellationToken); // Execute the task
+                    
+                    
+                    UpdateUiThreadValues(()=>
+                    {
+                        if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Running;
+                    });
+                    await taskFunc(cancellationToken); 
                     TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
                 }
             }

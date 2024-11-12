@@ -1,10 +1,22 @@
 ﻿
+using System.Diagnostics;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Dto;
+using MsBox.Avalonia.Enums;
+using MsBox.Avalonia.Models;
+using RepportingApp.CoreSystem.ApiSystem;
+using RepportingApp.IServices;
+using RepportingApp.Services;
+using RepportingApp.ViewModels.BaseServices;
+
 namespace RepportingApp.ViewModels;
 
-public partial class ReportingPageViewModel : ViewModelBase
+public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
 {
+    private bool _isFirstVisit = true;
+    [ObservableProperty] private bool _isLoading;
     #region Multithread
-    private readonly UnifiedTaskManager _taskManager;
+    private UnifiedTaskManager _taskManager;
     // Observable collections to track task and item progress
     public ObservableCollection<string> TaskMessages { get; } = new();
     public ObservableCollection<string> ErrorMessages { get; } = new();
@@ -19,17 +31,18 @@ public partial class ReportingPageViewModel : ViewModelBase
     [ObservableProperty] private int _recommendedBatchSizeDisplay;
     #endregion
     
-    
     #region UI
     [ObservableProperty] private bool _isMenuOpen = false;
     [ObservableProperty] private bool _isPopupOpen = false;
     [ObservableProperty] private bool _isNotificationOpen = false;
+    [ObservableProperty] private bool _isCampaignPopupOpen = false;
 
     [ObservableProperty] private bool _isFixed;
     [ObservableProperty] private bool _isRandom; 
     [ObservableProperty] private bool _isOneByOne;
     [ObservableProperty] private bool _isAll;
     [ObservableProperty] private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
+    [ObservableProperty]public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
    
     #endregion
 
@@ -51,47 +64,101 @@ public partial class ReportingPageViewModel : ViewModelBase
     private CancellationTokenSource _cancellationTokenSource; 
     [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new();
     #endregion
-    
 
+    #region Email Service
+
+    private readonly IEmailAccountServices _emailAccountServices;
+    [ObservableProperty] private ObservableCollection<EmailAccount> _emails= new ObservableCollection<EmailAccount>();
+    #endregion
  
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty]
     private int _tasksCount;
-    public ObservableCollection<TaskInfo> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
-    public ObservableCollection<TaskInfo> NotificationTasks => _taskInfoManager.GetTasks(TaskCategory.Notification);
-    public ObservableCollection<TaskInfo> CampaignTasks => _taskInfoManager.GetTasks(TaskCategory.Campaign);
-    public ReportingPageViewModel(IMessenger messenger,SystemConfigurationEstimator configEstimator,TaskInfoManager taskInfoManager) : base(messenger)
-    {
-        _taskInfoManager = taskInfoManager;
-        var systemEstimator = new SystemConfigurationEstimator();
-        _taskManager = new UnifiedTaskManager(systemEstimator.RecommendedMaxDegreeOfParallelism,_taskInfoManager);
-        ReportingSettingsValuesDisplay = new ReportingSettingValues(App.Configuration);
-        _configEstimator = configEstimator;
-        taskInfoManager.PropertyChanged += TaskManager_PropertyChanged;
-        AssignThreadDefaultValues();
-        SubscribeEventToThread();
+    public ObservableCollection<TaskInfoUiModel> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
+    public ObservableCollection<TaskInfoUiModel> NotificationTasks => _taskInfoManager.GetTasks(TaskCategory.Notification);
+    public ObservableCollection<TaskInfoUiModel> CampaignTasks => _taskInfoManager.GetTasks(TaskCategory.Campaign);
 
-        Groups = DummyDataGenerator.EmailGroups.ToObservableCollection();
-        IsNewGroupSelected = false;
-        IsExistingGroupSelected = false;
+    #region API
+
+    private readonly IApiConnector _apiConnector;
+
+    #endregion
+    public ReportingPageViewModel(IMessenger messenger,
+        SystemConfigurationEstimator configEstimator,
+        TaskInfoManager taskInfoManager,
+        IEmailAccountServices emailAccountServices,
+        IApiConnector apiConnector) : base(messenger)
+    {
+        _apiConnector = apiConnector;
+        _emailAccountServices = emailAccountServices;
+        _taskInfoManager = taskInfoManager;
+        _configEstimator = configEstimator;
+
+        InitializeSettings();
+        InitializeTaskManager();
+        InitializeCommands();
+        SubscribeToEvents();
+    
+        
         TasksCount = _taskInfoManager.GetTasksCount();
+       
     }
 
-
-    #region Relay commands
-
-    [RelayCommand]
-    private Task StartOperation()
+    private void InitializeSettings()
     {
-        var modifier = new StartProcessNotifierModel()
+        ReportingSettingsValuesDisplay = new ReportingSettingValues(App.Configuration);
+        AssignThreadDefaultValues();
+    }
+
+    private void InitializeTaskManager()
+    {
+        var systemEstimator = new SystemConfigurationEstimator();
+        _taskManager = new UnifiedTaskManager(systemEstimator.RecommendedMaxDegreeOfParallelism, _taskInfoManager);
+    }
+
+    private void InitializeCommands()
+    {
+        // Set up your commands here (if any).
+    }
+
+    private void SubscribeToEvents()
+    {
+        _taskInfoManager.PropertyChanged += TaskManager_PropertyChanged;
+        SubscribeEventToThread();
+    }
+    
+    
+    #region Relay commands
+    public async Task LoadDataIfFirstVisitAsync()
+    {
+        try
         {
-            ReportingSettingsP = SelectedProcesses,
-            Thread = ReportingSettingsValuesDisplay.Thread,
-            Repetition = ReportingSettingsValuesDisplay.Repetition,
-            RepetitionDelay = ReportingSettingsValuesDisplay.RepetitionDelay,
-            SelectedProxySetting =  this.SelectedProxySetting,
-            SelectedReportSetting =  this.SelectedReportSetting,
-        };
+            if (!IsLoading)
+            {
+                IsLoading = true;
+                // Load data here
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Loading Data Failed", e.Message);
+        }
+        
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var groups  = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
+        var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);
+        Groups = groups.ToObservableCollection();
+        Emails = emails.ToObservableCollection();
+        Debug.WriteLine("loading data finished");
+    }
+    [RelayCommand] private async Task StartOperation()
+    {
+        var modifier = GetStartProcessNotifierModel();
         _messenger.Send(new ProcessStartMessage("Success","Reporting",modifier));
         // Example usage: Start a single task
         var task1 = _taskManager.StartTask(async cancellationToken =>
@@ -100,7 +167,7 @@ public partial class ReportingPageViewModel : ViewModelBase
             await Task.Delay(155000, cancellationToken);
             
         });
-        CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single, task1, "Preparation",Statics.UploadFileColor,Statics.UploadFileColor);
+        CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single, task1, "Preparation",Statics.UploadFileColor,Statics.UploadFileSoftColor);
         // Example usage: Start a batch process
         var items = new[] { "Email1", "Email2", "Email3" }; // Sample batch items
         var task2 = _taskManager.StartBatch(items, async (item,cancellationToken) =>
@@ -111,15 +178,12 @@ public partial class ReportingPageViewModel : ViewModelBase
             await Task.Delay(5500, cancellationToken);
         }, batchSize: 3);
         CreateAnActiveTask(TaskCategory.Active ,TakInfoType.Batch, task2, "Repporting",Statics.ReportingColor,Statics.ReportingSoftColor);
-        return Task.CompletedTask;
     }
-    [RelayCommand]
-    public async Task SaveSettingsAsync()
+    [RelayCommand] public async Task SaveSettingsAsync()
     {
         await ReportingSettingsValuesDisplay.SaveConfigurationAsync();
     }
-   [RelayCommand] 
-    private void ProcessesCheckedManager()
+   [RelayCommand] private void ProcessesCheckedManager()
     {
         // Define a mapping between the process selection and the corresponding icons
         var processIconMapping = new Dictionary<Func<ReportingSittingsProcesses, bool>, string>
@@ -135,12 +199,12 @@ public partial class ReportingPageViewModel : ViewModelBase
         // Iterate through the mapping
         foreach (var mapping in processIconMapping)
         {
-            var isSelected = mapping.Key(SelectedProcesses);  // Use _selectedProcesses instead of SelectedProcesses
+            var isSelected = mapping.Key(SelectedProcesses);  
             var iconName = mapping.Value;
 
             if (isSelected)
             {
-                // Add the icon if it is selected
+              
                 if (!ReportingselectedProcessesToIcon.Contains(iconName))  // Corrected the collection reference
                 {
                     ReportingselectedProcessesToIcon.Add(iconName);
@@ -148,8 +212,8 @@ public partial class ReportingPageViewModel : ViewModelBase
             }
             else
             {
-                // Remove the icon if it is not selected
-                if (ReportingselectedProcessesToIcon.Contains(iconName))  // Corrected the collection reference
+           
+                if (ReportingselectedProcessesToIcon.Contains(iconName))  
                 {
                     ReportingselectedProcessesToIcon.Remove(iconName);
                 }
@@ -157,13 +221,11 @@ public partial class ReportingPageViewModel : ViewModelBase
         }
     }
     
-    [RelayCommand]
-    private void ToggleSidePanel()
+    [RelayCommand] private void ToggleSidePanel()
     {
         IsMenuOpen = !IsMenuOpen;
     }
-    [RelayCommand]
-    private void SelectProxySettings(string speed)
+    [RelayCommand] private void SelectProxySettings(string speed)
     {
         IsFixed = speed == "Fixed";
         IsRandom = speed == "Random";
@@ -176,8 +238,7 @@ public partial class ReportingPageViewModel : ViewModelBase
         }
         
     } 
-    [RelayCommand]
-    private void SelectReportingSettings(string speed)
+    [RelayCommand] private void SelectReportingSettings(string speed)
     {
         IsOneByOne = speed == "OneByOne";
         IsAll = speed == "All";
@@ -191,6 +252,8 @@ public partial class ReportingPageViewModel : ViewModelBase
     }
     [RelayCommand] private void OpenPopup()  => IsPopupOpen = true;
     [RelayCommand] private void ClosePopup()  => IsPopupOpen = false;
+    [RelayCommand] private void OpenCampaignPopup()  => IsCampaignPopupOpen = true;
+    [RelayCommand] private void CloseCampaignPopup()  => IsCampaignPopupOpen = false;
     [RelayCommand] private void OpenNotificationopup()  => IsNotificationOpen = !IsNotificationOpen;
     #endregion
 
@@ -199,7 +262,8 @@ public partial class ReportingPageViewModel : ViewModelBase
     [ObservableProperty] private bool _isNewGroupSelected;
     [ObservableProperty] private bool _isExistingGroupSelected; 
     [ObservableProperty] private bool _isEnabled = true; 
-    public ObservableCollection<EmailGroup> Groups { get; }
+    [ObservableProperty] private ObservableCollection<EmailGroup> _groups= new ObservableCollection<EmailGroup>();
+
     [ObservableProperty] private string _newGroupName;
     [ObservableProperty] private EmailGroup? _selectedEmailGroup = new EmailGroup(); 
     [RelayCommand]
@@ -267,6 +331,22 @@ public partial class ReportingPageViewModel : ViewModelBase
             if (!ValidateFile(filePath))
             {
                 // Optionally notify user of invalid file
+                return;
+            }
+
+            if (SelectedEmailGroup.Name == "No Group")
+            {
+                await MessageBoxManager.GetMessageBoxCustom(new MessageBoxCustomParams
+                {
+                    ContentTitle = "Custom code is not validated",
+                    ContentMessage = "Incorrect code may impact your website's performance",
+                    ButtonDefinitions = new[]
+                    {
+                        new ButtonDefinition { Name = "Ok, I got it", IsDefault = true }
+                    },
+                    Icon = Icon.Warning, 
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                }).ShowAsync();
                 return;
             }
             var fileInfo = new FileInfo(filePath);
@@ -385,7 +465,7 @@ public partial class ReportingPageViewModel : ViewModelBase
     
     public void CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor)
     {
-        var taskInfo = new TaskInfo(type)
+        var taskInfo = new TaskInfoUiModel(type)
         {
             TaskId = taskId,
             Name = name,
@@ -470,13 +550,13 @@ public partial class ReportingPageViewModel : ViewModelBase
     {
         if (e.Success)
         {
-            var taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
+            TaskInfoUiModel? taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
             taskInfo.ItemSuccesMessasges.Add(new ItemInfo(){Message = $"Item {e.Item} processed successfully in task {e.TaskId}."});
             TaskMessages.Add($"Item {e.Item} processed successfully in task {e.TaskId}.");
         }
         else
         {
-            var taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
+            TaskInfoUiModel taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
             taskInfo.ItemFailedMessasges.Add(new ItemInfo(){Message = $"Item {e.Item} failed in task {e.TaskId}: {e.Error?.Message}"});
             ErrorMessages.Add($"Item {e.Item} failed in task {e.TaskId}: {e.Error?.Message}");
         }
@@ -487,63 +567,32 @@ public partial class ReportingPageViewModel : ViewModelBase
     #region campaign
 
     [RelayCommand]
-    public Task AddSingleCampaignTask()
+    public async Task AddSingleCampaignTask()
     {
-        TimeSpan interval = TimeSpan.FromSeconds(10);
-        Func<CancellationToken, Task> taskFunc = async token =>
-        {
-            // Task logic goes here
-            await Task.Delay(6000, token); // Simulate some work
-        };
+        var modifier = GetStartProcessNotifierModel();
+        TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.TimeUntilNextRun);
+        Func<CancellationToken, Task> taskFunc =await _emailAccountServices.SendEmailAsync(modifier);
         Guid taskId = _taskManager.StartLoopingTask(taskFunc, interval);
         CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor);
-        return Task.CompletedTask;
+       
     }
 
+    private StartProcessNotifierModel GetStartProcessNotifierModel()
+    {
+        var modifier = new StartProcessNotifierModel()
+        {
+            ReportingSettingsP = SelectedProcesses,
+            Thread = ReportingSettingsValuesDisplay.Thread,
+            Repetition = ReportingSettingsValuesDisplay.Repetition,
+            RepetitionDelay = ReportingSettingsValuesDisplay.RepetitionDelay,
+            SelectedProxySetting =  this.SelectedProxySetting,
+            SelectedReportSetting =  this.SelectedReportSetting,
+            Interval = ReportingSettingsValuesDisplay.TimeUntilNextRun
+        };
+        return modifier;
+    }
     #endregion
    
 }
-public partial class TaskInfo : ObservableObject
-{
-    [ObservableProperty]
-    private TimeSpan _timeUntilNextRun;
-    
-    [ObservableProperty]
-    private Guid taskId;
-
-    [ObservableProperty]
-    private string name; 
-    [ObservableProperty]
-    private string color = ""; 
-    [ObservableProperty]
-    private string softColor = "";
-
-    [ObservableProperty]
-    private ICommand cancelCommand;
-    
-    [ObservableProperty] private string startTime;
-    [ObservableProperty] private string finishedTime;
-
-    public ObservableCollection<ItemInfo> ItemSuccesMessasges { get; set; } = new ObservableCollection<ItemInfo>();
-    public ObservableCollection<ItemInfo> ItemFailedMessasges { get; set; } = new ObservableCollection<ItemInfo>();
-
-    [ObservableProperty]
-    private string taskMessage;
-    
-    public TakInfoType TakInfoType { get; set; }
-    public TaskInfo(TakInfoType takInfoType)
-    {
-        TakInfoType = takInfoType;
-        startTime = DateTime.Now.ToString("t");
-    }
-}
 
 
-public class ItemInfo()
-{
-    public string Message { get; set; }
-}
-public enum TakInfoType{
-    Single,
-    Batch
-}

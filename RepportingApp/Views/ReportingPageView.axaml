@@ -5,10 +5,15 @@
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:local="clr-namespace:Reporting.lib.enums;assembly=Reporting.lib"
              xmlns:li="using:LoadingIndicators.Avalonia"
+             xmlns:components1="clr-namespace:RepportingApp.Views.Components"
              mc:Ignorable="d"   d:DesignWidth="1620" d:DesignHeight="900"
              x:Class="RepportingApp.Views.ReportingPageView"
              x:DataType="viewModels:ReportingPageViewModel">
     <Grid x:Name="MainGrid" Background="White">
+        <Border ZIndex="10000">
+            <components1:ErrorIndicatorView DataContext="{Binding ErrorIndicator}" />
+
+        </Border>
         <Grid.ColumnDefinitions>
             <!-- Main content column -->
             <ColumnDefinition Width="*" /> 
@@ -25,13 +30,13 @@
             <Border Padding="10"  Background="#eeeeee">
                 <Grid RowDefinitions="*,Auto">
                      <StackPanel >
-                    <DockPanel>
-                        <TextBlock Text="Sittings" FontWeight="SemiBold" Foreground="#847577" FontSize="16" Margin="10" FontFamily="{StaticResource Roboto}"/>
-                        <Button Content="save" HorizontalAlignment="Right" Background="#077187"  Command="{Binding SaveSettingsCommand}"  Foreground="{StaticResource MainWhite}"
-                                Width="100" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
-                                Cursor="Hand" />
-                    </DockPanel>
-                   <Border BorderBrush="#847577" BorderThickness="1" Margin="0,0,0,15"></Border>
+                        <DockPanel>
+                            <TextBlock Text="Sittings" FontWeight="SemiBold" Foreground="#847577" FontSize="16" Margin="10" FontFamily="{StaticResource Roboto}"/>
+                            <Button Content="save" HorizontalAlignment="Right" Background="#077187"  Command="{Binding SaveSettingsCommand}"  Foreground="{StaticResource MainWhite}"
+                                    Width="100" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                    Cursor="Hand" />
+                        </DockPanel>
+                        <Border BorderBrush="#847577" BorderThickness="1" Margin="0,0,0,15"></Border>
                         
                     <Border Background="White"
                             Padding="9"
@@ -402,8 +407,7 @@
                         </StackPanel>
                       
                     </Border>
-                    
-                         <Border Background="White" Margin="0,0,0,5"
+                    <Border Background="White" Margin="0,0,0,5"
                                  CornerRadius="5"
                                  Padding="5"
                                  VerticalAlignment="Bottom">
@@ -535,10 +539,10 @@
                                     <DockPanel>
                                         <TabControl  Background="White" >
                                             
-                                            <TabItem Header="All" FontSize="14" >
+                                            <TabItem Header="Normal" FontSize="14" >
                                         <!-- Content for the 'All' section -->
-                                        <ListBox ItemsSource="{Binding ActiveTasks}" Background="White">
-                                            <ListBox.Styles>
+                                             <ListBox ItemsSource="{Binding ActiveTasks}" Background="White">
+                                                <ListBox.Styles>
                                                 <!-- Style for ListBoxItem -->
                                                 <Style Selector="ListBoxItem">
                                                     <Setter Property="Background" Value="Transparent"/>
@@ -556,103 +560,16 @@
 
                                             <ListBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border CornerRadius="5"
-                                                            Padding="0"
-                                                           Background="White"
-                                                            BoxShadow="0 0 0.5 1 LightGray"
-                                                            >
-                                                        <Grid RowDefinitions="*,4">
-                                                            <Border Padding="6,6,6,6">
-                                                                <Grid RowDefinitions="*,15,*">
-                                                                     <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
-                                                                        <StackPanel Orientation="Horizontal">
-                                                                            <Ellipse  VerticalAlignment="Center" Width="10" Height="10" Fill="#027BCE" Margin="0,0,9,0"/>
-                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"  FontFamily="{StaticResource Roboto}"  ></TextBlock>
-                                                                        </StackPanel>
-                                                                         
-                                                                         <StackPanel Grid.Column="1"
-                                                                             HorizontalAlignment="Center" Orientation="Horizontal">
-                                                                    
-                                                                  
-                                                                    
-                                                                            <!-- Conditionally visible TextBlock for Success Messages -->
-                                                                            <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
-                                                                                <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
-                                                                                    Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
-                                                                                    FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
-                                                                                    HorizontalAlignment="Center"
-                                                                                   />
-                                                                            </Border>    
-                                                                            <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
-                                                                                <!-- Conditionally visible TextBlock for Failed Messages -->
-                                                                                <TextBlock Text="{Binding ItemFailedMessasges.Count}"
-                                                                                    Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
-                                                                                    FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
-                                                                                    HorizontalAlignment="Center"
-                                                                                    VerticalAlignment="Center"
-                                                                                   />
-                                                                            </Border>
-                                                                       
-            
-                                                                      
-                                                                        </StackPanel>
-                                                                        <Border Grid.Column="2"
-                                                                            BorderBrush="{Binding Color}"
-                                                                                BorderThickness="0"
-                                                                                Background="{Binding SoftColor}"
-                                                                                Padding="8"
-                                                                                CornerRadius="15"
-                                                                                HorizontalAlignment="Right">
-                                                                            <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
-                                                                        </Border>
-                                                                    </Grid>
-                                                                    
-                                                                        <DockPanel Grid.Row="2" >
-                                                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource LightGrey}" />
-                                                                            <Button HorizontalAlignment="Right" Command="{Binding CancelCommand}" Margin="5" Background="Transparent" Cursor="Hand">
-                                                                                <PathIcon Data="{StaticResource CloseTaskIcon}" Foreground="{StaticResource MainRed}" ></PathIcon>
-                                                                            </Button>
-                                                                        </DockPanel>
-                                                           
-                                                                </Grid>
+                                                    <Border>
+                                                        <StackPanel>
+                                                            <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0" Background="{StaticResource LightGrey}"  Padding="1"  BoxShadow="0 0 0.5 1 LightGray"
+                                                                    PointerPressed="OnTaskIdBorderPointerPressed">
+                                                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
                                                             </Border>
-                                                           
-                                                            <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                    </TabItem>
-
-                                            <TabItem Header="Cancelled" FontSize="14" >
-                                                <!-- Content for the 'Following' section -->
-                                            </TabItem>
-                                            <TabItem Header="Pending" FontSize="14" >
-                                                  <ListBox ItemsSource="{Binding CampaignTasks}" Background="White">
-                                                        <ListBox.Styles>
-                                                            <!-- Style for ListBoxItem -->
-                                                            <Style Selector="ListBoxItem">
-                                                                <Setter Property="Background" Value="Transparent"/>
-                                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                            </Style>
-                                                            <!-- Hover effect -->
-                                                            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                                                                <Setter Property="Background" Value="Transparent" />
-                                                            </Style>
-                                                            <!-- Selected effect -->
-                                                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                                                                <Setter Property="Background" Value="Transparent" />
-                                                            </Style>
-                                                        </ListBox.Styles>
-
-                                                        <ListBox.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Border CornerRadius="5"
+                                                                 <Border CornerRadius="5"
                                                                         Padding="0"
-                                                                       Background="White"
-                                                                        BoxShadow="0 0 0.5 1 LightGray"
-                                                                        >
+                                                                        Background="White"
+                                                                        BoxShadow="0 0 0.5 1 LightGray">
                                                                     <Grid RowDefinitions="*,4">
                                                                         <Border Padding="6,6,6,6">
                                                                             <Grid RowDefinitions="*,15,*">
@@ -689,6 +606,102 @@
                                                                                   
                                                                                     </StackPanel>
                                                                                     <Border Grid.Column="2"
+                                                                                        BorderBrush="{Binding SoftColor}"
+                                                                                            BorderThickness="0"
+                                                                                            Background="{Binding SoftColor}"
+                                                                                            Padding="8"
+                                                                                            CornerRadius="15"
+                                                                                            HorizontalAlignment="Right">
+                                                                                        <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
+                                                                                    </Border>
+                                                                                </Grid>
+                                                                        
+                                                                            <DockPanel Grid.Row="2" >
+                                                                                <Button HorizontalAlignment="Right" Command="{Binding CancelCommand}" Margin="5" Background="Transparent" Cursor="Hand">
+                                                                                    <PathIcon Data="{StaticResource CloseTaskIcon}" Foreground="{StaticResource MainRed}" ></PathIcon>
+                                                                                </Button>
+                                                                            </DockPanel>
+                                                               
+                                                                    </Grid>
+                                                                </Border>
+                                                               
+                                                                <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
+                                                            </Grid>
+                                                        </Border>
+                                                        </StackPanel>
+                                                    </Border>
+                                                   
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </TabItem>
+
+                                          
+                                            <TabItem Header="Campaign" FontSize="14" >
+                                                  <ListBox ItemsSource="{Binding CampaignTasks}" Background="White">
+                                                        <ListBox.Styles>
+                                                            <!-- Style for ListBoxItem -->
+                                                            <Style Selector="ListBoxItem">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                            </Style>
+                                                            <!-- Hover effect -->
+                                                            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                                                <Setter Property="Background" Value="Transparent" />
+                                                            </Style>
+                                                            <!-- Selected effect -->
+                                                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                                                <Setter Property="Background" Value="Transparent" />
+                                                            </Style>
+                                                        </ListBox.Styles>
+
+                                                        <ListBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border
+                                                                        >
+                                                                    <StackPanel>
+                                                                        <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0" Background="{StaticResource LightGrey}"  Padding="1"  BoxShadow="0 0 0.5 1 LightGray"
+                                                                            PointerPressed="OnTaskIdBorderPointerPressed">
+                                                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
+                                                                        </Border>
+                                                                        <Border  CornerRadius="5"
+                                                                            Padding="0"
+                                                                            Background="White"
+                                                                            BoxShadow="0 0 0.5 1 LightGray">
+                                                                             <Grid RowDefinitions="*,4">
+                                                                        <Border Padding="6,6,6,6">
+                                                                            <Grid RowDefinitions="*,15,*">
+                                                                                 <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
+                                                                                    <StackPanel Orientation="Horizontal">
+                                                                                        <Ellipse  VerticalAlignment="Center" Width="10" Height="10" Fill="#027BCE" Margin="0,0,9,0"/>
+                                                                                        <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"  FontFamily="{StaticResource Roboto}"  ></TextBlock>
+                                                                                    </StackPanel>
+                                                                                     
+                                                                                     <StackPanel Grid.Column="1"
+                                                                                         HorizontalAlignment="Center" Orientation="Horizontal">
+                                                                                
+                                                                              
+                                                                                
+                                                                                        <!-- Conditionally visible TextBlock for Success Messages -->
+                                                                                        <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
+                                                                                                Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                                FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
+                                                                                                HorizontalAlignment="Center"
+                                                                                               />
+                                                                                        </Border>    
+                                                                                        <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                            <!-- Conditionally visible TextBlock for Failed Messages -->
+                                                                                            <TextBlock Text="{Binding ItemFailedMessasges.Count}"
+                                                                                                Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                                                                FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
+                                                                                                HorizontalAlignment="Center"
+                                                                                                VerticalAlignment="Center"
+                                                                                               />
+                                                                                        </Border>
+                                                                                  
+                                                                                    </StackPanel>
+                                                                                    <Border Grid.Column="2"
                                                                                         BorderBrush="{Binding Color}"
                                                                                             BorderThickness="0"
                                                                                             Background="{Binding SoftColor}"
@@ -699,19 +712,42 @@
                                                                                     </Border>
                                                                                 </Grid>
                                                                                 
-                                                                                    <DockPanel Grid.Row="2" >
-                                                                                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource LightGrey}" />
-                                                                                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding TimeUntilNextRun,Mode=TwoWay}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource MainRed}" />
-                                                                                        <Button HorizontalAlignment="Right" Command="{Binding CancelCommand}" Margin="5" Background="Transparent" Cursor="Hand">
+                                                                                    <Grid Grid.Row="2" 
+                                                                                        ColumnDefinitions="*,*,*">
+                                                                                        
+                                                                                        <TextBlock VerticalAlignment="Center"
+                                                                                            HorizontalAlignment="Left"
+                                                                                            Text="{Binding TimeUntilNextRun, Converter={StaticResource TimeSpanToStringConverter}}"
+                                                                                            Margin="5"
+                                                                                            FontSize="12"
+                                                                                            FontFamily="{StaticResource Roboto}"
+                                                                                            FontWeight="SemiLight"
+                                                                                            Foreground="{StaticResource MainRed}" />
+                                                                                        
+                                                                                        <TextBlock Grid.Column="1"
+                                                                                            VerticalAlignment="Center"
+                                                                                            HorizontalAlignment="Center"
+                                                                                            Text="{Binding WorkingStatus}"
+                                                                                            Margin="5"
+                                                                                            FontSize="12"
+                                                                                            FontFamily="{StaticResource Roboto}"
+                                                                                            FontWeight="SemiLight"
+                                                                                            Foreground="{Binding WorkingStatus, Converter={StaticResource WorkingStatusToColorConverter}}" />
+                                                                                        <Button Grid.Column="2"
+                                                                                            HorizontalAlignment="Right" Command="{Binding CancelCommand}" Margin="5" Background="Transparent" Cursor="Hand">
                                                                                             <PathIcon Data="{StaticResource CloseTaskIcon}" Foreground="{StaticResource MainRed}" ></PathIcon>
                                                                                         </Button>
-                                                                                    </DockPanel>
+                                                                                    </Grid>
                                                                        
                                                                             </Grid>
                                                                         </Border>
                                                                        
                                                                         <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
                                                                     </Grid>
+                                                                        </Border>
+                                                                       
+                                                                    </StackPanel>
+                                                                    
                                                                 </Border>
                                                             </DataTemplate>
                                                         </ListBox.ItemTemplate>
@@ -883,7 +919,7 @@
                                             BorderThickness="1"
                                             Padding="4">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
-                                            <Button Theme="{StaticResource CustomBtn}" Background="Transparent" Command="{Binding AddSingleCampaignTaskCommand }">
+                                            <Button Theme="{StaticResource CustomBtn}" Background="Transparent" Command="{Binding OpenCampaignPopupCommand }">
                                                 <StackPanel Orientation="Horizontal">
                                                     <PathIcon Width="13" Data="{StaticResource AddIcon}" Foreground="{StaticResource MainGreen}" Margin="0,0,10,0" />
                                                     <TextBlock Text="Add campain" Foreground="{StaticResource MainGreen}" FontFamily="{StaticResource Roboto}"></TextBlock>
@@ -1137,7 +1173,7 @@
                                       
                                     </StackPanel>
                                 
-                                    <ComboBox Grid.Row="4" ItemsSource="{Binding Groups}"
+                                    <ComboBox Grid.Row="4" ItemsSource="{Binding Groups,Mode=TwoWay}"
                                               SelectedItem="{Binding SelectedEmailGroup, Mode=TwoWay}"
                                               IsEnabled="{Binding IsExistingGroupSelected}"
                                               IsVisible="{Binding IsExistingGroupSelected}"
@@ -1180,116 +1216,702 @@
             </StackPanel>
            
     </Border>
-        
+        <!--Campaign Popup-->
+        <Popup IsOpen="{Binding IsCampaignPopupOpen ,Mode=TwoWay}" PlacementMode="Center" >
+            <Border Padding="30" Width="1000" Height="700">
+                <Border Background="White"   BoxShadow="0 0 20 1 LightGray" CornerRadius="10" Padding="10"  > 
+                    <Border>
+                        <Grid RowDefinitions="40,20,*">
+                            <Grid  ColumnDefinitions="*,*,*">
+                                <TextBlock Text="Create Campaign" FontFamily="{StaticResource Roboto}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextMain}"
+                                           HorizontalAlignment="Left" Margin="0,0,0,20" />
+                                <StackPanel Grid.Column="1">
+                                    <!-- WrapPanel for displaying icons -->
+                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <ItemsControl ItemsSource="{Binding ReportingselectedProcessesToIcon}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <PathIcon Data="{Binding ., Converter={StaticResource IconNameToResourceConverter}}"
+                                                              Width="16" Height="16" Foreground="{StaticResource Secondary}" Margin="4,0"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </WrapPanel>
+                                </StackPanel>
+                                <Button Grid.Column="2" Theme="{StaticResource CustomBtn}" HorizontalAlignment="Right"
+                                        Command="{Binding CloseCampaignPopupCommand}"
+                                        Width="24"
+                                        VerticalAlignment="Top"
+                                        Background="Transparent">
+                                    
+                                    <PathIcon Data="{StaticResource CloseAppIcon}"></PathIcon>
+                                </Button>
+                            </Grid>
+                            <Border Grid.Row="2" >
+                                <Grid ColumnDefinitions="*,1,*"
+                                      RowDefinitions="*,40">
+                                 
+                                    <Border Padding="19,0">
+                                        <StackPanel >
+                                            <Border Background="White"
+                                                    Padding="9"
+                                                    Margin="0,0,0,15">
+                                                <Grid ColumnDefinitions="*,10,*,10,*" >
+                                            <StackPanel DockPanel.Dock="Left">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon
+                                                        Margin="0,0,4,0"
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        Width="14"
+                                                        FontWeight="Light"
+                                                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                        <ToolTip.Tip>
+                                                            <StackPanel>
+                                                                <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}" >Thread</TextBlock>
+                                                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}">سيتم استخدام القيمة لتحديد عدد حسابات البريد الإلكتروني التي سيتم معالجتها في كل مرة.
+                                                                    مثال: إذا كان لديك 500 حساب بريد إلكتروني وقمت بتحديد 50، فإن النظام سيقسم 500/50 وسيعالج كل مرة مجموعة من 50 حسابًا.</TextBlock>
+                                                            </StackPanel>
+                                                        </ToolTip.Tip>
+                                                        
+                                                    </PathIcon>
+                                                    <TextBlock
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        FontSize="14"
+                                                        FontWeight="Light"
+                                                        Text="Thread"
+                                                        Foreground="{StaticResource Secondary}"/>
+                                                </StackPanel>
+                                               <TextBox
+                                                   Watermark="Ex : 5"
+                                                   Padding="5"
+                                                   FontFamily="{StaticResource Roboto}"
+                                                   HorizontalContentAlignment="Center"
+                                                   Text="{Binding ReportingSettingsValuesDisplay.Thread,Mode=TwoWay}"
+                                               >
+                                                   <TextBox.Styles>
+                                                       <Style Selector="TextBox:pressed /template/ Border">
+                                                           <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                       </Style>
+                                                       <Style Selector="TextBox:pointerover /template/ Border">
+                                                           <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                       </Style>
+                                                   </TextBox.Styles>
+                                               </TextBox>
+                                            </StackPanel>
+                                            
+                                            <StackPanel  Grid.Column="2" DockPanel.Dock="Left">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon
+                                                      
+                                                        Margin="0,0,4,0"
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        Width="14"
+                                                        FontWeight="Light"
+                                                        
+                                                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                        <ToolTip.Tip>
+                                                            <StackPanel>
+                                                                <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}" >Repetition</TextBlock>
+                                                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}">سيتم استخدام هذه القيمة لتحديد عدد المرات التي سيعيد فيها النظام تنفيذ العملية.
 
-       <Popup IsOpen="{Binding IsPopupOpen ,Mode=TwoWay}" PlacementMode="Center">
-    <Border Background="White" CornerRadius="10" Padding="10">
-        <StackPanel>
-            <TextBlock Text="choose processes !" FontFamily="{StaticResource Roboto}"  HorizontalAlignment="Center" Margin="0,0,0,20" />
-            <Grid ColumnDefinitions="*,20,*"
-                  RowDefinitions="*,20,*,20,*"
-                  Margin="0,0,0,20">
-                
-                <CheckBox Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsReportingSelected}">
-                    <CheckBox.Template>
-                        <ControlTemplate>
-                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
-                                    CornerRadius="8"
-                                    Padding="10"
-                                    BorderBrush="#E0E0E0"
-                                    BorderThickness="1"
-                                    >
-                                <StackPanel>
-                                    <PathIcon Foreground="#8093F1" Data="{StaticResource ReportingIcon}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Reporting" HorizontalAlignment="Center" Foreground="{StaticResource Primary}" FontFamily="{StaticResource Roboto}" FontWeight="SemiBold" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </CheckBox.Template>
-                </CheckBox>
-                <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsDeleteSpamSelected}">
-                    <CheckBox.Template>
-                        <ControlTemplate>
-                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
-                                    CornerRadius="8"
-                                    Padding="10"
-                                    BorderBrush="#E0E0E0"
-                                    BorderThickness="1">
-                                <StackPanel>
-                                    <PathIcon   Foreground="#A4303F" Data="{StaticResource DeleteSpamIcon}" HorizontalAlignment="Center"/>
-                                   
-                                    <TextBlock Text="Delete Spam" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </CheckBox.Template>
-                </CheckBox>
-                <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamNumbersSelected}">
-                    <CheckBox.Template>
-                        <ControlTemplate>
-                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
-                                    CornerRadius="8"
-                                    Padding="10"
-                                    BorderBrush="#E0E0E0"
-                                    BorderThickness="1">
-                                <StackPanel>
-                                    <PathIcon Foreground="#475841" Data="{StaticResource CollectSpamNumberIcon}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Collect Spam Number" FontFamily="{StaticResource Roboto}" HorizontalAlignment="Center" FontWeight="Bold" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </CheckBox.Template>
-                </CheckBox>
-                <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamSubjectSelected}">
-                    <CheckBox.Template>
-                        <ControlTemplate>
-                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
-                                    CornerRadius="8"
-                                    Padding="10"
-                                    BorderBrush="#E0E0E0"
-                                    BorderThickness="1">
-                                <StackPanel>
-                                    <PathIcon  Foreground="#9FB8AD" Data="{StaticResource CollectSpamSubjectIcon}" HorizontalAlignment="Center"/>
+                                                                    على سبيل المثال، إذا قمت بتعيينها على 2، فعند انتهاء العملية ستبدأ من جديد (سيتم التعامل مع حسابات البريد الإلكتروني التي فشلت خلال التشغيل الأول بطريقة مختلفة).</TextBlock>
+                                                            </StackPanel>
+                                                        </ToolTip.Tip>
+
+                                                    </PathIcon>
+                                                    <TextBlock
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        FontSize="14"
+                                                        Foreground="{StaticResource Secondary}"
+                                                        FontWeight="SemiLight"
+                                                        Text="Repeat"/>
+                                                </StackPanel>
+                                                <TextBox 
+                                                    Watermark="Ex : 2"
+                                                    Padding="5"
+                                                    FontFamily="{StaticResource Roboto}"
+                                                    HorizontalContentAlignment="Center"
+                                                    BorderThickness="1"
+                                                    BorderBrush="{StaticResource Primary}"
+                                                    Text="{Binding ReportingSettingsValuesDisplay.Repetition,Mode=TwoWay}"
+                                                >
+                                                    <TextBox.Styles>
+                                                        <Style Selector="TextBox:pressed /template/ Border">
+                                                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                        </Style>
+                                                        <Style Selector="TextBox:pointerover /template/ Border">
+                                                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                        </Style>
+                                                    </TextBox.Styles>
+                                                </TextBox>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="4" DockPanel.Dock="Right">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon
+                                                        Margin="0,0,4,0"
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        Width="14"
+                                                        FontWeight="Light"
+                                                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                        <ToolTip.Tip>
+                                                            <StackPanel>
+                                                                <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}" >Repetition delay</TextBlock>
+                                                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}">ستُستخدم هذه القيمة لتعيين مؤقت بالدقائق، بحيث ينتظر النظام بين كل تكرار للعملية.
+
+                                                                    على سبيل المثال، إذا تم تعيينه على 30، فإن النظام سينتظر 30 دقيقة بعد التكرار الأول قبل بدء التكرار الثاني.</TextBlock>
+                                                            </StackPanel>
+                                                        </ToolTip.Tip>
+                                                    </PathIcon>
+                                                    <TextBlock
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        FontSize="14"
+                                                        Foreground="{StaticResource Secondary}"
+                                                        FontWeight="SemiLight"
+                                                        Text="wait b"/>
+                                                </StackPanel>
+                                                <TextBox
+                                                    Watermark="Ex : 30"
+                                                    Padding="5"
+                                                    FontFamily="{StaticResource Roboto}"
+                                                    HorizontalContentAlignment="Center"
+                                                    Text="{Binding ReportingSettingsValuesDisplay.RepetitionDelay,Mode=TwoWay}"
+                                                >
+                                                    <TextBox.Styles>
+                                                        <Style Selector="TextBox:pressed /template/ Border">
+                                                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                        </Style>
+                                                        <Style Selector="TextBox:pointerover /template/ Border">
+                                                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                        </Style>
+                                                    </TextBox.Styles>
+                                                </TextBox>
+                                            </StackPanel>
+                                          
+                                        </Grid>
+                                            </Border>
+                                            <Border Margin="0,0,0,15"
+                                                    CornerRadius="5"
+                                                   >
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <PathIcon
+                                                            Margin="0,0,4,0"
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            Width="14"
+                                                            FontWeight="Light"
+                                                            Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                            <ToolTip.Tip>
+                                                                <StackPanel>
+                                                                    <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                               FontFamily="{StaticResource Roboto}" >Repetition delay</TextBlock>
+                                                                    <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                               FontFamily="{StaticResource Roboto}">This setting determines how the system will handle proxies in the process(es). <LineBreak></LineBreak>
+
+                                                                        <TextBlock FontWeight="Bold">Random</TextBlock>: The process will not use the proxy associated with the email account. Instead, it will randomly assign a proxy to the email account.<LineBreak></LineBreak>
+
+                                                                        <TextBlock FontWeight="Bold">Fixed</TextBlock>: The system will assign a unique proxy for each email account</TextBlock>
+                                                                </StackPanel>
+                                                            </ToolTip.Tip>
+                                                        </PathIcon>
+                                                        <TextBlock
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            FontSize="14"
+                                                            Foreground="{StaticResource Secondary}"
+                                                            FontWeight="SemiLight"
+                                                            Text="Proxy Sittings"/>
+                                                    </StackPanel>
+                                                    <Border Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1">
+                                                         <Grid ColumnDefinitions="*,1,*"
+                                                          Background="white">
+                                                        <ToggleButton Content="Fixed"
+                                                                      Margin="2"
+                                                                      Background="Transparent"
+                                                                      HorizontalAlignment="Stretch"
+                                                                      HorizontalContentAlignment="Center"
+                                                                      IsChecked="{Binding IsFixed}"
+                                                                      Classes="SegmentButton"
+                                                                      Command="{Binding SelectProxySettingsCommand}"
+                                                                      CommandParameter="Fixed">
+                                                                <ToggleButton.Styles>
+                                                                    <Style Selector="ToggleButton">
+                                                                        <Setter Property="Background" Value="Transparent" />
+                                                                        <Setter Property="Foreground" Value="{StaticResource Primary}" />
+                                                                    </Style>
+                                                                    <Style Selector="ToggleButton:pointerover /template/ ContentPresenter">
+                                                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                                                        <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                                                                    </Style>
+                                                                    <Style Selector="ToggleButton:pressed /template/ ContentPresenter">
+                                                                        <Setter Property="Background" Value="{StaticResource Secondary}" />
+                                                                        <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                        <Setter Property="FontWeight" Value="Bold" />
+                                                                    </Style>
+                                                                    <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+                                                                        <Setter Property="Background" Value="{StaticResource Primary}" />
+                                                                        <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                        <Setter Property="FontWeight" Value="Bold" />
+                                                                    </Style>
+                                                                </ToggleButton.Styles>
+                                                        </ToggleButton>
+                                                        <Border Grid.Column="1" Width="1" Background="Gray" Margin="0,0,5,0" />
+                                                        <ToggleButton Grid.Column="2" Content="Random"
+                                                                      Margin="2"
+                                                                      Background="Transparent"
+                                                                      HorizontalContentAlignment="Center"
+                                                                      HorizontalAlignment="Stretch"
+                                                                      IsChecked="{Binding IsRandom}"
+                                                                      Classes="SegmentButton"
+                                                                      Command="{Binding SelectProxySettingsCommand}"
+                                                                      CommandParameter="Random">
+                                                            <ToggleButton.Styles>
+                                                                <Style Selector="ToggleButton">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource Primary}" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:pointerover /template/ ContentPresenter">
+                                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:pressed /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="{StaticResource Secondary}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+                                                                    <Setter Property="Background" Value="{StaticResource Primary}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                                </Style>
+                                                            </ToggleButton.Styles>
+                                                        </ToggleButton>
+                                                    </Grid>
+                                                    </Border>
+                                                   
+                                                    <!--Reset-->
+                                                    <!--<DockPanel  HorizontalAlignment="Stretch">
+                                                        <Button HorizontalAlignment="Right" Content="reset" Cursor="Hand">
+                                                            <Button.Styles>
+                                                                <Style Selector="Button">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                </Style>
+                                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                </Style>
+                                                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                </Style>
+                                                            </Button.Styles>
+                                                        </Button>
+                                                    </DockPanel>-->
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Margin="0,0,0,15"
+                                                    CornerRadius="5">
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <PathIcon
+                                                            Margin="0,0,4,0"
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            Width="14"
+                                                            FontWeight="Light"
+                                                            Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}"></PathIcon>
+                                                        <TextBlock
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            FontSize="14"
+                                                            Foreground="{StaticResource Secondary}"
+                                                            FontWeight="SemiLight"
+                                                            Text="Reporting Sittings"/>
+                                                    </StackPanel>
+                                                    <Border  Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1" >
+                                                          <Grid       ColumnDefinitions="*,1,*"
+                                                                Background="white">
+                                                        <ToggleButton Content="One by One"
+                                                                 
+                                                                      Margin="2"
+                                                                      Background="Transparent"
+                                                                      HorizontalContentAlignment="Center"
+                                                                      HorizontalAlignment="Stretch"
+                                                                      IsChecked="{Binding IsOneByOne}"
+                                                                      Classes="SegmentButton"
+                                                                      Command="{Binding SelectReportingSettingsCommand}"
+                                                                      CommandParameter="OneByOne">
+                                                            <ToggleButton.Styles>
+                                                                <Style Selector="ToggleButton">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource Primary}" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:pointerover /template/ ContentPresenter">
+                                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:pressed /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="{StaticResource Secondary}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+                                                                    <Setter Property="Background" Value="{StaticResource Primary}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                                </Style>
+                                                            </ToggleButton.Styles>
+                                                        </ToggleButton>
+                                                        <Border Grid.Column="1" Width="1" Background="Gray" Margin="0,0,5,0" />
+                                                        <ToggleButton Grid.Column="2" Content="All"
+                                                                      Margin="2"
+                                                                      HorizontalAlignment="Stretch"
+                                                                      Background="Transparent"
+                                                                      HorizontalContentAlignment="Center"
+                                                                      IsChecked="{Binding IsAll}"
+                                                                      Classes="SegmentButton"
+                                                                      Command="{Binding SelectReportingSettingsCommand}"
+                                                                      CommandParameter="All">
+                                                            <ToggleButton.Styles>
+                                                                <Style Selector="ToggleButton">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource Primary}" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:pointerover /template/ ContentPresenter">
+                                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:pressed /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="{StaticResource Secondary}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                                </Style>
+                                                                <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+                                                                    <Setter Property="Background" Value="{StaticResource Primary}" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                                </Style>
+                                                            </ToggleButton.Styles>
+                                                        </ToggleButton>
+                                                    </Grid>
+                                                    </Border>
+                                                  
+                                                    <!--reset-->
+                                                    <!--<DockPanel  HorizontalAlignment="Stretch">
+                                                        <Button HorizontalAlignment="Right" Content="reset" Cursor="Hand">
+                                                            <Button.Styles>
+                                                                <Style Selector="Button">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                </Style>
+                                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                </Style>
+                                                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                </Style>
+                                                            </Button.Styles>
+                                                        </Button>
+                                                    </DockPanel>-->
+                                                </StackPanel>
+                                              
+                                            </Border>
+                                            <Border>
+                                                <StackPanel DockPanel.Dock="Left">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon
+                                                        Margin="0,0,4,0"
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        Width="14"
+                                                        FontWeight="Light"
+                                                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                        <ToolTip.Tip>
+                                                            <StackPanel>
+                                                                <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}" >Interval</TextBlock>
+                                                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                           FontFamily="{StaticResource Roboto}">سيتم استخدام القيمة لتحديد عدد حسابات البريد الإلكتروني التي سيتم معالجتها في كل مرة.
+                                                                    مثال: إذا كان لديك 500 حساب بريد إلكتروني وقمت بتحديد 50، فإن النظام سيقسم 500/50 وسيعالج كل مرة مجموعة من 50 حسابًا.</TextBlock>
+                                                            </StackPanel>
+                                                        </ToolTip.Tip>
+                                                        
+                                                    </PathIcon>
+                                                    <TextBlock
+                                                        FontFamily="{StaticResource Roboto}"
+                                                        FontSize="14"
+                                                        FontWeight="Light"
+                                                        Text="Interval"
+                                                        Foreground="{StaticResource Secondary}"/>
+                                                </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
+                                                        <TextBox
+                                                            Watermark="Ex : 30 min"
+                                                            Padding="5"
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            HorizontalContentAlignment="Center"
+                                                            Text="{Binding ReportingSettingsValuesDisplay.TimeUntilNextRun,Mode=TwoWay}"
+                                                        >
+                                                            <TextBox.Styles>
+                                                                <Style Selector="TextBox:pressed /template/ Border">
+                                                                    <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                                </Style>
+                                                                <Style Selector="TextBox:pointerover /template/ Border">
+                                                                    <Setter Property="BorderBrush" Value="{StaticResource Secondary}"/>
+                                                                </Style>
+                                                            </TextBox.Styles>
+                                                        </TextBox>
+                                                        <TextBlock VerticalAlignment="Center"  HorizontalAlignment="Center" Foreground="{StaticResource TextMain}"
+                                                                   FontFamily="{StaticResource Roboto}" >Sec</TextBlock>
+                                                    </StackPanel>
+                                               
+                                            </StackPanel>
+                                            </Border>
+                                            
+                                        </StackPanel>
+                                    </Border>
                                     
+                                    <Border Background="LightGray" Grid.Row="0" Grid.Column="1"></Border>
                                     
-                                    <TextBlock Text="Collect Spam Subject" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </CheckBox.Template>
-                </CheckBox>
-                <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsFixAfterFinish}">
-                    <CheckBox.Template>
-                        <ControlTemplate>
-                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
-                                    CornerRadius="8"
-                                    Padding="10"
-                                    BorderBrush="#E0E0E0"
-                                    BorderThickness="1">
-                                <StackPanel>
-                                    <PathIcon  Foreground="#78CEBD" Data="{StaticResource FixIcon}" HorizontalAlignment="Center"/>
+                                    <Border Grid.Row="0" Grid.Column="2" Background="White" CornerRadius="10" Padding="10">
+                                        <StackPanel>
+                                            <TextBlock Text="choose processes !" FontFamily="{StaticResource Roboto}"  HorizontalAlignment="Center" Margin="0,0,0,20" />
+                                            <Grid ColumnDefinitions="*,20,*"
+                                                  RowDefinitions="*,20,*,20,*"
+                                                  Margin="0,0,0,20">
+                                                
+                                                <CheckBox Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsReportingSelected}">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    CornerRadius="8"
+                                                                    Padding="10"
+                                                                    BorderBrush="#E0E0E0"
+                                                                    BorderThickness="1"
+                                                                    >
+                                                                <StackPanel>
+                                                                    <PathIcon Foreground="#8093F1" Data="{StaticResource ReportingIcon}" HorizontalAlignment="Center"/>
+                                                                    <TextBlock Text="Reporting" HorizontalAlignment="Center" Foreground="Gray" FontFamily="{StaticResource Roboto}" FontWeight="SemiBold" Margin="0,8,0,4"/>
+                                                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" Foreground="{StaticResource TentGrey }" FontWeight="Light" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                                <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsDeleteSpamSelected}">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    CornerRadius="8"
+                                                                    Padding="10"
+                                                                    BorderBrush="#E0E0E0"
+                                                                    BorderThickness="1">
+                                                                <StackPanel>
+                                                                    <PathIcon   Foreground="#A4303F" Data="{StaticResource DeleteSpamIcon}" HorizontalAlignment="Center"/>
+                                                                   
+                                                                    <TextBlock Text="Delete Spam" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" Foreground="{StaticResource TentGrey }" FontWeight="Light" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                                <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamNumbersSelected}">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    CornerRadius="8"
+                                                                    Padding="10"
+                                                                    BorderBrush="#E0E0E0"
+                                                                    BorderThickness="1">
+                                                                <StackPanel>
+                                                                    <PathIcon Foreground="#475841" Data="{StaticResource CollectSpamNumberIcon}" HorizontalAlignment="Center"/>
+                                                                    <TextBlock Text="Collect Spam Number" FontFamily="{StaticResource Roboto}" HorizontalAlignment="Center" FontWeight="Bold" Margin="0,8,0,4"/>
+                                                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" Foreground="{StaticResource TentGrey }" FontWeight="Light" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                                <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamSubjectSelected}">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    CornerRadius="8"
+                                                                    Padding="10"
+                                                                    BorderBrush="#E0E0E0"
+                                                                    BorderThickness="1">
+                                                                <StackPanel>
+                                                                    <PathIcon  Foreground="#9FB8AD" Data="{StaticResource CollectSpamSubjectIcon}" HorizontalAlignment="Center"/>
+                                                                    
+                                                                    
+                                                                    <TextBlock Text="Collect Spam Subject" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" Foreground="{StaticResource TentGrey }" FontWeight="Light" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                                <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsFixAfterFinish}">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    CornerRadius="8"
+                                                                    Padding="10"
+                                                                    BorderBrush="#E0E0E0"
+                                                                    BorderThickness="1">
+                                                                <StackPanel>
+                                                                    <PathIcon  Foreground="#78CEBD" Data="{StaticResource FixIcon}" HorizontalAlignment="Center"/>
+                                                                    
+                                                                    <TextBlock Text="Fix Errors" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                                                    <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" Foreground="{StaticResource TentGrey }" FontWeight="Light" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                            </Grid>
+                                            
+                                        </StackPanel>
+                                    </Border>
                                     
-                                    <TextBlock Text="Fix Errors" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </CheckBox.Template>
-                </CheckBox>
-            </Grid>
-           
-            <Button Content="Done" HorizontalAlignment="Center" Background="{StaticResource Primary}"  Command="{Binding ClosePopupCommand}"  Foreground="{StaticResource MainWhite}"
-                    Width="120" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
-                    Cursor="Hand">
+                                    <Border Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Grid.ColumnSpan="3" Padding="5" Width="190" Cursor="Hand">
+                                        <Button Content="Create Campaign" Background="{StaticResource Primary}" Foreground="{StaticResource MainWhite}"
+                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                                Cursor="Hand" Command="{Binding AddSingleCampaignTaskCommand}">
                             
-            </Button>
-        </StackPanel>
-    </Border>
-</Popup>
+                                        </Button>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        
+                    </Border>
+                </Border>
+            </Border>
+           
+    </Popup>
+        
+       <Popup IsOpen="{Binding IsPopupOpen ,Mode=TwoWay}" PlacementMode="Center">
+        <Border Background="White" CornerRadius="10" Padding="10">
+            <StackPanel>
+                <TextBlock Text="choose processes !" FontFamily="{StaticResource Roboto}"  HorizontalAlignment="Center" Margin="0,0,0,20" />
+                <Grid ColumnDefinitions="*,20,*"
+                      RowDefinitions="*,20,*,20,*"
+                      Margin="0,0,0,20">
+                    
+                    <CheckBox Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsReportingSelected}">
+                        <CheckBox.Template>
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1"
+                                        >
+                                    <StackPanel>
+                                        <PathIcon Foreground="#8093F1" Data="{StaticResource ReportingIcon}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Reporting" HorizontalAlignment="Center" Foreground="{StaticResource Primary}" FontFamily="{StaticResource Roboto}" FontWeight="SemiBold" Margin="0,8,0,4"/>
+                                        <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                    <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsDeleteSpamSelected}">
+                        <CheckBox.Template>
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <PathIcon   Foreground="#A4303F" Data="{StaticResource DeleteSpamIcon}" HorizontalAlignment="Center"/>
+                                       
+                                        <TextBlock Text="Delete Spam" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                        <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                    <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamNumbersSelected}">
+                        <CheckBox.Template>
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <PathIcon Foreground="#475841" Data="{StaticResource CollectSpamNumberIcon}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Collect Spam Number" FontFamily="{StaticResource Roboto}" HorizontalAlignment="Center" FontWeight="Bold" Margin="0,8,0,4"/>
+                                        <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                    <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamSubjectSelected}">
+                        <CheckBox.Template>
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <PathIcon  Foreground="#9FB8AD" Data="{StaticResource CollectSpamSubjectIcon}" HorizontalAlignment="Center"/>
+                                        
+                                        
+                                        <TextBlock Text="Collect Spam Subject" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                        <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                    <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsFixAfterFinish}">
+                        <CheckBox.Template>
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <PathIcon  Foreground="#78CEBD" Data="{StaticResource FixIcon}" HorizontalAlignment="Center"/>
+                                        
+                                        <TextBlock Text="Fix Errors" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                        <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                </Grid>
+               
+                <Button Content="Done" HorizontalAlignment="Center" Background="{StaticResource Primary}"  Command="{Binding ClosePopupCommand}"  Foreground="{StaticResource MainWhite}"
+                        Width="120" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                        Cursor="Hand">
+                                
+                </Button>
+            </StackPanel>
+        </Border>
+    </Popup>
+        
         <Popup IsLightDismissEnabled="True" 
                Width="350"
                Height="550"
@@ -1333,12 +1955,18 @@
 
                                             <ListBox.ItemTemplate>
                                                <DataTemplate>
-                                                    <Border CornerRadius="5"
-                                                            BorderThickness="1"
-                                                            Padding="0"
-                                                            BorderBrush="DarkGray"
+                                                   <Border>
+                                                       <StackPanel>
+                                                           <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0" Background="{StaticResource LightGrey}"  Padding="1"  BoxShadow="0 0 0.5 1 LightGray"
+                                                                   PointerPressed="OnTaskIdBorderPointerPressed">
+                                                               <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
+                                                           </Border>
+                                                           <Border CornerRadius="5"
+                                                           BorderThickness="1"
+                                                           Padding="0"
+                                                           BorderBrush="DarkGray"
                                                            Background="White"
-                                                            >
+                                                   >
                                                         <Grid RowDefinitions="*,4">
                                                             <Border Padding="6,6,6,6">
                                                                 <Grid RowDefinitions="*,15,*">
@@ -1384,10 +2012,6 @@
                                                                             <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
                                                                         </Border>
                                                                     </Grid>
-                                                                    
-                                                                        <DockPanel Grid.Row="2" >
-                                                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource LightGrey}" />
-                                                                        </DockPanel>
                                                            
                                                                 </Grid>
                                                             </Border>
@@ -1395,6 +2019,9 @@
                                                             <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
                                                         </Grid>
                                                     </Border>
+                                                       </StackPanel>
+                                                   </Border>
+                                                   
                                                 </DataTemplate>
                                             </ListBox.ItemTemplate>
                                         </ListBox>

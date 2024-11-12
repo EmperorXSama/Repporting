@@ -3,11 +3,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:components1="clr-namespace:RepportingApp.Views.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
             x:DataType="viewModels:ProxyManagementPageViewModel"
              x:Class="RepportingApp.Views.ProxyManagementPageView">
      
-    <Grid>
+    <Grid >
+        <Border ZIndex="10000">
+            <components1:ErrorIndicatorView DataContext="{Binding ErrorIndicator}" />
+
+        </Border>
+      
         <Button Command="{Binding ProcessAStartCommand}" HorizontalAlignment="Center" VerticalAlignment="Center">Start Process B</Button>
     </Grid>
 </UserControl>

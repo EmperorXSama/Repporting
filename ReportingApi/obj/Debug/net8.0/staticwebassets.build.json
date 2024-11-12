@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "0UYLLOjf1Y2obaIhhPTYV0nHBM2jDhI9pZbtk2DicGI=",
+  "Source": "ReportingApi",
+  "BasePath": "_content/ReportingApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

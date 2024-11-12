@@ -101,11 +101,10 @@ public static class DummyDataGenerator
             Campaigns.Add(new Campaign
             {
                 Id = i,
-                Name = $"Campaign {i}",
+                OperationName = $"Campaign {i}",
                 StartTime = DateTime.Now.AddMinutes(i * 30),
                 Interval = TimeSpan.FromHours(1),
                 EmailGroup = EmailGroups[i % EmailGroups.Count],
-                Processes = Processes.Take(2).ToList()
             });
         }
     }

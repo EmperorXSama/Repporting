@@ -1,0 +1,13 @@
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\bin\Debug\net8.0\Reporting.lib.deps.json
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\bin\Debug\net8.0\Reporting.lib.dll
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\bin\Debug\net8.0\Reporting.lib.pdb
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.csproj.AssemblyReference.cache
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.AssemblyInfoInputs.cache
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.AssemblyInfo.cs
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.csproj.CoreCompileInputs.cache
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.sourcelink.json
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.dll
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\refint\Reporting.lib.dll
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\Reporting.lib.pdb
+C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\ref\Reporting.lib.dll

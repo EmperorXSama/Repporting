@@ -31,7 +31,7 @@ public class SystemConfigurationEstimator
         // Scale batch size dynamically based on logical processors
         RecommendedBatchSize = LogicalProcessorCount * 5;
         
-        // For extremely high-end CPUs, cap the batch size if needed
+        
         if (RecommendedBatchSize > 200)
         {
             RecommendedBatchSize = 200; // Cap to avoid excessive load

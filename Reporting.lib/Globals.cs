@@ -1,0 +1,1 @@
+﻿global using Reporting.lib.Models.Core;

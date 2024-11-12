@@ -1,4 +1,7 @@
 
+using RepportingApp.CoreSystem.ApiSystem;
+using RepportingApp.IServices;
+using RepportingApp.Services;
 using RepportingApp.ViewModels.ExtensionViewModel;
 using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
 
@@ -23,6 +26,7 @@ public partial class App : Application
 
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton<IMessenger, StrongReferenceMessenger>();
+        serviceCollection.AddSingleton<IEmailAccountServices, EmailAccountServices>();
         serviceCollection.AddSingleton<DashboardPageViewModel>();
         serviceCollection.AddSingleton<AutomationPageViewModel>();
         serviceCollection.AddSingleton<ProxyManagementPageViewModel>();
@@ -30,6 +34,10 @@ public partial class App : Application
         serviceCollection.AddSingleton<MainWindowViewModel>();
         serviceCollection.AddSingleton<ReportingPageViewModel>();
         serviceCollection.AddSingleton<TaskInfoManager>();
+
+
+        serviceCollection.AddSingleton<IApiConnector, UnifiedApiClient>();
+        serviceCollection.AddSingleton<ICacheService, CacheService>();
         
         
         serviceCollection.AddSingleton<SystemConfigurationEstimator>();

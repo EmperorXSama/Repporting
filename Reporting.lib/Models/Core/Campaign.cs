@@ -1,12 +1,7 @@
 ﻿namespace Reporting.lib.Models.Core;
 
-public class Campaign
+public class Campaign : Process
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public DateTime StartTime { get; set; }
-    public TimeSpan Interval { get; set; } // Interval for recurring execution
-    public int EmailGroupId { get; set; }
-    public EmailGroup EmailGroup { get; set; }
-    public ICollection<Process> Processes { get; set; } = new List<Process>();
+    public TimeSpan Interval { get; set; }  // Interval for recurring execution
+    public override bool IsCampaign { get; set; } = true;  // Override to identify as campaign
 }
