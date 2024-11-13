@@ -586,7 +586,7 @@
                                                                                 
                                                                                         <!-- Conditionally visible TextBlock for Success Messages -->
                                                                                         <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
-                                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
+                                                                                            <TextBlock VerticalAlignment="Center" Text="{Binding ItemFailedMessasges.Count}"
                                                                                                 Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
                                                                                                 FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
                                                                                                 HorizontalAlignment="Center"
@@ -594,7 +594,7 @@
                                                                                         </Border>    
                                                                                         <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
                                                                                             <!-- Conditionally visible TextBlock for Failed Messages -->
-                                                                                            <TextBlock Text="{Binding ItemFailedMessasges.Count}"
+                                                                                            <TextBlock Text="{Binding ItemSuccesMessasges.Count}"
                                                                                                 Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
                                                                                                 FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
                                                                                                 HorizontalAlignment="Center"

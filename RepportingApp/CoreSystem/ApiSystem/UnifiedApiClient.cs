@@ -43,15 +43,23 @@ public class UnifiedApiClient : IApiConnector
     
     public async Task<T> PostDataAsync<T>(string endpoint, object payload, Dictionary<string, string>? headers = null)
     {
-        ApplyHeaders(headers);
-        var jsonPayload = JsonConvert.SerializeObject(payload);
-        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        try
+        {
+            ApplyHeaders(headers);
+            var jsonPayload = JsonConvert.SerializeObject(payload);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
-        response.EnsureSuccessStatusCode();
+            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
+            response.EnsureSuccessStatusCode();
 
-        string jsonResponse = await response.Content.ReadAsStringAsync();
-        return JsonConvert.DeserializeObject<T>(jsonResponse)!;
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(jsonResponse)!;
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"An error occured while posting the data: {e.Message}");
+        }
+      
     }
 
     public async Task<bool> PutDataAsync(string endpoint, object payload, Dictionary<string, string>? headers = null)

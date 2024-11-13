@@ -213,6 +213,13 @@ namespace RepportingApp.CoreSystem.Multithread
             {
                 // Handle batch-level cancellation
                 TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Batch process was cancelled")));
+            }  catch (Exception ex)
+            {
+                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, ex));
+            }
+            finally
+            {
+                _cancellationTokens.TryRemove(taskId, out _);
             }
         }
         // Process a looping batch of tasks with specified interval
@@ -295,7 +302,15 @@ namespace RepportingApp.CoreSystem.Multithread
             }
         }
         
-        
+        public async Task WaitForTaskCompletion(Guid taskId)
+        {
+            // Wait for the task to finish
+            while (_cancellationTokens.ContainsKey(taskId))
+            {
+                // This can be improved with an event or other signaling mechanism
+                await Task.Delay(100); // Short delay before checking again
+            }
+        }
     }
 
     // Event argument classes

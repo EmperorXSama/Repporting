@@ -315,6 +315,8 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
     #endregion
 
     #region Upload File/Data Func
+    private readonly ConcurrentBag<EmailAccount> _emailsToGetUploaded = new();
+
     
     [RelayCommand] private void OpenFileUploadPopup()  => IsUploadPopupOpen = true;
 
@@ -330,107 +332,107 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
     {
             if (!ValidateFile(filePath))
             {
-                // Optionally notify user of invalid file
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("Invalid File", "You dropped an invalid file extention (only txt, excel format)");
                 return;
             }
 
-            if (SelectedEmailGroup.Name == "No Group")
+            if (SelectedEmailGroup?.Name == null)
             {
-                await MessageBoxManager.GetMessageBoxCustom(new MessageBoxCustomParams
-                {
-                    ContentTitle = "Custom code is not validated",
-                    ContentMessage = "Incorrect code may impact your website's performance",
-                    ButtonDefinitions = new[]
-                    {
-                        new ButtonDefinition { Name = "Ok, I got it", IsDefault = true }
-                    },
-                    Icon = Icon.Warning, 
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                }).ShowAsync();
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("no group selected", "you have to assign a group or give a name for a group to be created ");
                 return;
             }
+            
             var fileInfo = new FileInfo(filePath);
+            FileName = fileInfo.Name;
+            FileSize = Math.Floor(fileInfo.Length / (1024.0 * 1024.0)); // Convert to MB
 
-            // Get file name and size
-            FileName = fileInfo.Name; // Get the file name
-            long fileSize = fileInfo.Length;  // Get the file size in bytes
-
-            // Optionally convert size to KB or MB for display
-            FileSize =Math.Floor(fileSize / (1024.0 * 1024.0)) ; // Convert to MB
             _cancellationTokenSource = new CancellationTokenSource();
             IsUploading = true;
             UploadProgress = 0;
-            var currentTaskId  = _taskManager.StartTask(async cancellationToken =>
-            {
-                try
-                {
-                    var progress = new Progress<int>(value => { UploadProgress = value; });
-                    await UploadFileContentAsync(filePath, progress, cancellationToken);
-                }
-                finally
-                {
-                    Dispatcher.UIThread.Post(() =>IsUploading = false );
-                    UploadProgress = 0;
-                }
-                
-            });
-            CancelUploadToken = currentTaskId;
-            CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single, currentTaskId, "File Upload",Statics.UploadFileColor,Statics.UploadFileSoftColor);
+
+            // Reset _processedLines for each new file upload
+            _processedLines = 0;
         
-    }
 
-    private async Task UploadFileContentAsync(string filePath, IProgress<int> progress, CancellationToken cancellationToken)
-    {
-        /*
-         * todo : see if we need to create a new group or use existing group
-         * todo : upload on chunks instead of one by one
-         * todo : add each chunk to database
-         * todo : then update ui of the progress
-         */
-        // Read all lines from the file
-        var lines = await File.ReadAllLinesAsync(filePath);
-        var totalLines = lines.Length;
+            var lines = await File.ReadAllLinesAsync(filePath);
+            var totalLines = lines.Length;
+            var progress = new Progress<int>(value => UploadProgress = value);
 
-        for (int i = 0; i < totalLines; i++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var line = lines[i];
-            var data = line.Split(';');
-
-            if (data.Length != 7)
+            var currentTaskId = _taskManager.StartBatch(
+                lines, 
+                (line, cancellationToken) => ProcessLineWithProgress(line, totalLines, progress, cancellationToken), 
+                batchSize: _configEstimator.RecommendedBatchSize
+            );  
+        
+        
+            CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor);
+            await _taskManager.WaitForTaskCompletion(currentTaskId);
+            
+            int? groupId = SelectedEmailGroup.Id; 
+            string? groupName = SelectedEmailGroup.Name;
+            
+            var payload = new
             {
-                // Handle incorrect data format, e.g., skip the line or log an error
-                continue;
-            }
-
-            // Simulate processing of the line (replace with actual upload logic)
-            await Task.Delay(3000); // Simulate time-consuming operation
-
-            // Create and add a new EmailAccount with parsed data
-            var emailAccount = new EmailAccount
-            {
-                EmailAddress = data[0],
-                Password = data[1],
-                RecoveryEmail = data[2],
-                Proxy = new Proxy
-                {
-                    ProxyIp = data[3],
-                    Port = int.TryParse(data[4], out var port) ? port : 0,
-                    Username = data[5],
-                    Password = data[6]
-                },
-                Status = EmailStatus.NewAdded,
-                GroupId = 1 // Replace with actual logic if needed
+                emailAccounts = _emailsToGetUploaded,
+                groupId,
+                groupName
             };
+            var apiCreateEmails = _taskManager.StartTask(async cancellationToken =>
+            {
+             
+                await _apiConnector.PostDataAsync<object>(ApiEndPoints.GetAddEmails, payload);
+                /*_taskManager.UpdateUiThreadValues(
+                    ()=>   Groups.Add(newGroup),
+                    ()=>   IsEnabled = true,
+                    ()=>    SelectedEmailGroup = newGroup);*/
+             
+            });
+            CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor);
+            await _taskManager.WaitForTaskCompletion(apiCreateEmails);
+            _emailsToGetUploaded.Clear();
+    }
+    private int _processedLines;
 
-            // Add the account to the observable collection on the UI thread
-            Dispatcher.UIThread.Post(() => EmailAccounts.Add(emailAccount));
+    private async Task ProcessLineWithProgress(
+        string line,
+        int totalLines,
+        IProgress<int> progress,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-            // Report progress
-            int percentComplete = (int)((i + 1) * 100.0 / totalLines);
-            progress.Report(percentComplete);
+        var data = line.Split(';');
+        if (data.Length != 7)
+        {
+            // Handle incorrect data format, e.g., skip the line or log an error
+            return;
         }
+
+        var emailAccount = new EmailAccount
+        {
+            EmailAddress = data[0],
+            Password = data[1],
+            RecoveryEmail = data[2],
+            Proxy = new Proxy
+            {
+                ProxyIp = data[3],
+                Port = int.TryParse(data[4], out var port) ? port : 0,
+                Username = data[5],
+                Password = data[6]
+            },
+            Status = EmailStatus.NewAdded,
+            GroupId = SelectedEmailGroup.Id,
+            Group = SelectedEmailGroup,
+        };
+        
+        await Dispatcher.UIThread.InvokeAsync(
+            () => _emailsToGetUploaded.Add(emailAccount));
+
+    // Update and report progress
+        int percentComplete = (int)((Interlocked.Increment(ref _processedLines) * 100.0) / totalLines);
+        progress.Report(percentComplete);
     }
     private bool ValidateFile(string filePath)
     {
@@ -531,18 +533,23 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
     {
         TaskMessages.Add($"Task {e.TaskId} completed successfully.");
         _taskInfoManager.CompleteTask(e.TaskId);
+        TasksCount = _taskInfoManager.GetTasksCount();
     }
     
     private void OnTaskErrored(object? sender, TaskErrorEventArgs e)
     {
         ErrorMessages.Add($"Task {e.TaskId} encountered an error: {e.Error.Message}");
         _taskInfoManager.CompleteTask(e.TaskId);
+        ErrorIndicator = new ErrorIndicatorViewModel();
+        ErrorIndicator.ShowErrorIndecator("Invalid File", e.Error.Message);
+        TasksCount = _taskInfoManager.GetTasksCount();
     }
 
     private void OnBatchCompleted(object? sender, BatchCompletedEventArgs e)
     {
         TaskMessages.Add($"Batch task {e.TaskId} completed.");
         _taskInfoManager.CompleteTask(e.TaskId);
+        TasksCount = _taskInfoManager.GetTasksCount();
       
     }
 

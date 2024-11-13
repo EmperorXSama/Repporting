@@ -53,15 +53,18 @@ public class EmailService : IEmailService
                 proxy?.Password
             );
         }
-
+        if (emailTable.Rows.Count == 0)
+        {
+            throw new InvalidOperationException("The email table is empty and has no rows to insert.");
+        }
         var parameters = new
         {
-            Emails = emailTable.AsTableValuedParameter("EmailTableType"),
+            Emails = emailTable.AsTableValuedParameter("EmailTableTypeMain"),
             GroupId = groupId,
             GroupName = groupName
         };
 
-        await _dbConnection.SaveDataAsync("[dbo].[AddEmailsToGroup]", parameters);
+        await _dbConnection.SaveDataAsync("[dbo].[AddEmailsToGroupWithProxy_Create]", parameters);
     }
     public async Task<IEnumerable<EmailAccount>> GetEmailsByGroupAsync(int groupId)
     {

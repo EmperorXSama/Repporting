@@ -77,10 +77,15 @@ public class DataConnection : IDataConnection
     
         using IDbConnection connection = new SqlConnection(connectionString);
     
-        // Return the new ID from the executed stored procedure
-        var newId = await connection.QuerySingleAsync<int>(storeProcedure, param, commandType: CommandType.StoredProcedure);
-    
-        return newId;
+        // Use QuerySingleOrDefaultAsync and return 0 if no result is found
+        var newId = await connection.QuerySingleOrDefaultAsync<int>(
+            storeProcedure, 
+            param, 
+            commandType: CommandType.StoredProcedure
+        );
+
+        // If no result is found, return 0 or some default value
+        return newId == 0 ? 0 : newId;
     }
 
 }

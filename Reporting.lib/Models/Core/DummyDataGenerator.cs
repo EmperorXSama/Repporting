@@ -8,7 +8,6 @@ public static class DummyDataGenerator
     public static List<Proxy> Proxies { get; private set; } = new List<Proxy>();
     public static List<EmailGroup> EmailGroups { get; private set; } = new List<EmailGroup>();
     public static List<Process> Processes { get; private set; } = new List<Process>();
-    public static List<Campaign> Campaigns { get; private set; } = new List<Campaign>();
 
     static DummyDataGenerator()
     {
@@ -16,7 +15,6 @@ public static class DummyDataGenerator
         GenerateEmailGroups();
         GenerateEmailAccounts();
         GenerateProcesses();
-        GenerateCampaigns();
     }
 
     private static void GenerateProxies()
@@ -93,20 +91,6 @@ public static class DummyDataGenerator
             Processes.Add(process);
         }
     }
-
-    private static void GenerateCampaigns()
-    {
-        for (int i = 1; i <= 2; i++)
-        {
-            Campaigns.Add(new Campaign
-            {
-                Id = i,
-                OperationName = $"Campaign {i}",
-                StartTime = DateTime.Now.AddMinutes(i * 30),
-                Interval = TimeSpan.FromHours(1),
-                EmailGroup = EmailGroups[i % EmailGroups.Count],
-            });
-        }
-    }
+    
     
 }
