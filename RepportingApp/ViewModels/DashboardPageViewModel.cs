@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -17,6 +18,7 @@ using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using RepportingApp.CoreSystem.ApiSystem;
 using RepportingApp.CoreSystem.Broadcast;
 using RepportingApp.GeneralData;
 using RepportingApp.ViewModels.Charts;
@@ -25,7 +27,7 @@ using SkiaSharp;
 
 namespace RepportingApp.ViewModels;
 
-public partial class DashboardPageViewModel : ViewModelBase
+public partial class DashboardPageViewModel : ViewModelBase,ILoadableViewModel
 {
 
 
@@ -63,21 +65,24 @@ public partial class DashboardPageViewModel : ViewModelBase
     [ObservableProperty] private int _totalEmails;
     [ObservableProperty] private double _idLifeSpan;
     [ObservableProperty] private bool _isChartTwoVisible = false;
-    [ObservableProperty] private Status _selectedStatus;
+    [ObservableProperty] private EmailStatus _selectedStatus;
     [ObservableProperty] private ProxyStat _selectedByProxy;
     [ObservableProperty] private ObservableCollection<Status> statuses;  
     [ObservableProperty] private ObservableCollection<ProxyStat> _byProxy;
     [ObservableProperty]
     private int _selectedTimePeriod;
     
-    [ObservableProperty]
-    private ObservableCollection<EmailsCoreModel> _networkItems;
-    [ObservableProperty]
-    private ObservableCollection<EmailsCoreModel> _emailDiaplysTable;
+    [ObservableProperty] private ObservableCollection<EmailAccount> _networkItems;
+    [ObservableProperty] private ObservableCollection<EmailAccount> _emailDiaplysTable;
+    [ObservableProperty] private ObservableCollection<EmailGroup> _databaseGroups;
+    #endregion
+
+    #region Api
+
+    
+    private readonly IApiConnector _apiConnector;
 
     #endregion
-    
-
     #region Services
     
  
@@ -85,9 +90,15 @@ public partial class DashboardPageViewModel : ViewModelBase
         new ();
 
     #endregion
+
+    #region Selection
+
+    [ObservableProperty] private EmailGroup? _selectedEmailGroup = null;
+
+    #endregion
     public ObservableCollection<RegionProxyInfo> RegionProxyInfoList { get; set; }
 
-    public DashboardPageViewModel(IMessenger messenger):base(messenger)
+    public DashboardPageViewModel(IMessenger messenger,IApiConnector apiConnector):base(messenger)
     {
        
         #region main chart
@@ -102,7 +113,7 @@ public partial class DashboardPageViewModel : ViewModelBase
         _ispChart = new ISPChart();
         _ispChart.LoadEmailData();
         #endregion
-        
+        _apiConnector = apiConnector;
        
         var proxies =ProxyData.GetSampleProxyData();
         var regionInfo = GetRegionProxyInfo(proxies);
@@ -119,11 +130,7 @@ public partial class DashboardPageViewModel : ViewModelBase
             ProxyStat.NA,
             ProxyStat.Duplicated,
         };
-        NetworkItems = EmailCoreData.GetEmailCoreData();
-        EmailDiaplysTable = NetworkItems;
-        CountFilter = EmailDiaplysTable.Count();
-        TotalEmails = NetworkItems.Count();
-        IdLifeSpan = Logic.GetAverageIdLifespan(NetworkItems);
+       
     }
 
 
@@ -198,11 +205,16 @@ public partial class DashboardPageViewModel : ViewModelBase
         }
 
         // Apply status filtering
-        if (SelectedStatus != Status.None)
+        if (SelectedStatus != EmailStatus.NewAdded)
         {
             filteredList = filteredList.Where(item => item.Status == SelectedStatus);
         }
 
+        if (SelectedEmailGroup != null)
+        {
+            filteredList = filteredList
+                .Where(item => item.Group.GroupId == SelectedEmailGroup.GroupId);
+        }
         // Apply proxy status filtering (for Duplicated proxy scenario)
         if (SelectedByProxy == ProxyStat.Duplicated)
         {
@@ -231,7 +243,7 @@ public partial class DashboardPageViewModel : ViewModelBase
         }
 
         // Update the display table
-        EmailDiaplysTable = new ObservableCollection<EmailsCoreModel>(filteredList);
+        EmailDiaplysTable = new ObservableCollection<EmailAccount>(filteredList);
         CountFilter = EmailDiaplysTable.Count;
     }
         [RelayCommand]
@@ -307,6 +319,19 @@ protected override async Task OnProcessStarted(string type,string processName, o
 protected override async Task OnProcessFinished(string type, string processName, object parameters)
 {
     await ShowToast(type,processName, parameters);
+}
+
+public async Task LoadDataIfFirstVisitAsync()
+{
+    //NetworkItems = EmailCoreData.GetEmailCoreData(); dummy data 
+    var emailAccountsApiResult = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);
+    NetworkItems = emailAccountsApiResult.ToObservableCollection();
+    EmailDiaplysTable = NetworkItems;
+    CountFilter = EmailDiaplysTable.Count();
+    TotalEmails = NetworkItems.Count();
+    var emailGroupsApi = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
+    DatabaseGroups = emailGroupsApi.ToObservableCollection();
+    //IdLifeSpan = Logic.GetAverageIdLifespan(NetworkItems);
 }
 }
 

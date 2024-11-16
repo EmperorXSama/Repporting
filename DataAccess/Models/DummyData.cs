@@ -101,7 +101,7 @@ public static class DummyData
 };
 
 }
-public static List<EmailStats> GetEmailStats(List<EmailsCoreModel> emails)
+/*public static List<EmailStats> GetEmailStats(List<EmailsCoreModel> emails)
 {
     var totalEmails = emails.Count;
     var ispGroups = emails.GroupBy(email => email.EmailAddress.Split('@')[1]);
@@ -114,7 +114,7 @@ public static List<EmailStats> GetEmailStats(List<EmailsCoreModel> emails)
     }).ToList();
 
     return stats;
-}
+}*/
 }
 
 

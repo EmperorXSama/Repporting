@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Dapper;
 using Reporting.lib.enums.Core;
+using Reporting.lib.Models.DTO;
 
 namespace Reporting.lib.Data.Services.Emails;
 
@@ -14,20 +15,21 @@ public class EmailService : IEmailService
 
     public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
     {
-        var result = await _dbConnection.LoadDataWithMappingAsync<EmailAccount, Proxy,EmailGroup, dynamic>(
+        var result = await _dbConnection.LoadDataWithMappingAsync<EmailAccount, Proxy,EmailGroup,EmailMetaData, dynamic>(
             "[dbo].[GetAllEmails]",
             new { }, // Replace with your actual parameters
-            (email, proxy,group) =>
+            (email, proxy,group,emailMetaData) =>
             {
                 email.Proxy = proxy;
                 email.Group = group;
+                email.MetaIds = emailMetaData;
                 return email;
             },
-            "ProxyId,GroupId"
+            "ProxyId,GroupId,MetaDataId"
         );// Use the name of the column where the split should occur
         return result;
     }
-    public async Task AddEmailsToGroupAsync(IEnumerable<EmailAccount> emails, int? groupId = null, string? groupName = null)
+    public async Task AddEmailsToGroupAsync(IEnumerable<CreateEmailAccountDto> emails, int? groupId = null, string? groupName = null)
     {
         var emailTable = new DataTable();
         emailTable.Columns.Add("EmailAddress", typeof(string));

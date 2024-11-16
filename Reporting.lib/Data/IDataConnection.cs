@@ -20,4 +20,11 @@ public interface IDataConnection
         Func<TPrimary, TSecondary, TThird, TPrimary> map,
         string splitOn,
         string connectionStringName = "Default");
+
+    Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TThird, TFourth, TU>(
+        string storeProcedure,
+        TU param,
+        Func<TPrimary, TSecondary, TThird, TFourth, TPrimary> map,
+        string splitOn,
+        string connectionStringName = "Default");
 }

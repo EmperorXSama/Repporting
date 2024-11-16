@@ -4,6 +4,7 @@ using MsBox.Avalonia;
 using MsBox.Avalonia.Dto;
 using MsBox.Avalonia.Enums;
 using MsBox.Avalonia.Models;
+using Reporting.lib.Models.DTO;
 using RepportingApp.CoreSystem.ApiSystem;
 using RepportingApp.IServices;
 using RepportingApp.Services;
@@ -11,71 +12,88 @@ using RepportingApp.ViewModels.BaseServices;
 
 namespace RepportingApp.ViewModels;
 
-public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
+public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 {
     private bool _isFirstVisit = true;
     [ObservableProperty] private bool _isLoading;
+
     #region Multithread
+
     private UnifiedTaskManager _taskManager;
+
     // Observable collections to track task and item progress
     public ObservableCollection<string> TaskMessages { get; } = new();
     public ObservableCollection<string> ErrorMessages { get; } = new();
-    
-    
+
+
     [ObservableProperty] private Guid _cancelUploadToken;
     [ObservableProperty] private string _remainingOpenTasks;
 
-    private readonly  SystemConfigurationEstimator  _configEstimator;
+    private readonly SystemConfigurationEstimator _configEstimator;
     [ObservableProperty] private int _logicalProcessorCountDisplay;
     [ObservableProperty] private int _recommendedMaxDegreeOfParallelismDisplay;
     [ObservableProperty] private int _recommendedBatchSizeDisplay;
+
     #endregion
-    
+
     #region UI
+
     [ObservableProperty] private bool _isMenuOpen = false;
     [ObservableProperty] private bool _isPopupOpen = false;
     [ObservableProperty] private bool _isNotificationOpen = false;
     [ObservableProperty] private bool _isCampaignPopupOpen = false;
 
     [ObservableProperty] private bool _isFixed;
-    [ObservableProperty] private bool _isRandom; 
+    [ObservableProperty] private bool _isRandom;
     [ObservableProperty] private bool _isOneByOne;
     [ObservableProperty] private bool _isAll;
-    [ObservableProperty] private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
-    [ObservableProperty]public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
-   
+
+
+
+    [ObservableProperty] private bool _isReportingChoiceSelected;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
+
+    [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator = new ErrorIndicatorViewModel();
+
     #endregion
 
     #region Logic
+
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
-    [ObservableProperty]private ProxySittings _selectedProxySetting;
-    [ObservableProperty]private ReportingSettings _selectedReportSetting;
+    [ObservableProperty] private ProxySittings _selectedProxySetting;
+    [ObservableProperty] private ReportingSettings _selectedReportSetting;
     [ObservableProperty] private ReportingSittingsProcesses _selectedProcesses = new ReportingSittingsProcesses();
+
     #endregion
 
     #region Upload Files/Data
 
     [ObservableProperty] private bool _isUploadPopupOpen = false;
     [ObservableProperty] private string _filePath;
-    [ObservableProperty] private int _uploadProgress; 
+    [ObservableProperty] private int _uploadProgress;
     [ObservableProperty] private string _fileName = "file name";
     [ObservableProperty] private Double _fileSize = 0;
-    [ObservableProperty] private bool _isUploading; 
-    private CancellationTokenSource _cancellationTokenSource; 
+    [ObservableProperty] private bool _isUploading;
+    private CancellationTokenSource _cancellationTokenSource;
     [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new();
+
     #endregion
 
     #region Email Service
 
     private readonly IEmailAccountServices _emailAccountServices;
-    [ObservableProperty] private ObservableCollection<EmailAccount> _emails= new ObservableCollection<EmailAccount>();
+
     #endregion
- 
+
     private readonly TaskInfoManager _taskInfoManager;
-    [ObservableProperty]
-    private int _tasksCount;
+    [ObservableProperty] private int _tasksCount;
     public ObservableCollection<TaskInfoUiModel> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
-    public ObservableCollection<TaskInfoUiModel> NotificationTasks => _taskInfoManager.GetTasks(TaskCategory.Notification);
+
+    public ObservableCollection<TaskInfoUiModel> NotificationTasks =>
+        _taskInfoManager.GetTasks(TaskCategory.Notification);
+
     public ObservableCollection<TaskInfoUiModel> CampaignTasks => _taskInfoManager.GetTasks(TaskCategory.Campaign);
 
     #region API
@@ -83,6 +101,7 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
     private readonly IApiConnector _apiConnector;
 
     #endregion
+
     public ReportingPageViewModel(IMessenger messenger,
         SystemConfigurationEstimator configEstimator,
         TaskInfoManager taskInfoManager,
@@ -98,10 +117,10 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
         InitializeTaskManager();
         InitializeCommands();
         SubscribeToEvents();
-    
-        
+
+
         TasksCount = _taskInfoManager.GetTasksCount();
-       
+
     }
 
     private void InitializeSettings()
@@ -126,9 +145,10 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
         _taskInfoManager.PropertyChanged += TaskManager_PropertyChanged;
         SubscribeEventToThread();
     }
-    
-    
+
+
     #region Relay commands
+
     public async Task LoadDataIfFirstVisitAsync()
     {
         try
@@ -145,45 +165,53 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
             ErrorIndicator = new ErrorIndicatorViewModel();
             await ErrorIndicator.ShowErrorIndecator("Loading Data Failed", e.Message);
         }
-        
+
     }
 
     private async Task LoadDataAsync()
     {
-        var groups  = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
+        var groups = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
         var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);
         Groups = groups.ToObservableCollection();
-        Emails = emails.ToObservableCollection();
+        EmailAccounts = emails.ToObservableCollection();
         Debug.WriteLine("loading data finished");
     }
-    [RelayCommand] private async Task StartOperation()
+
+    [RelayCommand]
+    private async Task StartOperation()
     {
         var modifier = GetStartProcessNotifierModel();
-        _messenger.Send(new ProcessStartMessage("Success","Reporting",modifier));
+        _messenger.Send(new ProcessStartMessage("Success", "Reporting", modifier));
         // Example usage: Start a single task
         var task1 = _taskManager.StartTask(async cancellationToken =>
         {
             // Simulate some asynchronous work
             await Task.Delay(155000, cancellationToken);
-            
+
         });
-        CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single, task1, "Preparation",Statics.UploadFileColor,Statics.UploadFileSoftColor);
+        CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, task1, "Preparation", Statics.UploadFileColor,
+            Statics.UploadFileSoftColor);
         // Example usage: Start a batch process
         var items = new[] { "Email1", "Email2", "Email3" }; // Sample batch items
-        var task2 = _taskManager.StartBatch(items, async (item,cancellationToken) =>
+        var task2 = _taskManager.StartBatch(items, async (item, cancellationToken) =>
         {
             // Simulate processing each item
             await Task.Delay(2500, cancellationToken);
             if (item == "Email2") throw new Exception("Simulated failure"); // Simulate error
             await Task.Delay(5500, cancellationToken);
         }, batchSize: 3);
-        CreateAnActiveTask(TaskCategory.Active ,TakInfoType.Batch, task2, "Repporting",Statics.ReportingColor,Statics.ReportingSoftColor);
+        CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
+            Statics.ReportingSoftColor);
     }
-    [RelayCommand] public async Task SaveSettingsAsync()
+
+    [RelayCommand]
+    public async Task SaveSettingsAsync()
     {
         await ReportingSettingsValuesDisplay.SaveConfigurationAsync();
     }
-   [RelayCommand] private void ProcessesCheckedManager()
+
+    [RelayCommand]
+    private void ProcessesCheckedManager()
     {
         // Define a mapping between the process selection and the corresponding icons
         var processIconMapping = new Dictionary<Func<ReportingSittingsProcesses, bool>, string>
@@ -193,79 +221,105 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
             { p => p.IsGetSpamNumbersSelected, "CollectSpamNumberIcon" },
             { p => p.IsGetSpamSubjectSelected, "CollectSpamSubjectIcon" },
             { p => p.IsFixAfterFinish, "FixIcon" },
-            
-        };
 
+        };
+        IsReportingChoiceSelected = SelectedProcesses.IsReportingSelected;
         // Iterate through the mapping
         foreach (var mapping in processIconMapping)
         {
-            var isSelected = mapping.Key(SelectedProcesses);  
+            var isSelected = mapping.Key(SelectedProcesses);
             var iconName = mapping.Value;
 
             if (isSelected)
             {
-              
-                if (!ReportingselectedProcessesToIcon.Contains(iconName))  // Corrected the collection reference
+
+                if (!ReportingselectedProcessesToIcon.Contains(iconName)) // Corrected the collection reference
                 {
                     ReportingselectedProcessesToIcon.Add(iconName);
                 }
             }
             else
             {
-           
-                if (ReportingselectedProcessesToIcon.Contains(iconName))  
+
+                if (ReportingselectedProcessesToIcon.Contains(iconName))
                 {
                     ReportingselectedProcessesToIcon.Remove(iconName);
                 }
             }
         }
     }
-    
-    [RelayCommand] private void ToggleSidePanel()
+
+    [RelayCommand]
+    private void ToggleSidePanel()
     {
         IsMenuOpen = !IsMenuOpen;
     }
-    [RelayCommand] private void SelectProxySettings(string speed)
+
+    [RelayCommand]
+    private void SelectProxySettings(string speed)
     {
         IsFixed = speed == "Fixed";
         IsRandom = speed == "Random";
         if (IsFixed)
         {
             SelectedProxySetting = ProxySittings.Fixed;
-        }else if (IsRandom)
+        }
+        else if (IsRandom)
         {
             SelectedProxySetting = ProxySittings.Random;
         }
-        
-    } 
-    [RelayCommand] private void SelectReportingSettings(string speed)
+
+    }
+
+    [RelayCommand]
+    private void SelectReportingSettings(string speed)
     {
         IsOneByOne = speed == "OneByOne";
         IsAll = speed == "All";
         if (IsOneByOne)
         {
             SelectedReportSetting = ReportingSettings.OneByOne;
-        }else if (IsAll)
+        }
+        else if (IsAll)
         {
-            SelectedReportSetting =  ReportingSettings.All;
+            SelectedReportSetting = ReportingSettings.All;
         }
     }
-    [RelayCommand] private void OpenPopup()  => IsPopupOpen = true;
-    [RelayCommand] private void ClosePopup()  => IsPopupOpen = false;
-    [RelayCommand] private void OpenCampaignPopup()  => IsCampaignPopupOpen = true;
-    [RelayCommand] private void CloseCampaignPopup()  => IsCampaignPopupOpen = false;
-    [RelayCommand] private void OpenNotificationopup()  => IsNotificationOpen = !IsNotificationOpen;
+
+    [RelayCommand]
+    private void OpenPopup() => IsPopupOpen = true;
+
+    [RelayCommand]
+    private void ClosePopup() => IsPopupOpen = false;
+
+    [RelayCommand]
+    private void OpenCampaignPopup() => IsCampaignPopupOpen = true;
+
+    [RelayCommand]
+    private void CloseCampaignPopup() => IsCampaignPopupOpen = false;
+
+    [RelayCommand]
+    private void OpenNotificationopup() => IsNotificationOpen = !IsNotificationOpen;
+
     #endregion
 
     #region Group Selection and creation
 
     [ObservableProperty] private bool _isNewGroupSelected;
-    [ObservableProperty] private bool _isExistingGroupSelected; 
-    [ObservableProperty] private bool _isEnabled = true; 
+    [ObservableProperty] private bool _isExistingGroupSelected;
+    [ObservableProperty] private bool _isEnabled = true;
+    [ObservableProperty] private bool _isGroupSettingsDropdownOpen = false;
+    [ObservableProperty] private bool _isGroupSettingsDropdownOpen1 = false;
+    
+    [RelayCommand] private void ToggleGroupSelctionMenu() => IsGroupSettingsDropdownOpen = !IsGroupSettingsDropdownOpen; 
+    [RelayCommand] private void ToggleGroupSelctionMenuOne() => IsGroupSettingsDropdownOpen1 = !IsGroupSettingsDropdownOpen1; 
+
     [ObservableProperty] private ObservableCollection<EmailGroup> _groups= new ObservableCollection<EmailGroup>();
 
     [ObservableProperty] private string _newGroupName;
     [ObservableProperty] private EmailGroup? _selectedEmailGroup = new EmailGroup(); 
+    [ObservableProperty] private ObservableCollection<EmailGroup> _selectedEmailGroupForTask = new (); 
+    
     [RelayCommand]
     private void SelectNewGroup()
     {
@@ -287,22 +341,16 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
         IsEnabled = false;
         if (!string.IsNullOrWhiteSpace(NewGroupName))
         {
+            
+            var id = await _apiConnector.PostDataAsync<int>(ApiEndPoints.PostGroup,NewGroupName);
             EmailGroup newGroup = new EmailGroup()
             {
-                Id = Groups.Count + 1,
-                Name = NewGroupName
+                GroupId = id,
+                GroupName = NewGroupName
             };
-
-            var taskId = _taskManager.StartTask(async cancellationToken =>
-            {
-                // todo : code to create ( call method ) group in database
-                await Task.Delay(2500, cancellationToken);
-                _taskManager.UpdateUiThreadValues(
-                    ()=>   Groups.Add(newGroup),
-                                ()=>   IsEnabled = true,
-                                ()=>    SelectedEmailGroup = newGroup);
-             
-            });
+            Groups.Add(newGroup);
+            IsEnabled = true;
+            SelectedEmailGroup = newGroup;
             
             NewGroupName = string.Empty;
            
@@ -315,7 +363,7 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
     #endregion
 
     #region Upload File/Data Func
-    private readonly ConcurrentBag<EmailAccount> _emailsToGetUploaded = new();
+    private readonly ConcurrentBag<CreateEmailAccountDto> _emailsToGetUploaded = new();
 
     
     [RelayCommand] private void OpenFileUploadPopup()  => IsUploadPopupOpen = true;
@@ -337,7 +385,7 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
                 return;
             }
 
-            if (SelectedEmailGroup?.Name == null)
+            if (SelectedEmailGroup?.GroupName == null)
             {
                 ErrorIndicator = new ErrorIndicatorViewModel();
                 await ErrorIndicator.ShowErrorIndecator("no group selected", "you have to assign a group or give a name for a group to be created ");
@@ -370,8 +418,8 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
             CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor);
             await _taskManager.WaitForTaskCompletion(currentTaskId);
             
-            int? groupId = SelectedEmailGroup.Id; 
-            string? groupName = SelectedEmailGroup.Name;
+            int? groupId = SelectedEmailGroup.GroupId; 
+            string? groupName = SelectedEmailGroup.GroupName;
             
             var payload = new
             {
@@ -379,6 +427,7 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
                 groupId,
                 groupName
             };
+            
             var apiCreateEmails = _taskManager.StartTask(async cancellationToken =>
             {
              
@@ -410,12 +459,12 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
             return;
         }
 
-        var emailAccount = new EmailAccount
+        var emailAccount = new CreateEmailAccountDto
         {
             EmailAddress = data[0],
             Password = data[1],
             RecoveryEmail = data[2],
-            Proxy = new Proxy
+            Proxy = new ProxyDto
             {
                 ProxyIp = data[3],
                 Port = int.TryParse(data[4], out var port) ? port : 0,
@@ -423,7 +472,6 @@ public partial class ReportingPageViewModel : ViewModelBase,ILoadableViewModel
                 Password = data[6]
             },
             Status = EmailStatus.NewAdded,
-            GroupId = SelectedEmailGroup.Id,
             Group = SelectedEmailGroup,
         };
         

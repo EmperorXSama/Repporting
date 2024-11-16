@@ -16,8 +16,9 @@ public class GroupService : IGroupService
     {
         return await _dataConnection.LoadDataAsync<EmailGroup, dynamic>("dbo.GetGroups",new {});
     }
+    
 
-    public async Task<int> AddGroup(EmailGroup group)
+    public async Task<int> AddGroup(string group)
     {
         return await _dataConnection.SaveDataAsync("[dbo].[AddGroup]", new {Name  = group});
     }

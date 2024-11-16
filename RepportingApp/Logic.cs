@@ -9,7 +9,7 @@ namespace RepportingApp;
 
 public static class Logic
 {
-    public static double GetAverageIdLifespan(ObservableCollection<EmailsCoreModel> networkItems)
+    public static double GetAverageIdLifespan(ObservableCollection<EmailAccount> networkItems)
     {
         List<double> lifespans = new List<double>();
 

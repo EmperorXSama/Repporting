@@ -302,8 +302,8 @@
                     </Border>
                     <Border Margin="0,0,0,15"
                             CornerRadius="5">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal">
+                        <StackPanel IsVisible="{Binding IsReportingChoiceSelected}">
+                            <StackPanel Orientation="Horizontal" >
                                 <PathIcon
                                     Margin="0,0,4,0"
                                     FontFamily="{StaticResource Roboto}"
@@ -407,6 +407,67 @@
                         </StackPanel>
                       
                     </Border>
+                          <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <PathIcon
+                                                            Margin="0,0,4,0"
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            Width="14"
+                                                            FontWeight="Light"
+                                                            Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                            <ToolTip.Tip>
+                                                                <StackPanel>
+                                                                    <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                               FontFamily="{StaticResource Roboto}" >Interval</TextBlock>
+                                                                    <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                               FontFamily="{StaticResource Roboto}">سيتم استخدام هذا المربع لتحديد المجموعات التي ستعمل في هذه المهمة.
+                                                                        يمكنك الضغط على CTRL + للاختيار المتعدد، وإذا لم يتم تحديد أي مجموعة، فسيتم اعتبار جميع المجموعات محددة.
+                                                                        </TextBlock>
+                                                                </StackPanel>
+                                                            </ToolTip.Tip>
+                                                        </PathIcon>
+                                                        <TextBlock
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            FontSize="14"
+                                                            Foreground="{StaticResource Secondary}"
+                                                            FontWeight="SemiLight"
+                                                            Text="Group Selection"/>
+                                                    </StackPanel>
+                                                    <Border  Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1" >
+                                                          <Grid       ColumnDefinitions="*"
+                                                                Background="white">
+                                                              <StackPanel>
+                                                                  <Button Name="DropdownButton1"
+                                                                          HorizontalAlignment="Stretch"
+                                                                          Theme="{StaticResource CustomBtn}"
+                                                                          Background="{StaticResource Primary}"
+                                                                          Content="Select Groups"
+                                                                          Foreground="{StaticResource LightGrey}"
+                                                                          Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
+
+                                                                  <Popup Name="DropdownPopup1"
+                                                                         PlacementTarget="{Binding ElementName=DropdownButton1}"
+                                                                         PlacementMode="Bottom"
+                                                                         IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
+
+                                                                      <Border BorderBrush="{StaticResource Primary}"
+                                                                              BorderThickness="1"
+                                                                              Background="White" >
+                                                                          <ListBox HorizontalAlignment="Stretch"
+                                                                              VerticalAlignment="Top"
+                                                                              Padding="2"
+                                                                              Background="White"
+                                                                              Foreground="{StaticResource Primary}"
+                                                                              ItemsSource="{Binding Groups}"
+                                                                              SelectionMode="Multiple"
+                                                                              SelectedItems="{Binding SelectedEmailGroupForTask}"
+                                                                              />
+                                                                      </Border>
+                                                                  </Popup>
+                                                              </StackPanel>
+                                                    </Grid>
+                                                    </Border>
+                                                </StackPanel>
                     <Border Background="White" Margin="0,0,0,5"
                                  CornerRadius="5"
                                  Padding="5"
@@ -941,17 +1002,26 @@
                                 </StackPanel>
                                
                             </Border>
-                            <DataGrid Grid.Row="2"  ItemsSource="{Binding EmailAccounts}" AutoGenerateColumns="False" HorizontalAlignment="Center">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Email Address" Binding="{Binding EmailAddress}" />
-                                    <DataGridTextColumn Header="Password" Binding="{Binding Password}" />
-                                    <DataGridTextColumn Header="Recovery Email" Binding="{Binding RecoveryEmail}" />
-                                    <DataGridTextColumn Header="Proxy IP" Binding="{Binding Proxy.ProxyIp}" />
-                                    <DataGridTextColumn Header="Port" Binding="{Binding Proxy.Port}" />
-                                    <DataGridTextColumn Header="Proxy Username" Binding="{Binding Proxy.Username}" />
-                                    <DataGridTextColumn Header="Proxy Password" Binding="{Binding Proxy.Password}" />
-                                </DataGrid.Columns>
-                            </DataGrid>
+                            <Border Grid.Row="2" >
+                                <DataGrid 
+                                    ItemsSource="{Binding EmailAccounts}" 
+                                    AutoGenerateColumns="False"
+                                    GridLinesVisibility="Horizontal"
+                                    
+                                    HorizontalAlignment="Center"
+                                    RowHeight="50"
+                                >
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn FontFamily="{StaticResource Roboto}"  Header="Email Address" Binding="{Binding EmailAddress}" />
+                                        <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Recovery Email" Binding="{Binding RecoveryEmail}" />
+                                        <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Proxy IP" Binding="{Binding Proxy.ProxyIp}" />
+                                        <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Port" Binding="{Binding Proxy.Port}" />
+                                        <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Group" Binding="{Binding Group.GroupName}" />
+                                        <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Status" Binding="{Binding Status}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+                           
                         </Grid>
                         <!--<StackPanel Grid.Row="3" Grid.Column="2">
                             <TextBlock Text="Task Messages:" FontWeight="Bold"/>
@@ -1154,6 +1224,7 @@
                                                  BorderBrush="{StaticResource LightGrey}"
                                                  CornerRadius="9"
                                                  UseFloatingWatermark="False"
+                                            
                                                  Watermark="Enter new group name"
                                                  FontFamily="{StaticResource Roboto}"
                                                  
@@ -1180,7 +1251,7 @@
                                               PlaceholderText="Select a group">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Name}" />
+                                                <TextBlock Text="{Binding GroupName}" />
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
@@ -1200,7 +1271,7 @@
                                                  FontFamily="{StaticResource Roboto}"
                                                  Foreground="{StaticResource MainWhite}"
                                                        >
-                                                 <TextBlock Text="Selected Group: "/><TextBlock  Foreground="{Binding SelectedEmailGroup.Name, Converter={StaticResource GroupNameToColorConverter}}"  Text="{Binding SelectedEmailGroup.Name}"/>
+                                                 <TextBlock Text="Selected Group: "/><TextBlock  Foreground="{Binding SelectedEmailGroup.GroupName, Converter={StaticResource GroupNameToColorConverter}}"  Text="{Binding SelectedEmailGroup.GroupName}"/>
                                              </TextBlock>
                                          </Border>
                                        
@@ -1523,7 +1594,7 @@
                                             </Border>
                                             <Border Margin="0,0,0,15"
                                                     CornerRadius="5">
-                                                <StackPanel>
+                                                <StackPanel IsVisible="{Binding  IsReportingChoiceSelected , Mode=TwoWay}">
                                                     <StackPanel Orientation="Horizontal">
                                                         <PathIcon
                                                             Margin="0,0,4,0"
@@ -1605,26 +1676,71 @@
                                                         </ToggleButton>
                                                     </Grid>
                                                     </Border>
-                                                  
-                                                    <!--reset-->
-                                                    <!--<DockPanel  HorizontalAlignment="Stretch">
-                                                        <Button HorizontalAlignment="Right" Content="reset" Cursor="Hand">
-                                                            <Button.Styles>
-                                                                <Style Selector="Button">
-                                                                    <Setter Property="Background" Value="Transparent" />
-                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
-                                                                </Style>
-                                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                                    <Setter Property="Background" Value="Transparent" />
-                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
-                                                                </Style>
-                                                                <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                                    <Setter Property="Background" Value="Transparent" />
-                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
-                                                                </Style>
-                                                            </Button.Styles>
-                                                        </Button>
-                                                    </DockPanel>-->
+                                                </StackPanel>
+                                              
+                                            </Border>
+                                            <Border Margin="0,0,0,15"
+                                                    CornerRadius="5">
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <PathIcon
+                                                            Margin="0,0,4,0"
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            Width="14"
+                                                            FontWeight="Light"
+                                                            Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                                            <ToolTip.Tip>
+                                                                <StackPanel>
+                                                                    <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                               FontFamily="{StaticResource Roboto}" >Interval</TextBlock>
+                                                                    <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                                               FontFamily="{StaticResource Roboto}">سيتم استخدام هذا المربع لتحديد المجموعات التي ستعمل في هذه المهمة.
+                                                                        يمكنك الضغط على CTRL + للاختيار المتعدد، وإذا لم يتم تحديد أي مجموعة، فسيتم اعتبار جميع المجموعات محددة.
+                                                                        </TextBlock>
+                                                                </StackPanel>
+                                                            </ToolTip.Tip>
+                                                        </PathIcon>
+                                                        <TextBlock
+                                                            FontFamily="{StaticResource Roboto}"
+                                                            FontSize="14"
+                                                            Foreground="{StaticResource Secondary}"
+                                                            FontWeight="SemiLight"
+                                                            Text="Group Selection"/>
+                                                    </StackPanel>
+                                                    <Border  Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1" >
+                                                          <Grid       ColumnDefinitions="*"
+                                                                Background="white">
+                                                              <StackPanel>
+                                                                  <Button Name="DropdownButton"
+                                                                          HorizontalAlignment="Stretch"
+                                                                          Theme="{StaticResource CustomBtn}"
+                                                                          Background="{StaticResource Primary}"
+                                                                          Content="Select Groups"
+                                                                          Foreground="{StaticResource LightGrey}"
+                                                                          Command="{Binding ToggleGroupSelctionMenuCommand }"/>
+
+                                                                  <Popup Name="DropdownPopup"
+                                                                         PlacementTarget="{Binding ElementName=DropdownButton}"
+                                                                         PlacementMode="Bottom"
+                                                                         IsOpen="{Binding IsGroupSettingsDropdownOpen, Mode=TwoWay}">
+
+                                                                      <Border BorderBrush="{StaticResource Primary}"
+                                                                              BorderThickness="1"
+                                                                              Background="White" >
+                                                                          <ListBox HorizontalAlignment="Stretch"
+                                                                              VerticalAlignment="Top"
+                                                                              Padding="2"
+                                                                              Background="White"
+                                                                              Foreground="{StaticResource Primary}"
+                                                                              ItemsSource="{Binding Groups}"
+                                                                              SelectionMode="Multiple"
+                                                                              SelectedItems="{Binding SelectedEmailGroupForTask}"
+                                                                              />
+                                                                      </Border>
+                                                                  </Popup>
+                                                              </StackPanel>
+                                                    </Grid>
+                                                    </Border>
                                                 </StackPanel>
                                               
                                             </Border>
@@ -1802,8 +1918,7 @@
             </Border>
            
     </Popup>
-        
-       <Popup IsOpen="{Binding IsPopupOpen ,Mode=TwoWay}" PlacementMode="Center">
+        <Popup IsOpen="{Binding IsPopupOpen ,Mode=TwoWay}" PlacementMode="Center">
         <Border Background="White" CornerRadius="10" Padding="10">
             <StackPanel>
                 <TextBlock Text="choose processes !" FontFamily="{StaticResource Roboto}"  HorizontalAlignment="Center" Margin="0,0,0,20" />
@@ -1911,7 +2026,6 @@
             </StackPanel>
         </Border>
     </Popup>
-        
         <Popup IsLightDismissEnabled="True" 
                Width="350"
                Height="550"

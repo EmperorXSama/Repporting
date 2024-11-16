@@ -23,7 +23,7 @@ public static class DummyDataGenerator
         {
             Proxies.Add(new Proxy
             {
-                Id = i,
+                ProxyId = i,
                 ProxyIp = $"192.168.0.{i}",
                 Port = 8080 + i,
                 Username = $"proxyUser{i}",
@@ -38,8 +38,8 @@ public static class DummyDataGenerator
         {
             EmailGroups.Add(new EmailGroup
             {
-                Id = i,
-                Name = $"Group {i}"
+                GroupId = i,
+                GroupName = $"Group {i}"
             });
         }
     }
@@ -57,8 +57,6 @@ public static class DummyDataGenerator
                 Proxy = Proxies[i % Proxies.Count],
                 Status = i % 2 == 0 ? EmailStatus.Active : EmailStatus.NewAdded,
                 Group = EmailGroups[i % EmailGroups.Count],
-                FirstUse = DateTime.Now.AddDays(-i),
-                LastUse = DateTime.Now
             });
         }
     }
@@ -76,7 +74,7 @@ public static class DummyDataGenerator
             };
 
             // Add process logs for each email in the group
-            foreach (var email in EmailAccounts.Where(e => e.Group.Id == process.EmailGroup.Id))
+            foreach (var email in EmailAccounts.Where(e => e.Group.GroupId == process.EmailGroup.GroupId))
             {
                 process.Logs.Add(new ProcessLog
                 {

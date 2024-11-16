@@ -21,5 +21,10 @@ namespace ReportingApi.Controllers
         {
             return await _groupService.GetAllGroups();
         }
+        [HttpPost("AddGroup")]
+        public async Task<int> Post([FromBody] string newGroupName)
+        {
+            return await _groupService.AddGroup(newGroupName);
+        }
     }
 }

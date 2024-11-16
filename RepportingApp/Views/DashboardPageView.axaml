@@ -402,7 +402,7 @@
                                             Height="550"
                                           >
                                         
-                                        <Grid RowDefinitions="30, 2,2*, 1,*, 1,*, 1,*, 1,40"
+                                        <Grid RowDefinitions="30, 2,2*, 1,*, 1,*,1,*, 1,*, 1,40"
                                             >
                                             <TextBlock Text="Filter"
                                                        FontFamily="{StaticResource Roboto}"
@@ -452,13 +452,33 @@
                                                         </StackPanel>
                                                     
                                                     </Border>
-                                                   
-                                                
-                                                 
                                                 </Grid>
                                             </Border>
                                             <Border Grid.Row="3" Background="{StaticResource Primary}" />
                                             <Border Grid.Row="4"
+                                                    Padding="7,10">
+                                                <Grid RowDefinitions="30,*">
+                                                
+                                                    <TextBlock FontFamily="{StaticResource Roboto}"
+                                                               Foreground="{StaticResource Primary}"
+                                                               Text="by Group"/>
+                                                     
+                                                
+                                                    <Border Grid.Row="1" >
+                                                        <ComboBox   HorizontalAlignment="Stretch"
+                                                                   VerticalAlignment="Center" 
+                                                                   PlaceholderText="Group"
+                                                                   Background="{StaticResource MainWhite}"
+                                                                   Foreground="{StaticResource Primary}"
+                                                                   ItemsSource="{Binding DatabaseGroups}"
+                                                                   SelectedItem="{Binding SelectedEmailGroup}">
+                                                                    
+                                                        </ComboBox>
+                                                    </Border>
+                                                  
+                                                </Grid>
+                                            </Border>
+                                            <Border Grid.Row="6"
                                                     Padding="7,10">
                                                 <Grid RowDefinitions="30,*">
                                                 
@@ -481,8 +501,8 @@
                                                   
                                                 </Grid>
                                             </Border>
-                                            <Border Grid.Row="5" Background="{StaticResource Primary}" />
-                                            <Border Grid.Row="6"
+                                            <Border Grid.Row="7" Background="{StaticResource Primary}" />
+                                            <Border Grid.Row="8"
                                                     Padding="7,10">
                                                 <Grid RowDefinitions="30,*">
                                                   
@@ -505,8 +525,8 @@
                                                   
                                                 </Grid>
                                             </Border>
-                                            <Border Grid.Row="7" Background="{StaticResource Primary}" />
-                                            <Border Grid.Row="8"
+                                            <Border Grid.Row="9" Background="{StaticResource Primary}" />
+                                            <Border Grid.Row="10"
                                                     Padding="7,10">
                                                 <Grid RowDefinitions="30,*">
                                                         
@@ -531,8 +551,8 @@
                                                   
                                                 </Grid>
                                             </Border>
-                                            <Border Grid.Row="9" Background="{StaticResource Primary}" />
-                                            <Border Grid.Row="10"
+                                            <Border Grid.Row="11" Background="{StaticResource Primary}" />
+                                            <Border Grid.Row="12"
                                                    >
                                               
                                                     <DockPanel>
@@ -592,16 +612,16 @@
                                 </Style>
                             </DataGrid.Styles>
                             <DataGrid.Columns>
+                                <DataGridTextColumn  Header="Id" Foreground="Black" Binding="{Binding Id}" Width="Auto"/>
                                 <DataGridTextColumn  Header="EmailAddress" Foreground="Black" Binding="{Binding EmailAddress}" Width="Auto"/>
-                                <DataGridTextColumn Header="MailBox" Foreground="Black" Binding="{Binding MailBox}" Width="*"/> <!-- Stretch to available space -->
+                                <DataGridTextColumn Header="MailBox" Foreground="Black" Binding="{Binding RecoveryEmail}" Width="Auto"/> <!-- Stretch to available space -->
                                 <DataGridTextColumn Header="Group" Foreground="Black" Binding="{Binding Group.GroupName}" Width="Auto"/>
-                                <DataGridTextColumn Header="Port" Foreground="Black" Binding="{Binding Port}" Width="*"/>
-                                <DataGridTextColumn Header="Proxy" Foreground="Black" Binding="{Binding Proxy}" Width="Auto"/>
-                                <DataGridTextColumn Header="NS" Foreground="Black" Binding="{Binding NumSpam}" Width="*"/>
+                                <DataGridTextColumn Header="Port" Foreground="Black" Binding="{Binding Proxy.Port}" Width="*"/>
+                                <DataGridTextColumn Header="NS" Foreground="Black" Binding="{Binding Proxy.ProxyIp}" Width="*"/>
                                 <DataGridTextColumn Header="LS" Foreground="Black" Binding="{Binding IdLifespan , StringFormat='{}{0:F2} h'}" Width="Auto"/>
                                 <DataGridTextColumn Header="Status" Foreground="Black" Binding="{Binding Status}" Width="Auto"/>
-                                <DataGridTextColumn Header="First Use" Foreground="Black" Binding="{Binding FirstUse, StringFormat=\{0:MM/dd/yyyy HH:mm:ss\}}" Width="Auto"/>
-                                <DataGridTextColumn Header="Last Use" Foreground="Black" Binding="{Binding LastUse, StringFormat=\{0:MM/dd/yyyy HH:mm:ss\}}" Width="Auto"/>
+                                <DataGridTextColumn Header="First Use" Foreground="Black" Binding="{Binding FirstUse, StringFormat=\{0:MM/dd HH:mm\}}" Width="Auto"/>
+                                <DataGridTextColumn Header="Last Use" Foreground="Black" Binding="{Binding LastUse, StringFormat=\{0:MM/dd HH:mm\}}" Width="Auto"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>

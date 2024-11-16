@@ -7,7 +7,7 @@ namespace Reporting.lib.enums.Core;
 
 public class Proxy
 {
-    public int Id { get; set; }
+    public int ProxyId { get; set; }
 
     [JsonPropertyName("proxyIp")]
     public string ProxyIp { get; set; }
