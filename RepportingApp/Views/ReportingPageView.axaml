@@ -509,7 +509,7 @@
                     <Border Grid.Row="1" Padding="5">
                         <Button Content="Start" Background="{StaticResource Primary}" Foreground="{StaticResource MainWhite}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
-                                Cursor="Hand" Command="{Binding StartOperationCommand}">
+                                Cursor="Hand" Command="{Binding ReadAllEmailsInboxMessagesCommand}">
                             
                         </Button>
                     </Border>

@@ -1,6 +1,7 @@
 
 using RepportingApp.CoreSystem.ApiSystem;
 using RepportingApp.IServices;
+using RepportingApp.Request_Connection_Core.Reporting;
 using RepportingApp.Services;
 using RepportingApp.ViewModels.ExtensionViewModel;
 using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
@@ -38,6 +39,7 @@ public partial class App : Application
 
         serviceCollection.AddSingleton<IApiConnector, UnifiedApiClient>();
         serviceCollection.AddSingleton<ICacheService, CacheService>();
+        serviceCollection.AddSingleton<IReportingRequests, ReportingRequests>();
         
         
         serviceCollection.AddSingleton<SystemConfigurationEstimator>();

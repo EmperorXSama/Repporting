@@ -1,9 +1,6 @@
-﻿
+﻿using System.Text.Json.Serialization;
 
-using System.Text.Json.Serialization;
-using Reporting.lib.Models.Core;
-
-namespace Reporting.lib.enums.Core;
+namespace Reporting.lib.Models.Core;
 
 public class Proxy
 {

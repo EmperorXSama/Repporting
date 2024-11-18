@@ -7,5 +7,14 @@ public static  class Statics
     public static string UploadFileSoftColor { get; } ="#FFFFFF";
     public static string ReportingColor { get; } ="#55C1FB";
     public static string ReportingSoftColor { get; } ="#b1e4ff";
-    
+
+
+
+
+    #region api statics
+
+    public const string InboxDir = "1";
+    public const string SpamDir = "6";
+
+    #endregion
 }

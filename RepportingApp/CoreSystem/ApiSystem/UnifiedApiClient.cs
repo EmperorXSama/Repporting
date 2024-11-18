@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Net;
+using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -18,17 +19,73 @@ public class UnifiedApiClient : IApiConnector
         });
         _cacheService = cacheService;
     }
-    public async Task<T> GetDataAsync<T>(string endpoint, Dictionary<string, string>? headers = null)
+    private HttpClient CreateHttpClientWithProxy(Proxy? proxy)
+    {
+        var httpClientHandler = new HttpClientHandler
+        {
+            Proxy = new WebProxy(proxy.ProxyIp, proxy.Port)
+            {
+                Credentials = new NetworkCredential(proxy.Username, proxy.Password)
+            },
+            UseProxy = true,
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        };
+
+        return new HttpClient(httpClientHandler);
+    }
+    public async Task<T> PostDataObjectAsync<T>(string endpoint, object payload, Dictionary<string, string>? headers = null,Proxy? proxy = null)
+    {
+        try
+        {
+            HttpClient client = proxy != null ? CreateHttpClientWithProxy(proxy) : _httpClient;
+            ApplyHeaders(client,headers);
+            var jsonPayload = JsonConvert.SerializeObject(payload);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await client.PostAsync(endpoint, content);
+            response.EnsureSuccessStatusCode();
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(jsonResponse)!;
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"An error occured while posting the data: {e.Message}");
+        }
+      
+    }
+    public async Task<string> PostDataAsync<T>(string endpoint, string payload ,Dictionary<string, string>? headers = null,Proxy? proxy = null)
+    {
+        try
+        {
+            HttpClient client = proxy != null ? CreateHttpClientWithProxy(proxy) : _httpClient;
+            ApplyHeaders(client,headers);
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(payload), "batchJson");
+            HttpResponseMessage response = await client.PostAsync(endpoint, content);
+            response.EnsureSuccessStatusCode();
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return jsonResponse;
+        }
+        catch (Exception e)
+        {
+            throw new Exception($"An error occured while posting the data: {e.Message}");
+        }
+      
+    }
+    public async Task<T> GetDataAsync<T>(string endpoint, Dictionary<string, string>? headers = null,Proxy? proxy = null)
     {
         // Attempt to retrieve from cache first
+        HttpClient client = proxy != null ? CreateHttpClientWithProxy(proxy) : _httpClient;
         var cachedData = _cacheService.Get<T>(endpoint);
         if (cachedData != null)
         {
             return cachedData;
         }
 
-        ApplyHeaders(headers);
-        HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
+        ApplyHeaders(client,headers);
+        HttpResponseMessage response = await client.GetAsync(endpoint);
         response.EnsureSuccessStatusCode();
 
         string jsonResponse = await response.Content.ReadAsStringAsync();
@@ -41,52 +98,38 @@ public class UnifiedApiClient : IApiConnector
     }
     
     
-    public async Task<T> PostDataAsync<T>(string endpoint, object payload, Dictionary<string, string>? headers = null)
+
+
+    public async Task<bool> PutDataAsync(string endpoint, object payload, Dictionary<string, string>? headers = null,Proxy? proxy = null)
     {
-        try
-        {
-            ApplyHeaders(headers);
-            var jsonPayload = JsonConvert.SerializeObject(payload);
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
-            response.EnsureSuccessStatusCode();
-
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<T>(jsonResponse)!;
-        }
-        catch (Exception e)
-        {
-            throw new Exception($"An error occured while posting the data: {e.Message}");
-        }
-      
-    }
-
-    public async Task<bool> PutDataAsync(string endpoint, object payload, Dictionary<string, string>? headers = null)
-    {
-        ApplyHeaders(headers);
+        HttpClient client = proxy != null ? CreateHttpClientWithProxy(proxy) : _httpClient;
+        ApplyHeaders(client,headers);
         var jsonPayload = JsonConvert.SerializeObject(payload);
         var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response = await _httpClient.PutAsync(endpoint, content);
+        HttpResponseMessage response = await client.PutAsync(endpoint, content);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> DeleteDataAsync(string endpoint, Dictionary<string, string>? headers = null)
+    public async Task<bool> DeleteDataAsync(string endpoint, Dictionary<string, string>? headers = null,Proxy? proxy = null)
     {
-        ApplyHeaders(headers);
-        HttpResponseMessage response = await _httpClient.DeleteAsync(endpoint);
+        HttpClient client = proxy != null ? CreateHttpClientWithProxy(proxy) : _httpClient;
+        ApplyHeaders(client,headers);
+        HttpResponseMessage response = await client.DeleteAsync(endpoint);
         return response.IsSuccessStatusCode;
     }
-    private void ApplyHeaders(Dictionary<string, string>? headers)
+    private void ApplyHeaders(HttpClient client, Dictionary<string, string>? headers)
     {
-        _httpClient.DefaultRequestHeaders.Clear();
+        
+        client.DefaultRequestHeaders.Clear();
         if (headers != null)
         {
             foreach (var header in headers)
             {
-                _httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                client.DefaultRequestHeaders.Add(header.Key, header.Value);
             }
         }
     }
+
+
 }

@@ -1,5 +1,6 @@
 ﻿
 using System.Diagnostics;
+using Microsoft.VisualBasic;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Dto;
 using MsBox.Avalonia.Enums;
@@ -7,6 +8,7 @@ using MsBox.Avalonia.Models;
 using Reporting.lib.Models.DTO;
 using RepportingApp.CoreSystem.ApiSystem;
 using RepportingApp.IServices;
+using RepportingApp.Request_Connection_Core.Reporting;
 using RepportingApp.Services;
 using RepportingApp.ViewModels.BaseServices;
 
@@ -99,16 +101,19 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     #region API
 
     private readonly IApiConnector _apiConnector;
-
+    private readonly IReportingRequests _reportingRequests;
+    
     #endregion
 
     public ReportingPageViewModel(IMessenger messenger,
         SystemConfigurationEstimator configEstimator,
         TaskInfoManager taskInfoManager,
         IEmailAccountServices emailAccountServices,
-        IApiConnector apiConnector) : base(messenger)
+        IApiConnector apiConnector,
+        IReportingRequests reportingRequests) : base(messenger)
     {
         _apiConnector = apiConnector;
+        _reportingRequests = reportingRequests;
         _emailAccountServices = emailAccountServices;
         _taskInfoManager = taskInfoManager;
         _configEstimator = configEstimator;
@@ -193,11 +198,11 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             Statics.UploadFileSoftColor);
         // Example usage: Start a batch process
         var items = new[] { "Email1", "Email2", "Email3" }; // Sample batch items
-        var task2 = _taskManager.StartBatch(items, async (item, cancellationToken) =>
+        var task2 = _taskManager.StartBatch(EmailAccounts, async (item, cancellationToken) =>
         {
             // Simulate processing each item
             await Task.Delay(2500, cancellationToken);
-            if (item == "Email2") throw new Exception("Simulated failure"); // Simulate error
+            if (item.EmailAddress == "Email2") throw new Exception("Simulated failure"); // Simulate error
             await Task.Delay(5500, cancellationToken);
         }, batchSize: 3);
         CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
@@ -342,7 +347,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         if (!string.IsNullOrWhiteSpace(NewGroupName))
         {
             
-            var id = await _apiConnector.PostDataAsync<int>(ApiEndPoints.PostGroup,NewGroupName);
+            var id = await _apiConnector.PostDataObjectAsync<int>(ApiEndPoints.PostGroup,NewGroupName);
             EmailGroup newGroup = new EmailGroup()
             {
                 GroupId = id,
@@ -431,7 +436,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             var apiCreateEmails = _taskManager.StartTask(async cancellationToken =>
             {
              
-                await _apiConnector.PostDataAsync<object>(ApiEndPoints.GetAddEmails, payload);
+                await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.GetAddEmails, payload);
                 /*_taskManager.UpdateUiThreadValues(
                     ()=>   Groups.Add(newGroup),
                     ()=>   IsEnabled = true,
@@ -619,8 +624,31 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #endregion
 
+    #region Main reporting logic
+
     #region campaign
 
+    [RelayCommand]
+    private async Task ReadAllEmailsInboxMessages()
+    {
+        // todo : display a confirmation popup
+
+        var taskId = _taskManager.StartBatch(EmailAccounts, async (emailAccount, cancellationToken) =>
+        {
+            if (emailAccount.Group.GroupId != 12)
+            {
+                throw new Exception("Simulation Failed");
+            }
+            var messasges = await _reportingRequests.GetMessagesFromInboxFolder(emailAccount);
+
+            foreach (var messasge in messasges)
+            {
+                Debug.WriteLine(messasge.id);
+            }
+        });
+        CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,"Get Inbox Messages",Statics.ReportingColor,Statics.ReportingSoftColor);
+    }
+    
     [RelayCommand]
     public async Task AddSingleCampaignTask()
     {
@@ -631,7 +659,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor);
        
     }
-
+    #endregion
     private StartProcessNotifierModel GetStartProcessNotifierModel()
     {
         var modifier = new StartProcessNotifierModel()
@@ -647,6 +675,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         return modifier;
     }
     #endregion
+
+  
    
 }
 

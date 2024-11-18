@@ -46,3 +46,8 @@ global using NAudio.Wave;
 global using RepportingApp.Models.UI;
 global using RepportingApp.ViewModels.BaseServices;
 global using RepportingApp.ViewModels.Components;
+global using RepportingApp.CoreSystem.ApiSystem;
+global using System.Net.Http;
+global using Newtonsoft.Json;
+global using RepportingApp.Request_Connection_Core.IdsExtentions;
+global using RepportingApp.Request_Connection_Core.Responses;
