@@ -1,0 +1,74 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="1000"
+             x:Class="RepportingApp.Views.Components.TaskDetailPopup"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:ui="clr-namespace:RepportingApp.Models.UI"
+             x:DataType="ui:TaskInfoUiModel">
+    <Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15" Padding="15"   Width="1200"
+            Height="800">
+        <ScrollViewer>
+            <Grid RowDefinitions="40,2,Auto,20,Auto,30">
+            <Border>
+                <Grid ColumnDefinitions="120,*,120">
+                    <TextBlock VerticalAlignment="Center" Foreground="{StaticResource TextMain}" Text="{Binding Name,Mode=TwoWay}"></TextBlock>
+                    
+                    <Button   HorizontalAlignment="Right" Grid.Column="2" Command="{Binding ToggleViewMoreDetailsCommand}">
+                        <PathIcon Data="{StaticResource CloseAppIcon}" Foreground="{StaticResource TextMain}" 
+                                />
+                    </Button>
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Background="{StaticResource LightGrey}" Height="2" />
+           <Border Grid.Row="2">
+              
+                   <Border Padding="20">
+                       <Grid RowDefinitions="30,*">
+                           <Border>
+                               <TextBlock Text="Successful Items"></TextBlock>
+                           </Border>
+                           <DataGrid
+                               Grid.Row="1" ItemsSource="{Binding ItemSuccesMessasges,Mode=TwoWay}" 
+                               AutoGenerateColumns="False"
+                               GridLinesVisibility="Horizontal"
+                               VerticalScrollBarVisibility="Visible"  
+                               HorizontalAlignment="Left"
+                               RowHeight="50"
+                           >
+                               <DataGrid.Columns>
+                                   <DataGridTextColumn FontFamily="{StaticResource Roboto}"  Header="Email Address" Binding="{Binding Email.EmailAddress}" />
+                                   <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Message" Binding="{Binding Message}" />
+                               </DataGrid.Columns>
+                           </DataGrid>
+                       </Grid>
+                   </Border>
+              
+           </Border>
+            <Border Grid.Row="4" Padding="20">
+                    <Grid RowDefinitions="30,*">
+                        <Border>
+                            <TextBlock Text="Failed Items"></TextBlock>
+                        </Border>
+                        <DataGrid
+                            Grid.Row="1" ItemsSource="{Binding ItemFailedMessasges,Mode=TwoWay}" 
+                            AutoGenerateColumns="False"
+                            GridLinesVisibility="Horizontal"
+                            VerticalScrollBarVisibility="Visible"           
+                            HorizontalAlignment="Left"
+                            RowHeight="50"
+                        >
+                            <DataGrid.Columns>
+                                <DataGridTextColumn FontFamily="{StaticResource Roboto}"  Header="Email Address" Binding="{Binding Email.EmailAddress}" />
+                                <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Message" Binding="{Binding Message}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+
+            </Border>
+        </Grid>
+        </ScrollViewer>
+        
+    </Border>
+</UserControl>

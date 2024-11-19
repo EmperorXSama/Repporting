@@ -54,7 +54,7 @@ public class TaskInfoManager :INotifyPropertyChanged
         };
     }
     
-    public ObservableCollection<TaskInfoUiModel> GetTasks(TaskCategory category) => _taskCollections[category];
+    public ObservableCollection<TaskInfoUiModel?> GetTasks(TaskCategory category) => _taskCollections[category];
     
     public void AddTask(TaskCategory category, TaskInfoUiModel TaskInfoUiModel)
     {
@@ -73,6 +73,19 @@ public class TaskInfoManager :INotifyPropertyChanged
     public void CompleteTask(Guid taskId, TaskCategory category = TaskCategory.Active)
     {
         MoveTaskToCategory(taskId, category, TaskCategory.Notification);
+        TaskInfoUiModel? taskInfo =  GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == taskId);
+        if (taskInfo != null)
+        {
+            taskInfo.FinishedTime = DateTime.UtcNow.ToString("t");
+            SetIntervalWhenTaskFinished(taskInfo);
+        }
+    }
+
+    private void SetIntervalWhenTaskFinished(TaskInfoUiModel? taskInfo)
+    {
+        DateTime startTime = DateTime.Parse(taskInfo.StartTime);
+        DateTime finishTime = DateTime.Parse(taskInfo.FinishedTime);
+        taskInfo.Interval = finishTime - startTime;
     }
     public void ClearTasks(TaskCategory category) => _taskCollections[category].Clear();
 

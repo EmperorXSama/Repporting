@@ -44,6 +44,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private bool _isPopupOpen = false;
     [ObservableProperty] private bool _isNotificationOpen = false;
     [ObservableProperty] private bool _isCampaignPopupOpen = false;
+    
 
     [ObservableProperty] private bool _isFixed;
     [ObservableProperty] private bool _isRandom;
@@ -91,12 +92,12 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private int _tasksCount;
-    public ObservableCollection<TaskInfoUiModel> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
+    public ObservableCollection<TaskInfoUiModel?> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
 
-    public ObservableCollection<TaskInfoUiModel> NotificationTasks =>
+    public ObservableCollection<TaskInfoUiModel?> NotificationTasks =>
         _taskInfoManager.GetTasks(TaskCategory.Notification);
 
-    public ObservableCollection<TaskInfoUiModel> CampaignTasks => _taskInfoManager.GetTasks(TaskCategory.Campaign);
+    public ObservableCollection<TaskInfoUiModel?> CampaignTasks => _taskInfoManager.GetTasks(TaskCategory.Campaign);
 
     #region API
 
@@ -162,6 +163,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             {
                 IsLoading = true;
                 // Load data here
+                await Task.Delay(3000);
                 await LoadDataAsync();
             }
         }
@@ -169,6 +171,10 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
             await ErrorIndicator.ShowErrorIndecator("Loading Data Failed", e.Message);
+        }
+        finally
+        {
+            IsLoading = false;
         }
 
     }
@@ -194,19 +200,25 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             await Task.Delay(155000, cancellationToken);
 
         });
-        CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, task1, "Preparation", Statics.UploadFileColor,
-            Statics.UploadFileSoftColor);
+        await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
+        {
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, task1, "Preparation", Statics.UploadFileColor,
+                Statics.UploadFileSoftColor);
+        });
+       
         // Example usage: Start a batch process
-        var items = new[] { "Email1", "Email2", "Email3" }; // Sample batch items
         var task2 = _taskManager.StartBatch(EmailAccounts, async (item, cancellationToken) =>
         {
             // Simulate processing each item
             await Task.Delay(2500, cancellationToken);
-            if (item.EmailAddress == "Email2") throw new Exception("Simulated failure"); // Simulate error
-            await Task.Delay(5500, cancellationToken);
+            if (item.Group.GroupId == 12) throw new Exception("Simulated failure"); // Simulate error
+          
         }, batchSize: 3);
-        CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
-            Statics.ReportingSoftColor);
+        await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
+        {
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
+                Statics.ReportingSoftColor);
+        });
     }
 
     [RelayCommand]
@@ -305,6 +317,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     [RelayCommand]
     private void OpenNotificationopup() => IsNotificationOpen = !IsNotificationOpen;
+
+    [RelayCommand]
+    private async Task ReconnectToApi()
+    {
+        await LoadDataIfFirstVisitAsync();
+    }
+
 
     #endregion
 
@@ -420,7 +439,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             );  
         
         
-            CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor);
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor);
             await _taskManager.WaitForTaskCompletion(currentTaskId);
             
             int? groupId = SelectedEmailGroup.GroupId; 
@@ -443,7 +462,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                     ()=>    SelectedEmailGroup = newGroup);*/
              
             });
-            CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor);
+            
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor);
             await _taskManager.WaitForTaskCompletion(apiCreateEmails);
             _emailsToGetUploaded.Clear();
     }
@@ -518,24 +538,28 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay - _taskInfoManager.GetTasks(TaskCategory.Active).Count} Open";
     }
     
-    public void CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor)
+    public async Task  CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor)
     {
-        var taskInfo = new TaskInfoUiModel(type)
+        await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
         {
-            TaskId = taskId,
-            Name = name,
-            Color = color,
-            SoftColor = softColor,
-            CancelCommand = new RelayCommand(() =>
+            var taskInfo = new TaskInfoUiModel(type)
             {
-                CancelTask(taskId);
-                _taskInfoManager.CompleteTask(taskId,category);
-                TasksCount = _taskInfoManager.GetTasksCount();
-            })
-        };
+                TaskId = taskId,
+                Name = name,
+                Color = color,
+                SoftColor = softColor,
+                CancelCommand = new RelayCommand(() =>
+                {
+                    CancelTask(taskId);
+                    _taskInfoManager.CompleteTask(taskId,category);
+                    TasksCount = _taskInfoManager.GetTasksCount();
+                })
+            };
 
-        _taskInfoManager.AddTask(category, taskInfo);
-        TasksCount = _taskInfoManager.GetTasksCount();
+            _taskInfoManager.AddTask(category, taskInfo);
+            TasksCount = _taskInfoManager.GetTasksCount();
+        });
+       
     }
     
     
@@ -603,25 +627,34 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         TaskMessages.Add($"Batch task {e.TaskId} completed.");
         _taskInfoManager.CompleteTask(e.TaskId);
         TasksCount = _taskInfoManager.GetTasksCount();
-      
     }
 
     private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     {
+        EmailAccount emailProcessed= (EmailAccount)e.Item;
+        TaskInfoUiModel? taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
+       
         if (e.Success)
         {
-            TaskInfoUiModel? taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
-            taskInfo.ItemSuccesMessasges.Add(new ItemInfo(){Message = $"Item {e.Item} processed successfully in task {e.TaskId}."});
-            TaskMessages.Add($"Item {e.Item} processed successfully in task {e.TaskId}.");
+            Dispatcher.UIThread.Post(() =>
+            {
+                taskInfo.ItemSuccesMessasges.Add(new ItemInfo()
+                    { Email = emailProcessed, Message = $"Item  processed successfully in task {e.TaskId}. " });
+                TaskMessages.Add($"Item  processed successfully in task {e.TaskId}.");
+            });
+
         }
         else
         {
-            TaskInfoUiModel taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
-            taskInfo.ItemFailedMessasges.Add(new ItemInfo(){Message = $"Item {e.Item} failed in task {e.TaskId}: {e.Error?.Message}"});
-            ErrorMessages.Add($"Item {e.Item} failed in task {e.TaskId}: {e.Error?.Message}");
+            Dispatcher.UIThread.Post(() =>
+            {
+                taskInfo.ItemFailedMessasges.Add(new ItemInfo(){Email =emailProcessed,Message = $"Item  failed in task {e.TaskId}: {e.Error?.Message}"});
+                ErrorMessages.Add($"Item failed in task {e.TaskId}: {e.Error?.Message}");
+            });
+           
         }
     }
-
+    
     #endregion
 
     #region Main reporting logic
@@ -635,18 +668,14 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
         var taskId = _taskManager.StartBatch(EmailAccounts, async (emailAccount, cancellationToken) =>
         {
-            if (emailAccount.Group.GroupId != 12)
-            {
-                throw new Exception("Simulation Failed");
-            }
             var messasges = await _reportingRequests.GetMessagesFromInboxFolder(emailAccount);
 
             foreach (var messasge in messasges)
             {
-                Debug.WriteLine(messasge.id);
+                Console.WriteLine(messasge.id);
             }
         });
-        CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,"Get Inbox Messages",Statics.ReportingColor,Statics.ReportingSoftColor);
+        await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,"Get Inbox Messages",Statics.ReportingColor,Statics.ReportingSoftColor);
     }
     
     [RelayCommand]
@@ -656,7 +685,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.TimeUntilNextRun);
         Func<CancellationToken, Task> taskFunc =await _emailAccountServices.SendEmailAsync(modifier);
         Guid taskId = _taskManager.StartLoopingTask(taskFunc, interval);
-        CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor);
+        await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor);
        
     }
     #endregion
@@ -675,8 +704,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         return modifier;
     }
     #endregion
-
-  
+    
    
 }
 

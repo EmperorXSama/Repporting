@@ -8,25 +8,28 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     private TimeSpan _timeUntilNextRun;
     [ObservableProperty]
-    private TaskStatus _workingStatus = TaskStatus.Waiting;
+    private TaskStatus _workingStatus = TaskStatus.Running;
     [ObservableProperty]
     private Guid taskId;
-
     [ObservableProperty]
     private string name; 
     [ObservableProperty]
     private string color = ""; 
     [ObservableProperty]
-    private string softColor = "";
+    private string softColor = ""; 
+    [ObservableProperty] private bool _isMoreDetailNeeded = false;
 
     [ObservableProperty]
     private ICommand cancelCommand;
+
     
     [ObservableProperty] private string startTime;
     [ObservableProperty] private string finishedTime;
+    [ObservableProperty] private TimeSpan _interval;
     
-    public ObservableCollection<ItemInfo> ItemSuccesMessasges { get; set; } = new ObservableCollection<ItemInfo>();
-    public ObservableCollection<ItemInfo> ItemFailedMessasges { get; set; } = new ObservableCollection<ItemInfo>();
+    [ObservableProperty]
+    public ObservableCollection<ItemInfo> _itemSuccesMessasges  = new ObservableCollection<ItemInfo>();
+    [ObservableProperty]  public ObservableCollection<ItemInfo> _itemFailedMessasges  = new ObservableCollection<ItemInfo>();
 
     [ObservableProperty]
     private string taskMessage;
@@ -35,13 +38,27 @@ public partial class TaskInfoUiModel : ObservableObject
     public TaskInfoUiModel(TakInfoType takInfoType)
     {
         TakInfoType = takInfoType;
-        startTime = DateTime.Now.ToString("t");
+        startTime = DateTime.UtcNow.ToString("t");
     }
+
+
+
+    #region RC
+
+    
+    [RelayCommand]
+    private void ToggleViewMoreDetails()
+    {
+        IsMoreDetailNeeded = !IsMoreDetailNeeded;
+    }
+
+    #endregion
 }
 
 
 public class ItemInfo()
 {
+    public EmailAccount Email { get; set; }
     public string Message { get; set; }
 }
 
@@ -55,4 +72,5 @@ public enum TaskStatus
     Pending,
     Running,
     Waiting,
+    Finished
 }
