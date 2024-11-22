@@ -1,0 +1,73 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RepportingApp.Views.Components.ConsoleLog"
+             xmlns:ui="clr-namespace:RepportingApp.Models.UI"
+             x:DataType="ui:TaskInfoUiModel">
+    <Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15"   Width="1200"
+            Height="800">
+        <SplitView IsPaneOpen="True" DisplayMode="CompactInline" CompactPaneLength="270" OpenPaneLength="270"
+                   Background="Transparent"
+                   PaneBackground="Transparent">
+            <!-- Pane (Email List) -->
+            <SplitView.Pane>
+                <ListBox ItemsSource="{Binding AssignedGroup}" SelectedItem="{Binding SelectedEmail ,Mode=TwoWay}" Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White" CornerRadius="8" Padding="13" Cursor="Hand" BorderBrush="{StaticResource Primary}" BorderThickness="0" >
+                                <StackPanel Orientation="Horizontal" Margin="5" Spacing="10" >
+                                    <TextBlock Width="180" FontSize="15" Text="{Binding EmailAddress}" FontWeight="Bold"  Foreground="{StaticResource  TextMain}"/>
+                                    <TextBlock HorizontalAlignment="Left" Width="60" Margin="8,0,0,0" Text="{Binding ApiResponses.Count}" FontWeight="Light"  Foreground="{StaticResource   Primary}"/>
+                                </StackPanel>
+                            </Border>
+                           
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </SplitView.Pane>
+
+            <!-- Content (Console Log) -->
+            <SplitView.Content>
+                <Border Padding="10">
+                    <Grid RowDefinitions="35,20,*"
+>
+                        <!-- Header for the Console -->
+                        <Grid ColumnDefinitions="*,40">
+                            <TextBlock Text="{Binding SelectedEmail.EmailAddress, FallbackValue='Select an Email' ,Mode=TwoWay} " 
+                                       FontSize="16" FontWeight="Bold" Margin="5" Foreground="Black"/>
+                            <Button Grid.Column="1" Theme="{StaticResource CustomBtn}" HorizontalAlignment="Right"
+                                    Command="{Binding CloseConsoleDetailNeedeCommand}"
+                                    Width="24"
+                                    VerticalAlignment="Top"
+                                    Background="Transparent">
+                                    
+                                <PathIcon Data="{StaticResource CloseAppIcon}"></PathIcon>
+                            </Button>
+                        </Grid>
+                       
+                        <!-- Console Area -->
+                        <Border Grid.Row="2" CornerRadius="9" Background="#353B3C">
+                            <ListBox  ItemsSource="{Binding SelectedEmail.ApiResponses}" Margin="5" Background="Transparent">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Key}" Margin="1" FontWeight="Medium" Foreground="{StaticResource MainWhite}" />
+                                            <TextBlock Text="{Binding Value}" Margin="1" 
+                                                       FontWeight="Light"
+                                                       Foreground="{Binding Value, Converter={StaticResource ForegroundColorConverter}}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                   
+                    </Grid>
+                </Border>
+                
+            </SplitView.Content>
+        </SplitView>
+    </Border>
+   
+</UserControl>

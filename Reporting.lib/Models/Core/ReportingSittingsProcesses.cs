@@ -7,4 +7,5 @@ public class ReportingSittingsProcesses
     public bool IsGetSpamNumbersSelected { get; set; }
     public bool IsGetSpamSubjectSelected { get; set; }
     public bool IsFixAfterFinish { get; set; }
+    public bool IsMMRI { get; set; }
 }

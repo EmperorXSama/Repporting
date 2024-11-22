@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "u9NCeVUNSuw=",
+  "dgSpecHash": "pIGd4R+GuhU=",
   "success": true,
   "projectFilePath": "C:\\Users\\khali\\RiderProjects\\Repporting\\Reporting.lib\\Reporting.lib.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\khali\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\communitytoolkit.mvvm\\8.3.2\\communitytoolkit.mvvm.8.3.2.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\dapper\\2.1.35\\dapper.2.1.35.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\microsoft.data.sqlclient\\6.0.0-preview2.24304.8\\microsoft.data.sqlclient.6.0.0-preview2.24304.8.nupkg.sha512",

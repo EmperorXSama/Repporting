@@ -1,10 +1,11 @@
-﻿namespace RepportingApp.Models.UI;
+﻿using System.Diagnostics;
+
+namespace RepportingApp.Models.UI;
 
 public partial class TaskInfoUiModel : ObservableObject
 {
     
-    public Process ProcessAssigned { get; set; }
-
+    
     [ObservableProperty]
     private TimeSpan _timeUntilNextRun;
     [ObservableProperty]
@@ -18,6 +19,7 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     private string softColor = ""; 
     [ObservableProperty] private bool _isMoreDetailNeeded = false;
+    [ObservableProperty] private bool _isConsoleNeeded = false;
 
     [ObservableProperty]
     private ICommand cancelCommand;
@@ -30,6 +32,26 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     public ObservableCollection<ItemInfo> _itemSuccesMessasges  = new ObservableCollection<ItemInfo>();
     [ObservableProperty]  public ObservableCollection<ItemInfo> _itemFailedMessasges  = new ObservableCollection<ItemInfo>();
+    [ObservableProperty]  public ObservableCollection<EmailAccount>? _assignedGroup  = new ObservableCollection<EmailAccount>();
+    [ObservableProperty] public EmailAccount _selectedEmail;
+    partial void OnSelectedEmailChanged(EmailAccount value)
+    {
+        if (value != null)
+        {
+            // Your custom logic here
+            Debug.WriteLine($"Selected email changed to: {value.EmailAddress}");
+        
+            // Example: Load additional details or log responses
+            foreach (var response in value.ApiResponses)
+            {
+                Debug.WriteLine($"API Response - Key: {response.Key}, Value: {response.Value}");
+            }
+        }
+        else
+        {
+            Debug.WriteLine("Selected email was deselected.");
+        }
+    }
 
     [ObservableProperty]
     private string taskMessage;
@@ -40,9 +62,6 @@ public partial class TaskInfoUiModel : ObservableObject
         TakInfoType = takInfoType;
         startTime = DateTime.UtcNow.ToString("t");
     }
-
-
-
     #region RC
 
     
@@ -50,6 +69,16 @@ public partial class TaskInfoUiModel : ObservableObject
     private void ToggleViewMoreDetails()
     {
         IsMoreDetailNeeded = !IsMoreDetailNeeded;
+    }
+    [RelayCommand]
+    private void ToggleViewConsoleDetails()
+    {
+        IsConsoleNeeded = !IsConsoleNeeded;
+    } 
+    [RelayCommand]
+    private void CloseConsoleDetailNeede()
+    {
+        IsConsoleNeeded = false;
     }
 
     #endregion

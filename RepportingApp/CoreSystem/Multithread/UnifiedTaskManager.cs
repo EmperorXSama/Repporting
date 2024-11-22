@@ -41,7 +41,7 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Start a batch of tasks with specified batch size
-        public Guid StartBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> processFunc, int batchSize = 30)
+        public Guid StartBatch<T>(IEnumerable<T>? items, Func<T, CancellationToken, Task> processFunc, int batchSize = 30)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
@@ -53,87 +53,7 @@ namespace RepportingApp.CoreSystem.Multithread
             return taskId;
         }
 
-        public Guid StartLoopingTask(Func<CancellationToken, Task> taskFunc, TimeSpan interval)
-        {
-            var taskId = Guid.NewGuid();
-            var cts = new CancellationTokenSource();
-            _cancellationTokens[taskId] = cts;
-            
-            _taskQueue.Enqueue(() => ProcessLoopingTask(taskId, taskFunc, interval, cts.Token));
-            TryDequeueTask();
-            return taskId;
-        }
-        // New StartLoopingTaskBatch method
-        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> processFunc, int batchSize, TimeSpan interval)
-        {
-            var taskId = Guid.NewGuid();
-            var cts = new CancellationTokenSource();
-            _cancellationTokens[taskId] = cts;
 
-            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, cts.Token));
-            TryDequeueTask();
-
-            return taskId;
-        }
-
-        private async Task ProcessLoopingTask(Guid taskId, Func<CancellationToken, Task> taskFunc, TimeSpan interval, CancellationToken cancellationToken)
-        {
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    DateTime nextRunTime = DateTime.Now + interval;
-                    var taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign).FirstOrDefault(t => t.TaskId == taskId);
-                    UpdateUiThreadValues(()=>
-                    {
-                        if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Waiting;
-                    });
-                    // Update remaining time every second
-                    while (DateTime.Now < nextRunTime)
-                    {
-                        var remainingTime = nextRunTime - DateTime.Now;
-                
-                        // Use Dispatcher to update the UI-bound TaskInfo object
-                        UpdateUiThreadValues(() =>
-                        {
-                            if (taskInfo != null)
-                            {
-                                taskInfo.TimeUntilNextRun = remainingTime;
-                            }
-                        });
-                       
-                        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
-                    }
-                    
-                    var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
-                    using var audioFile = new AudioFileReader(relativePath);
-                    using var outputDevice = new WaveOutEvent();
-                    outputDevice.Volume = 0.1f;
-                    outputDevice.Init(audioFile);
-                    outputDevice.Play();
-                    
-                    
-                    UpdateUiThreadValues(()=>
-                    {
-                        if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Running;
-                    });
-                    await taskFunc(cancellationToken); 
-                    TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Looping task was cancelled")));
-            }
-            catch (Exception ex)
-            {
-                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, ex));
-            }
-            finally
-            {
-                _cancellationTokens.TryRemove(taskId, out _);
-            }
-        }
 
         // Attempts to dequeue a task from the queue
         private void TryDequeueTask()
@@ -180,7 +100,7 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Processes a batch of items in chunks
-        private async Task ProcessBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task> processFunc, int batchSize, CancellationToken cancellationToken)
+        private async Task ProcessBatch<T>(Guid taskId, IEnumerable<T>? items, Func<T, CancellationToken, Task> processFunc, int batchSize, CancellationToken cancellationToken)
         {
             try
             {
@@ -263,6 +183,87 @@ namespace RepportingApp.CoreSystem.Multithread
             {
                 // Handle task batch cancellation
                 TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Looping batch process was cancelled")));
+            }
+            catch (Exception ex)
+            {
+                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, ex));
+            }
+            finally
+            {
+                _cancellationTokens.TryRemove(taskId, out _);
+            }
+        }
+                public Guid StartLoopingTask(Func<CancellationToken, Task> taskFunc, TimeSpan interval)
+        {
+            var taskId = Guid.NewGuid();
+            var cts = new CancellationTokenSource();
+            _cancellationTokens[taskId] = cts;
+            
+            _taskQueue.Enqueue(() => ProcessLoopingTask(taskId, taskFunc, interval, cts.Token));
+            TryDequeueTask();
+            return taskId;
+        }
+        // New StartLoopingTaskBatch method
+        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> processFunc, int batchSize, TimeSpan interval)
+        {
+            var taskId = Guid.NewGuid();
+            var cts = new CancellationTokenSource();
+            _cancellationTokens[taskId] = cts;
+
+            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, cts.Token));
+            TryDequeueTask();
+
+            return taskId;
+        }
+
+        private async Task ProcessLoopingTask(Guid taskId, Func<CancellationToken, Task> taskFunc, TimeSpan interval, CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    DateTime nextRunTime = DateTime.Now + interval;
+                    var taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign).FirstOrDefault(t => t.TaskId == taskId);
+                    UpdateUiThreadValues(()=>
+                    {
+                        if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Waiting;
+                    });
+                    // Update remaining time every second
+                    while (DateTime.Now < nextRunTime)
+                    {
+                        var remainingTime = nextRunTime - DateTime.Now;
+                
+                        // Use Dispatcher to update the UI-bound TaskInfo object
+                        UpdateUiThreadValues(() =>
+                        {
+                            if (taskInfo != null)
+                            {
+                                taskInfo.TimeUntilNextRun = remainingTime;
+                            }
+                        });
+                       
+                        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
+                    }
+                    
+                    var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
+                    using var audioFile = new AudioFileReader(relativePath);
+                    using var outputDevice = new WaveOutEvent();
+                    outputDevice.Volume = 0.1f;
+                    outputDevice.Init(audioFile);
+                    outputDevice.Play();
+                    
+                    
+                    UpdateUiThreadValues(()=>
+                    {
+                        if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Running;
+                    });
+                    await taskFunc(cancellationToken); 
+                    TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Looping task was cancelled")));
             }
             catch (Exception ex)
             {

@@ -677,7 +677,7 @@
                                                                                     </Border>
                                                                                 </Grid>
                                                                                 <!--detail button-->
-                                                                                <Grid Grid.Row="1">
+                                                                                <Grid Grid.Row="1" ColumnDefinitions="*,*">
                                                                                     <Border  Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
                                                                                         Background="{StaticResource MainAlert}"
                                                                                         
@@ -700,6 +700,29 @@
                                                                                         PlacementTarget="{Binding ElementName=MainGrid}" 
                                                                                         IsOpen="{Binding IsMoreDetailNeeded, Mode=TwoWay}">
                                                                                         <components1:TaskDetailPopup />
+                                                                                    </Popup>
+                                                                                     <Border Grid.Column="1" Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                        Background="{StaticResource MainRed}"
+                                                                                        
+                                                                                        BorderThickness="1,0,1,1"
+                                                                                        CornerRadius="0,0,9,9"> 
+                                                                                        <Button Theme="{StaticResource CustomBtn}" Background="Transparent" VerticalAlignment="Top"
+                                                                                            Command="{Binding ToggleViewConsoleDetailsCommand}">
+                                                                                            <StackPanel Orientation="Horizontal">
+                                                                                                <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
+                                                                                                <TextBlock Text="view console" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                                                            </StackPanel>
+                                                                                        </Button>
+                                                                                    </Border>
+                                                                                    <Popup IsLightDismissEnabled="True" 
+                                                                                        Width="1620"
+                                                                                        Height="900"
+                                                                                        Placement="Center"
+                                                                                        VerticalAlignment="Top"
+                                                                                        HorizontalAlignment="Center"
+                                                                                        PlacementTarget="{Binding ElementName=MainGrid}" 
+                                                                                        IsOpen="{Binding IsConsoleNeeded, Mode=TwoWay}">
+                                                                                        <components1:ConsoleLog />
                                                                                     </Popup>
                                                                                 </Grid>
                                                                             <DockPanel Grid.Row="2" >
@@ -1865,16 +1888,30 @@
                                                   RowDefinitions="*,20,*,20,*"
                                                   Margin="0,0,0,20">
                                                 
-                                                <CheckBox Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsReportingSelected}">
+                                                <!--contain -->
+                                                <Popup IsLightDismissEnabled="True" 
+                                                       Width="200"
+                                                       Height="100"
+                                                       Placement="Center"
+                                                       VerticalAlignment="Top"
+                                                       HorizontalAlignment="Center"
+                                                       PlacementTarget="{Binding ElementName=MainGrid}" 
+                                                       IsOpen="{Binding IsMMRIChoiceSelected, Mode=TwoWay}">
+                                                    <components1:MMRIThreashold />
+                                                </Popup>
+                                                <CheckBox Content="Reporting" 
+                                                          Command="{Binding ProcessesCheckedManagerCommand}"
+                                                          CommandParameter="IsReportingSelected"
+                                                          IsChecked="{Binding SelectedProcessesUi.IsReportingSelected}">
                                                     <CheckBox.Template>
                                                         <ControlTemplate>
-                                                            <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                            <Border Background="{Binding IsReportingChoiceSelected, Converter={StaticResource SelectedBackgroundConverter}}"
                                                                     CornerRadius="8"
                                                                     Padding="10"
                                                                     BorderBrush="#E0E0E0"
                                                                     BorderThickness="1"
                                                                     >
-                                                                <StackPanel>
+                                                                <StackPanel> 
                                                                     <PathIcon Foreground="#8093F1" Data="{StaticResource ReportingIcon}" HorizontalAlignment="Center"/>
                                                                     <TextBlock Text="Reporting" HorizontalAlignment="Center" Foreground="Gray" FontFamily="{StaticResource Roboto}" FontWeight="SemiBold" Margin="0,8,0,4"/>
                                                                     <TextBlock Text="Alert is sent as soon as person appears." FontSize="12" Foreground="{StaticResource TentGrey }" FontWeight="Light" TextWrapping="Wrap" HorizontalAlignment="Center"/>
@@ -1883,7 +1920,7 @@
                                                         </ControlTemplate>
                                                     </CheckBox.Template>
                                                 </CheckBox>
-                                                <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsDeleteSpamSelected}">
+                                                <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsDeleteSpamSelected}">
                                                     <CheckBox.Template>
                                                         <ControlTemplate>
                                                             <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -1901,7 +1938,7 @@
                                                         </ControlTemplate>
                                                     </CheckBox.Template>
                                                 </CheckBox>
-                                                <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamNumbersSelected}">
+                                                <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsGetSpamNumbersSelected}">
                                                     <CheckBox.Template>
                                                         <ControlTemplate>
                                                             <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -1918,7 +1955,7 @@
                                                         </ControlTemplate>
                                                     </CheckBox.Template>
                                                 </CheckBox>
-                                                <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamSubjectSelected}">
+                                                <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsGetSpamSubjectSelected}">
                                                     <CheckBox.Template>
                                                         <ControlTemplate>
                                                             <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -1937,7 +1974,7 @@
                                                         </ControlTemplate>
                                                     </CheckBox.Template>
                                                 </CheckBox>
-                                                <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsFixAfterFinish}">
+                                                <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsFixAfterFinish}">
                                                     <CheckBox.Template>
                                                         <ControlTemplate>
                                                             <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -1980,14 +2017,17 @@
         <Border Background="White" CornerRadius="10" Padding="10">
             <StackPanel>
                 <TextBlock Text="choose processes !" FontFamily="{StaticResource Roboto}"  HorizontalAlignment="Center" Margin="0,0,0,20" />
-                <Grid ColumnDefinitions="*,20,*"
+                <Grid ColumnDefinitions="*,20,*,20,*"
                       RowDefinitions="*,20,*,20,*"
                       Margin="0,0,0,20">
                     
-                    <CheckBox Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsReportingSelected}">
+                    <CheckBox Content="Reporting" 
+                              Command="{Binding ProcessesCheckedManagerCommand}" 
+                              CommandParameter="IsReportingSelected"
+                              IsChecked="{Binding SelectedProcessesUi.IsReportingSelected, Mode=TwoWay}">
                         <CheckBox.Template>
                             <ControlTemplate>
-                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                <Border Background="{Binding IsReportingChoiceSelected, Converter={StaticResource SelectedBackgroundConverter}}"
                                         CornerRadius="8"
                                         Padding="10"
                                         BorderBrush="#E0E0E0"
@@ -2002,7 +2042,7 @@
                             </ControlTemplate>
                         </CheckBox.Template>
                     </CheckBox>
-                    <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsDeleteSpamSelected}">
+                    <CheckBox Grid.Row="0" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsMMRI}">
                         <CheckBox.Template>
                             <ControlTemplate>
                                 <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -2020,7 +2060,28 @@
                             </ControlTemplate>
                         </CheckBox.Template>
                     </CheckBox>
-                    <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamNumbersSelected}">
+                    <CheckBox Grid.Row="0" Grid.Column="4" Content="Disappearing" 
+                              Command="{Binding ProcessesCheckedManagerCommand}" 
+                              CommandParameter="MarkMessagesAsReadFromInbox"
+                              IsChecked="{Binding  SelectedProcessesUi.IsMMRI}">
+                        <CheckBox.Template>
+                            <ControlTemplate>
+                                <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <PathIcon   Foreground="#A4303F" Data="{StaticResource DeleteSpamIcon}" HorizontalAlignment="Center"/>
+                                       
+                                        <TextBlock Text="Mark messages as read" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"/>
+                                        <TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                    <CheckBox Grid.Row="2" Grid.Column="0" Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsGetSpamNumbersSelected}">
                         <CheckBox.Template>
                             <ControlTemplate>
                                 <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -2037,7 +2098,7 @@
                             </ControlTemplate>
                         </CheckBox.Template>
                     </CheckBox>
-                    <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsGetSpamSubjectSelected}">
+                    <CheckBox Grid.Row="2" Grid.Column="2" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsGetSpamSubjectSelected}">
                         <CheckBox.Template>
                             <ControlTemplate>
                                 <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -2056,7 +2117,7 @@
                             </ControlTemplate>
                         </CheckBox.Template>
                     </CheckBox>
-                    <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcesses.IsFixAfterFinish}">
+                    <CheckBox  Grid.Row="4" Grid.Column="0" Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsFixAfterFinish}">
                         <CheckBox.Template>
                             <ControlTemplate>
                                 <Border Background="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
@@ -2185,7 +2246,7 @@
                                                                         </Border>
                                                                     </Grid>
                                                                      <!--detail button-->
-                                                                                <Grid Grid.Row="2">
+                                                                                <Grid Grid.Row="2" ColumnDefinitions="*,*">
                                                                                     <Border  Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
                                                                                         Background="{StaticResource MainAlert}"
                                                                                         
@@ -2208,6 +2269,29 @@
                                                                                         PlacementTarget="{Binding ElementName=MainGrid}" 
                                                                                         IsOpen="{Binding IsMoreDetailNeeded, Mode=TwoWay}">
                                                                                         <components1:TaskDetailPopup />
+                                                                                    </Popup> 
+                                                                                    <Border Grid.Column="1" Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                        Background="{StaticResource MainRed}"
+                                                                                        
+                                                                                        BorderThickness="1,0,1,1"
+                                                                                        CornerRadius="0,0,9,9"> 
+                                                                                        <Button Theme="{StaticResource CustomBtn}" Background="Transparent" VerticalAlignment="Top"
+                                                                                            Command="{Binding ToggleViewConsoleDetailsCommand}">
+                                                                                            <StackPanel Orientation="Horizontal">
+                                                                                                <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
+                                                                                                <TextBlock Text="view console" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                                                            </StackPanel>
+                                                                                        </Button>
+                                                                                    </Border>
+                                                                                    <Popup IsLightDismissEnabled="True" 
+                                                                                        Width="1620"
+                                                                                        Height="900"
+                                                                                        Placement="Center"
+                                                                                        VerticalAlignment="Top"
+                                                                                        HorizontalAlignment="Center"
+                                                                                        PlacementTarget="{Binding ElementName=MainGrid}" 
+                                                                                        IsOpen="{Binding IsConsoleNeeded, Mode=TwoWay}">
+                                                                                        <components1:ConsoleLog />
                                                                                     </Popup>
                                                                                 </Grid>
                                                                 </Grid>

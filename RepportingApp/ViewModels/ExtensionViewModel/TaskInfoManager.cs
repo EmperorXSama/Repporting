@@ -70,17 +70,31 @@ public class TaskInfoManager :INotifyPropertyChanged
             _taskCollections[toCategory].Add(TaskInfoUiModel);
         }
     }
-    public void CompleteTask(Guid taskId, TaskCategory category = TaskCategory.Active)
+    public async void CompleteTask(Guid taskId, TaskCategory category = TaskCategory.Active)
     {
-        MoveTaskToCategory(taskId, category, TaskCategory.Notification);
         TaskInfoUiModel? taskInfo =  GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == taskId);
         if (taskInfo != null)
         {
-            taskInfo.FinishedTime = DateTime.UtcNow.ToString("t");
-            SetIntervalWhenTaskFinished(taskInfo);
-        }
-    }
+            await DispatcherHelper.ExecuteOnUIThreadAsync( async () =>
+            {
+                taskInfo.FinishedTime = DateTime.UtcNow.ToString("t");
+                SetIntervalWhenTaskFinished(taskInfo);
+                if (taskInfo.AssignedGroup != null && taskInfo.AssignedGroup.Any())
+                {
+                    var itemsToRemove = taskInfo.AssignedGroup.Where(email => email.ApiResponses.Count < 2).ToList();
 
+                    foreach (var email in itemsToRemove)
+                    {
+                        taskInfo.AssignedGroup.Remove(email);
+                    }
+                }
+            });
+
+
+        }
+        MoveTaskToCategory(taskId, category, TaskCategory.Notification);
+        
+    }
     private void SetIntervalWhenTaskFinished(TaskInfoUiModel? taskInfo)
     {
         DateTime startTime = DateTime.Parse(taskInfo.StartTime);

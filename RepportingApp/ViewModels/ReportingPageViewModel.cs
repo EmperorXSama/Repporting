@@ -54,6 +54,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
 
     [ObservableProperty] private bool _isReportingChoiceSelected;
+    [ObservableProperty] private bool _isMMRIChoiceSelected;
 
     [ObservableProperty]
     private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
@@ -67,8 +68,10 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] private ProxySittings _selectedProxySetting;
     [ObservableProperty] private ReportingSettings _selectedReportSetting;
-    [ObservableProperty] private ReportingSittingsProcesses _selectedProcesses = new ReportingSittingsProcesses();
-
+    [ObservableProperty] private ReportingSittingsProcesses _selectedProcessesUi = new ReportingSittingsProcesses();
+    private Dictionary<string, Func<EmailAccount, Task>> _processsMapping;
+    public List<string> SelectedProcesses { get; set; } = new();
+    
     #endregion
 
     #region Upload Files/Data
@@ -80,13 +83,21 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private Double _fileSize = 0;
     [ObservableProperty] private bool _isUploading;
     private CancellationTokenSource _cancellationTokenSource;
-    [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new();
+    [ObservableProperty] private ObservableCollection<EmailAccount>? _emailAccounts = new();
 
     #endregion
 
     #region Email Service
 
     private readonly IEmailAccountServices _emailAccountServices;
+
+    #endregion
+
+    #region mark messages as read UI variables
+
+    [ObservableProperty] private int _bulkThreasholdMMRI = 1;
+    [ObservableProperty] private int _singleThreasholdMMRI;
+    [ObservableProperty] private int _bulkChunkCountMMRI = 3;
 
     #endregion
 
@@ -129,10 +140,12 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     }
 
+    #region Initial Setup and load
     private void InitializeSettings()
     {
         ReportingSettingsValuesDisplay = new ReportingSettingValues(App.Configuration);
         AssignThreadDefaultValues();
+        InitializeProcessMappings();
     }
 
     private void InitializeTaskManager()
@@ -151,10 +164,14 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         _taskInfoManager.PropertyChanged += TaskManager_PropertyChanged;
         SubscribeEventToThread();
     }
-
-
-    #region Relay commands
-
+    private void InitializeProcessMappings()
+    {
+        _processsMapping = new Dictionary<string, Func<EmailAccount, Task>>
+        {
+            {"IsReportingSelected",(emailAcc) => _reportingRequests.ProcessGetMessagesFromInbox(emailAcc,ReportingSettingsValuesDisplay.Thread)},
+            {"MarkMessagesAsReadFromInbox",(emailAcc) => _reportingRequests.ProcessMarkMessagesAsReadFromInbox(emailAcc,BulkThreasholdMMRI,BulkChunkCountMMRI,SingleThreasholdMMRI)},
+        };
+    }
     public async Task LoadDataIfFirstVisitAsync()
     {
         try
@@ -163,7 +180,6 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             {
                 IsLoading = true;
                 // Load data here
-                await Task.Delay(3000);
                 await LoadDataAsync();
             }
         }
@@ -188,6 +204,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         Debug.WriteLine("loading data finished");
     }
 
+    #endregion
+
+
+
+    #region Relay commands
+
+    
     [RelayCommand]
     private async Task StartOperation()
     {
@@ -200,11 +223,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             await Task.Delay(155000, cancellationToken);
 
         });
-        await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
-        {
             await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, task1, "Preparation", Statics.UploadFileColor,
-                Statics.UploadFileSoftColor);
-        });
+                Statics.UploadFileSoftColor,EmailAccounts);
        
         // Example usage: Start a batch process
         var task2 = _taskManager.StartBatch(EmailAccounts, async (item, cancellationToken) =>
@@ -214,11 +234,9 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             if (item.Group.GroupId == 12) throw new Exception("Simulated failure"); // Simulate error
           
         }, batchSize: 3);
-        await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
-        {
-            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
-                Statics.ReportingSoftColor);
-        });
+   
+        await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
+                Statics.ReportingSoftColor,EmailAccounts);
     }
 
     [RelayCommand]
@@ -228,9 +246,11 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     }
 
     [RelayCommand]
-    private void ProcessesCheckedManager()
+    private void ProcessesCheckedManager(string value)
     {
-        // Define a mapping between the process selection and the corresponding icons
+
+        #region this logic used to represent the processed selected in UI ( UI CODE ONLY)
+
         var processIconMapping = new Dictionary<Func<ReportingSittingsProcesses, bool>, string>
         {
             { p => p.IsReportingSelected, "ReportingIcon" },
@@ -238,13 +258,14 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             { p => p.IsGetSpamNumbersSelected, "CollectSpamNumberIcon" },
             { p => p.IsGetSpamSubjectSelected, "CollectSpamSubjectIcon" },
             { p => p.IsFixAfterFinish, "FixIcon" },
+            { p => p.IsMMRI, "FixIcon" },
 
         };
-        IsReportingChoiceSelected = SelectedProcesses.IsReportingSelected;
-        // Iterate through the mapping
+        IsReportingChoiceSelected = SelectedProcessesUi.IsReportingSelected;
+        IsMMRIChoiceSelected = SelectedProcessesUi.IsMMRI;
         foreach (var mapping in processIconMapping)
         {
-            var isSelected = mapping.Key(SelectedProcesses);
+            var isSelected = mapping.Key(SelectedProcessesUi);
             var iconName = mapping.Value;
 
             if (isSelected)
@@ -264,6 +285,21 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                 }
             }
         }
+
+        #endregion
+
+        #region This Code is storing the proceses that will be processed ( LOGIC ONLY )
+        
+        // todo : if reporting ( mark not spam selected then remove all pre reporting singularities if exist )
+        if (SelectedProcesses.Contains(value))
+        {
+            SelectedProcesses.Remove(value);
+        }
+        else
+        {
+            SelectedProcesses.Add(value);
+        }
+        #endregion
     }
 
     [RelayCommand]
@@ -439,7 +475,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             );  
         
         
-            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor);
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
             await _taskManager.WaitForTaskCompletion(currentTaskId);
             
             int? groupId = SelectedEmailGroup.GroupId; 
@@ -463,7 +499,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
              
             });
             
-            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor);
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
             await _taskManager.WaitForTaskCompletion(apiCreateEmails);
             _emailsToGetUploaded.Clear();
     }
@@ -538,7 +574,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay - _taskInfoManager.GetTasks(TaskCategory.Active).Count} Open";
     }
     
-    public async Task  CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor)
+    public async Task  CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor,ObservableCollection<EmailAccount>? assignedGroupEmails)
     {
         await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
         {
@@ -548,6 +584,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                 Name = name,
                 Color = color,
                 SoftColor = softColor,
+                AssignedGroup = assignedGroupEmails,
                 CancelCommand = new RelayCommand(() =>
                 {
                     CancelTask(taskId);
@@ -629,31 +666,60 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         TasksCount = _taskInfoManager.GetTasksCount();
     }
 
-    private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
+private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
+{
+    TaskInfoUiModel? taskInfo = _taskInfoManager.GetTasks(TaskCategory.Active)
+        .FirstOrDefault(t => t.TaskId == e.TaskId);
+
+    if (e.Success)
     {
-        EmailAccount emailProcessed= (EmailAccount)e.Item;
-        TaskInfoUiModel? taskInfo =  _taskInfoManager.GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == e.TaskId);
-       
-        if (e.Success)
+        Dispatcher.UIThread.Post(() =>
         {
-            Dispatcher.UIThread.Post(() =>
+            if (e.Item is EmailAccount emailProcessed)
             {
                 taskInfo.ItemSuccesMessasges.Add(new ItemInfo()
-                    { Email = emailProcessed, Message = $"Item  processed successfully in task {e.TaskId}. " });
-                TaskMessages.Add($"Item  processed successfully in task {e.TaskId}.");
-            });
-
-        }
-        else
-        {
-            Dispatcher.UIThread.Post(() =>
+                {
+                    Email = emailProcessed,
+                    Message = $"Email processed successfully in task {e.TaskId}."
+                });
+                TaskMessages.Add($"Email processed successfully in task {e.TaskId}.");
+            }
+            else
             {
-                taskInfo.ItemFailedMessasges.Add(new ItemInfo(){Email =emailProcessed,Message = $"Item  failed in task {e.TaskId}: {e.Error?.Message}"});
-                ErrorMessages.Add($"Item failed in task {e.TaskId}: {e.Error?.Message}");
-            });
-           
-        }
+                taskInfo.ItemSuccesMessasges.Add(new ItemInfo()
+                {
+                    Message = $"Non-email item processed successfully in task {e.TaskId}: {e.Item}"
+                });
+                TaskMessages.Add($"Non-email item processed successfully in task {e.TaskId}: {e.Item}");
+            }
+        });
     }
+    else
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (e.Item is EmailAccount emailProcessed)
+            {
+                taskInfo.ItemFailedMessasges.Add(new ItemInfo()
+                {
+                    Email = emailProcessed,
+                    Message = $"Email failed in task {e.TaskId}: {e.Error?.Message}"
+                });
+                ErrorMessages.Add($"Email failed in task {e.TaskId}: {e.Error?.Message}");
+               
+            }
+            else
+            {
+                taskInfo.ItemFailedMessasges.Add(new ItemInfo()
+                {
+                    Message = $"Non-email item failed in task {e.TaskId}: {e.Error?.Message}"
+                });
+                ErrorMessages.Add($"Non-email item failed in task {e.TaskId}: {e.Error?.Message}");
+            }
+        });
+    }
+}
+
     
     #endregion
 
@@ -665,18 +731,27 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     private async Task ReadAllEmailsInboxMessages()
     {
         // todo : display a confirmation popup
-
-        var taskId = _taskManager.StartBatch(EmailAccounts, async (emailAccount, cancellationToken) =>
+        if (!SelectedProcesses.Any())
         {
-            var messasges = await _reportingRequests.GetMessagesFromInboxFolder(emailAccount);
-
-            foreach (var messasge in messasges)
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
+            return;
+        }
+        //todo : filter emails 
+        var emailsGroupToWork = new ObservableCollection<EmailAccount>(EmailAccounts);
+        var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
+        {
+            foreach (var processName in SelectedProcesses)
             {
-                Console.WriteLine(messasge.id);
+                if (_processsMapping.TryGetValue(processName, out var processFunction))
+                {
+                    await processFunction(emailAccount);
+                }
             }
         });
-        await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,"Get Inbox Messages",Statics.ReportingColor,Statics.ReportingSoftColor);
+        await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,"Get Inbox Messages",Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork);
     }
+
     
     [RelayCommand]
     public async Task AddSingleCampaignTask()
@@ -685,7 +760,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.TimeUntilNextRun);
         Func<CancellationToken, Task> taskFunc =await _emailAccountServices.SendEmailAsync(modifier);
         Guid taskId = _taskManager.StartLoopingTask(taskFunc, interval);
-        await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor);
+        await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor,EmailAccounts);
        
     }
     #endregion
@@ -693,7 +768,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     {
         var modifier = new StartProcessNotifierModel()
         {
-            ReportingSettingsP = SelectedProcesses,
+            ReportingSettingsP = SelectedProcessesUi,
             Thread = ReportingSettingsValuesDisplay.Thread,
             Repetition = ReportingSettingsValuesDisplay.Repetition,
             RepetitionDelay = ReportingSettingsValuesDisplay.RepetitionDelay,

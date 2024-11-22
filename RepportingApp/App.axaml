@@ -35,6 +35,7 @@
          <helper:CheckedToFillConverter x:Key="CheckedToFillConverter"/>
          <helper:InverseCheckedConverter x:Key="InverseCheckedConverter"/>
          <helper:GroupNameToColorConverter x:Key="GroupNameToColorConverter"/>
+         <converters:ForegroundColorConverter x:Key="ForegroundColorConverter"/>
          <converters:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
          <converters:WorkingStatusToColorConverter x:Key="WorkingStatusToColorConverter"/>
          

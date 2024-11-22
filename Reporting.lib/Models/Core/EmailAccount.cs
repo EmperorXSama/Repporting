@@ -1,10 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Reporting.lib.enums.Core;
 
 namespace Reporting.lib.Models.Core;
 
 
-public class EmailAccount
+public partial class EmailAccount: ObservableObject
 {
     public int Id { get; set; }
 
@@ -30,11 +32,17 @@ public class EmailAccount
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
     
     public EmailMetaData MetaIds { get; set; } = new();
+    [ObservableProperty]
+    private ObservableCollection<KeyValuePair<string, object>> apiResponses = new()
+    {
+        new KeyValuePair<string, object>("[action name]  [time]", "MESSAGE"),
+    };
 
-    [JsonPropertyName("processLogs")]
-    public ICollection<ProcessLog> ProcessLogs { get; set; } = new List<ProcessLog>();
+    [JsonPropertyName("processLogs")] public ICollection<ProcessLog> ProcessLogs { get; set; } = new List<ProcessLog>();
+    
+        [ObservableProperty]
+    private ObservableCollection<object> _extraData = new();
     [JsonIgnore]
-
     public DateTime FirstUse => IdsFrequencies?.Any() == true ? IdsFrequencies.First().CollectedTime : DateTime.MinValue;
     [JsonIgnore]
     // Property to get the last collection time
@@ -62,8 +70,12 @@ public class EmailAccount
             return 0; // Return 0 if not enough data
         }
     }
+    
     [JsonIgnore]
     public List<IdCollectionFrequency> IdsFrequencies { get; set; } = new List<IdCollectionFrequency>();
+    
+    
+
 }
 public class EmailStats
 {

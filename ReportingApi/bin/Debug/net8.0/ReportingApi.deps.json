@@ -52,6 +52,14 @@
           }
         }
       },
+      "CommunityToolkit.Mvvm/8.3.2": {
+        "runtime": {
+          "lib/net8.0/CommunityToolkit.Mvvm.dll": {
+            "assemblyVersion": "8.3.0.0",
+            "fileVersion": "8.3.2.1"
+          }
+        }
+      },
       "Dapper/2.1.35": {
         "runtime": {
           "lib/net7.0/Dapper.dll": {
@@ -1809,6 +1817,7 @@
       "System.Threading.Tasks.Extensions/4.5.4": {},
       "Reporting.lib/1.0.0": {
         "dependencies": {
+          "CommunityToolkit.Mvvm": "8.3.2",
           "Dapper": "2.1.35",
           "Microsoft.Data.SqlClient": "6.0.0-preview2.24304.8",
           "Microsoft.Extensions.Configuration": "8.0.0",
@@ -1842,6 +1851,13 @@
       "sha512": "sha512-Sf4BoE6Q3jTgFkgBkx7qztYOFELBCo+wQgpYDwal/qJ1unBH73ywPztIJKXBXORRzAeNijsuxhk94h0TIMvfYg==",
       "path": "azure.identity/1.11.4",
       "hashPath": "azure.identity.1.11.4.nupkg.sha512"
+    },
+    "CommunityToolkit.Mvvm/8.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-m8EolE1A0Updj68WTsZSGI6VWb6mUqHPh7QFo0kt7+JPhYMNXRS1ch8TS/oITAdcxTLrwMOp3ku1KjeG1/Zdpg==",
+      "path": "communitytoolkit.mvvm/8.3.2",
+      "hashPath": "communitytoolkit.mvvm.8.3.2.nupkg.sha512"
     },
     "Dapper/2.1.35": {
       "type": "package",

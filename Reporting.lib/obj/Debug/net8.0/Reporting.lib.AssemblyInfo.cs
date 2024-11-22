@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Reporting.lib")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb4038ab998bba81e427fc46c9979fa25c85181c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ee87110b482071f9ca9516e02acee6b6fcb953a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Reporting.lib")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Reporting.lib")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
