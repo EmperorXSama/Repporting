@@ -9,7 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Helper\" />
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
 
@@ -58,5 +57,8 @@
         <Content Include="Assets\SFX\UiSfx.mp3">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Helper\" />
     </ItemGroup>
 </Project>

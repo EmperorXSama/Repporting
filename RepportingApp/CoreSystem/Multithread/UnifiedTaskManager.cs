@@ -41,7 +41,7 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Start a batch of tasks with specified batch size
-        public Guid StartBatch<T>(IEnumerable<T>? items, Func<T, CancellationToken, Task> processFunc, int batchSize = 30)
+        public Guid StartBatch<T>(IEnumerable<T>? items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize = 30)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
@@ -100,7 +100,7 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Processes a batch of items in chunks
-        private async Task ProcessBatch<T>(Guid taskId, IEnumerable<T>? items, Func<T, CancellationToken, Task> processFunc, int batchSize, CancellationToken cancellationToken)
+        private async Task ProcessBatch<T>(Guid taskId, IEnumerable<T>? items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, CancellationToken cancellationToken)
         {
             try
             {
@@ -113,13 +113,13 @@ namespace RepportingApp.CoreSystem.Multithread
                     {
                         try
                         {
-                            await processFunc(item, cancellationToken);
-                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true));
+                            string result = await processFunc(item, cancellationToken);
+                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true,result));
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)
                         {
                             // Only handle non-cancellation exceptions at the item level
-                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false));
+                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null));
                         }
                     }).ToList();
 
@@ -143,7 +143,7 @@ namespace RepportingApp.CoreSystem.Multithread
             }
         }
         // Process a looping batch of tasks with specified interval
-        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task> processFunc, int batchSize, TimeSpan interval, CancellationToken cancellationToken)
+        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval, CancellationToken cancellationToken)
         {
             try
             {
@@ -159,13 +159,13 @@ namespace RepportingApp.CoreSystem.Multithread
                         {
                             try
                             {
-                                await processFunc(item, cancellationToken);
-                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true));
+                                string result = await processFunc(item, cancellationToken);
+                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true,result));
                             }
                             catch (Exception ex) when (ex is not OperationCanceledException)
                             {
                                 // Only handle non-cancellation exceptions at the item level
-                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false));
+                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null));
                             }
                         }).ToList();
 
@@ -204,7 +204,7 @@ namespace RepportingApp.CoreSystem.Multithread
             return taskId;
         }
         // New StartLoopingTaskBatch method
-        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> processFunc, int batchSize, TimeSpan interval)
+        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
@@ -347,13 +347,15 @@ namespace RepportingApp.CoreSystem.Multithread
         public object Item { get; }
         public bool Success { get; }
         public Exception? Error { get; }
+        public string? Message { get; }
 
-        public ItemProcessedEventArgs(Guid taskId, object item, Exception? error, bool success)
+        public ItemProcessedEventArgs(Guid taskId, object item, Exception? error, bool success,string message)
         {
             TaskId = taskId;
             Item = item;
             Success = success;
             Error = error;
+            Message = message;
         }
     }
 }

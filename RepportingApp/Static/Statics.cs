@@ -14,7 +14,11 @@ public static  class Statics
     #region api statics
 
     public const string InboxDir = "1";
+    public const string SentDir = "2";
     public const string SpamDir = "6";
+    public const string TrashDir = "4";
+    public const string ArchiveDir = "21";
+    public const string DraftDir = "3";
 
     #endregion
 }

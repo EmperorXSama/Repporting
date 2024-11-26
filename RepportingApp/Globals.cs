@@ -51,3 +51,7 @@ global using System.Net.Http;
 global using Newtonsoft.Json;
 global using RepportingApp.Request_Connection_Core.IdsExtentions;
 global using RepportingApp.Request_Connection_Core.Responses;
+global using RepportingApp.Helper;
+global using RepportingApp.IServices;
+global using RepportingApp.Models.RequestModels;
+global using RepportingApp.Request_Connection_Core.Reporting;

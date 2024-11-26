@@ -79,15 +79,16 @@ public class TaskInfoManager :INotifyPropertyChanged
             {
                 taskInfo.FinishedTime = DateTime.UtcNow.ToString("t");
                 SetIntervalWhenTaskFinished(taskInfo);
-                if (taskInfo.AssignedGroup != null && taskInfo.AssignedGroup.Any())
+                if (taskInfo.AssignedEmailsDisplayInfo != null && taskInfo.AssignedEmailsDisplayInfo.Any())
                 {
-                    var itemsToRemove = taskInfo.AssignedGroup.Where(email => email.ApiResponses.Count < 2).ToList();
+                    var itemsToRemove = taskInfo.AssignedEmailsDisplayInfo.Where(email => email.ApiResponses.Count < 1).ToList();
 
                     foreach (var email in itemsToRemove)
                     {
-                        taskInfo.AssignedGroup.Remove(email);
+                        taskInfo.AssignedEmailsDisplayInfo.Remove(email);
                     }
                 }
+                // todo : when email is failed should be transferred into another list to be traited
             });
 
 

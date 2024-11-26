@@ -29,14 +29,22 @@ public static class YmriqId
 
     public static List<string> GetYmreqid(string current, int number)
     {
-        var nextId = current ?? throw new ArgumentNullException(nameof(current));
-        var currentId = new List<string>();
-        for (var i = 0; i < number; i++)
+        try
         {
-            nextId = GenerateNextId2(nextId);
-            currentId.Add(nextId);
-        }
+            var nextId = current ?? throw new ArgumentNullException(nameof(current));
+            var currentId = new List<string>();
+            for (var i = 0; i < number; i++)
+            {
+                nextId = GenerateNextId2(nextId);
+                currentId.Add(nextId);
+            }
 
-        return currentId;
+            return currentId;
+        }
+        catch (Exception e)
+        {
+           throw new Exception($"Failed to generate next ymreqid ", e);
+        }
+       
     }
 }

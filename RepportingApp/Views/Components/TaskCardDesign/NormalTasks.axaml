@@ -1,0 +1,182 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:components="clr-namespace:RepportingApp.Views.Components"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RepportingApp.Views.Components.TaskCardDesign.NormalTasks"
+             x:DataType="viewModels:ReportingPageViewModel"
+             x:Name="MainGrid">
+    <ListBox ItemsSource="{Binding ActiveTasks}" Background="White">
+        <ListBox.Styles>
+            <!-- Style for ListBoxItem -->
+            <Style Selector="ListBoxItem">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Style>
+            <!-- Hover effect -->
+            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <!-- Selected effect -->
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+        </ListBox.Styles>
+
+        <ListBox.ItemTemplate>
+            <DataTemplate>
+                <Border>
+                    <StackPanel>
+                        <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0"
+                                Background="{StaticResource LightGrey}" Padding="1" BoxShadow="0 0 0.5 1 LightGray"
+                                PointerPressed="OnTaskIdBorderPointerPressed">
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}"
+                                       Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}"
+                                       FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
+                        </Border>
+                        <Border CornerRadius="5"
+                                Padding="0"
+                                Background="White"
+                                BoxShadow="0 0 0.5 1 LightGray">
+                            <Grid RowDefinitions="*,4">
+                                <Border Padding="6,6,6,6">
+                                    <Grid RowDefinitions="*,*,*">
+                                        <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse VerticalAlignment="Center" Width="10" Height="10"
+                                                         Fill="#027BCE" Margin="0,0,9,0" />
+                                                <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"
+                                                           FontFamily="{StaticResource Roboto}">
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1"
+                                                        HorizontalAlignment="Center" Orientation="Horizontal">
+
+                                                <!-- Conditionally visible TextBlock for Success Messages -->
+                                                <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2"
+                                                        BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3"
+                                                        BorderThickness="0"
+                                                        IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                    <TextBlock VerticalAlignment="Center"
+                                                               Text="{Binding ItemFailedMessasges.Count}"
+                                                               Margin="5" FontSize="12"
+                                                               FontFamily="{StaticResource Roboto}"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource MainAlert}"
+                                                               HorizontalAlignment="Center" />
+                                                </Border>
+                                                <Border Padding="2" Width="30" Height="30"
+                                                        BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3"
+                                                        BorderThickness="0"
+                                                        IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                    <!-- Conditionally visible TextBlock for Failed Messages -->
+                                                    <TextBlock Text="{Binding ItemSuccesMessasges.Count}"
+                                                               Margin="5" FontSize="12"
+                                                               FontFamily="{StaticResource Roboto}"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource MainGreen}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                                </Border>
+
+
+                                            </StackPanel>
+                                            <Border Grid.Column="2"
+                                                    BorderBrush="{Binding SoftColor}"
+                                                    BorderThickness="0"
+                                                    Background="{Binding SoftColor}"
+                                                    Padding="8"
+                                                    CornerRadius="15"
+                                                    HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding Name}" FontSize="13"
+                                                           FontFamily="{StaticResource Roboto}" FontWeight="Medium"
+                                                           Foreground="{Binding Color}" />
+                                            </Border>
+                                        </Grid>
+                                        <!--detail button-->
+                                        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+                                            <Border Width="130" Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                    Background="{StaticResource MainAlert}"
+
+                                                    BorderThickness="1,0,1,1"
+                                                    CornerRadius="0,0,9,9">
+                                                <Button Theme="{StaticResource CustomBtn}" Background="Transparent"
+                                                        VerticalAlignment="Top"
+                                                        Command="{Binding ToggleViewMoreDetailsCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <PathIcon Width="11" Data="{StaticResource FlagIcon}"
+                                                                  Foreground="{StaticResource LightGrey}"
+                                                                  Margin="0,0,10,0" />
+                                                        <TextBlock Text="view Details"
+                                                                   Foreground="{StaticResource LightGrey}"
+                                                                   FontSize="11" FontFamily="{StaticResource Roboto}">
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </Border>
+                                            <Popup IsLightDismissEnabled="True"
+                                                   Width="1620"
+                                                   Height="900"
+                                                   Placement="Center"
+                                                   VerticalAlignment="Top"
+                                                   HorizontalAlignment="Center"
+                                                   PlacementTarget="{Binding ElementName=MainGrid}"
+                                                   IsOpen="{Binding IsMoreDetailNeeded, Mode=TwoWay}">
+                                                <components:TaskDetailPopup />
+                                            </Popup>
+                                            <Border Grid.Column="1" Width="130" Height="30"
+                                                    BorderBrush="{StaticResource LightGrey}"
+                                                    Background="{StaticResource MainRed}"
+
+                                                    BorderThickness="1,0,1,1"
+                                                    CornerRadius="0,0,9,9">
+                                                <Button Theme="{StaticResource CustomBtn}" Background="Transparent"
+                                                        VerticalAlignment="Top"
+                                                        Command="{Binding ToggleViewConsoleDetailsCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <PathIcon Width="11" Data="{StaticResource FlagIcon}"
+                                                                  Foreground="{StaticResource LightGrey}"
+                                                                  Margin="0,0,10,0" />
+                                                        <TextBlock Text="view console"
+                                                                   Foreground="{StaticResource LightGrey}"
+                                                                   FontSize="11" FontFamily="{StaticResource Roboto}">
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Button>
+                                            </Border>
+                                            <Popup IsLightDismissEnabled="True"
+                                                   Width="1620"
+                                                   Height="900"
+                                                   Placement="Center"
+                                                   VerticalAlignment="Top"
+                                                   HorizontalAlignment="Center"
+                                                   PlacementTarget="{Binding ElementName=MainGrid}"
+                                                   IsOpen="{Binding IsConsoleNeeded, Mode=TwoWay}">
+                                                <components:ConsoleLog />
+                                            </Popup>
+                                        </Grid>
+                                        <DockPanel Grid.Row="2">
+                                            <Button HorizontalAlignment="Right" Command="{Binding CancelCommand}"
+                                                    Margin="5" Background="Transparent" Cursor="Hand">
+                                                <PathIcon Data="{StaticResource CloseTaskIcon}"
+                                                          Foreground="{StaticResource MainRed}">
+                                                </PathIcon>
+                                            </Button>
+                                        </DockPanel>
+
+                                    </Grid>
+                                </Border>
+
+                                <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>
+</UserControl>

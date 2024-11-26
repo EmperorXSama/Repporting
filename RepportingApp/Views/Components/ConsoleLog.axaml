@@ -13,10 +13,10 @@
                    PaneBackground="Transparent">
             <!-- Pane (Email List) -->
             <SplitView.Pane>
-                <ListBox ItemsSource="{Binding AssignedGroup}" SelectedItem="{Binding SelectedEmail ,Mode=TwoWay}" Background="Transparent">
+                <ListBox ItemsSource="{Binding AssignedEmailsDisplayInfo}" SelectedItem="{Binding SelectedEmail ,Mode=TwoWay}" Background="Transparent">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="White" CornerRadius="8" Padding="13" Cursor="Hand" BorderBrush="{StaticResource Primary}" BorderThickness="0" >
+                            <Border Background="{StaticResource LightGrey}" CornerRadius="8" Padding="13" Cursor="Hand" BorderBrush="{StaticResource Primary}" BorderThickness="0" >
                                 <StackPanel Orientation="Horizontal" Margin="5" Spacing="10" >
                                     <TextBlock Width="180" FontSize="15" Text="{Binding EmailAddress}" FontWeight="Bold"  Foreground="{StaticResource  TextMain}"/>
                                     <TextBlock HorizontalAlignment="Left" Width="60" Margin="8,0,0,0" Text="{Binding ApiResponses.Count}" FontWeight="Light"  Foreground="{StaticResource   Primary}"/>
@@ -56,6 +56,7 @@
                                             <TextBlock Text="{Binding Key}" Margin="1" FontWeight="Medium" Foreground="{StaticResource MainWhite}" />
                                             <TextBlock Text="{Binding Value}" Margin="1" 
                                                        FontWeight="Light"
+                                                       TextWrapping="Wrap"
                                                        Foreground="{Binding Value, Converter={StaticResource ForegroundColorConverter}}" />
                                         </StackPanel>
                                     </DataTemplate>

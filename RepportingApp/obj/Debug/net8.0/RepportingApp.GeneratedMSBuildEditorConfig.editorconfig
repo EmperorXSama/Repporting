@@ -46,6 +46,12 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/MMRIThreashold.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/TaskCardDesign/CampaignTasks.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/TaskCardDesign/NormalTasks.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/TaskDetailPopup.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

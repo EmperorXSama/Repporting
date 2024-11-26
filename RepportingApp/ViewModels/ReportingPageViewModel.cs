@@ -7,8 +7,7 @@ using MsBox.Avalonia.Enums;
 using MsBox.Avalonia.Models;
 using Reporting.lib.Models.DTO;
 using RepportingApp.CoreSystem.ApiSystem;
-using RepportingApp.IServices;
-using RepportingApp.Request_Connection_Core.Reporting;
+
 using RepportingApp.Services;
 using RepportingApp.ViewModels.BaseServices;
 
@@ -69,7 +68,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private ProxySittings _selectedProxySetting;
     [ObservableProperty] private ReportingSettings _selectedReportSetting;
     [ObservableProperty] private ReportingSittingsProcesses _selectedProcessesUi = new ReportingSittingsProcesses();
-    private Dictionary<string, Func<EmailAccount, Task>> _processsMapping;
+    private Dictionary<string, Func<EmailAccount, Task<ReturnTypeObject>>> _processsMapping;
     public List<string> SelectedProcesses { get; set; } = new();
     
     #endregion
@@ -101,6 +100,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #endregion
 
+    #region Collect Directories Messages Variabless
+
+        [ObservableProperty] private string _folderId = Statics.InboxDir;
+        [ObservableProperty] private bool _isGenerateNumberCollectionRequested = true;
+        [ObservableProperty] private bool _isGenerateCsvSubjectTableRequested = true;
+        
+    #endregion
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private int _tasksCount;
     public ObservableCollection<TaskInfoUiModel?> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
@@ -166,10 +172,29 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     }
     private void InitializeProcessMappings()
     {
-        _processsMapping = new Dictionary<string, Func<EmailAccount, Task>>
+        _processsMapping = new Dictionary<string, Func<EmailAccount, Task<ReturnTypeObject>>>
         {
-            {"IsReportingSelected",(emailAcc) => _reportingRequests.ProcessGetMessagesFromInbox(emailAcc,ReportingSettingsValuesDisplay.Thread)},
-            {"MarkMessagesAsReadFromInbox",(emailAcc) => _reportingRequests.ProcessMarkMessagesAsReadFromInbox(emailAcc,BulkThreasholdMMRI,BulkChunkCountMMRI,SingleThreasholdMMRI)},
+            {"IsReportingSelected", async (emailAcc) =>
+                {
+                    if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
+                    ReturnTypeObject result = await _reportingRequests.ProcessGetMessagesFromDir(emailAcc, FolderId);
+                    return result; 
+                }
+            },
+            {"MarkMessagesAsReadFromInbox",async (emailAcc) =>
+                {
+                    if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
+                    return await _reportingRequests.ProcessMarkMessagesAsReadFromDir(emailAcc, BulkThreasholdMMRI,
+                        BulkChunkCountMMRI, SingleThreasholdMMRI,FolderId);
+                }
+            },
+            {"CollectMessagesCount",async (emailAcc) =>
+                {
+                    if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
+                    return await _reportingRequests.ProcessGetMessagesFromDir(emailAcc,
+                        FolderId);
+                }
+            },
         };
     }
     public async Task LoadDataIfFirstVisitAsync()
@@ -232,7 +257,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             // Simulate processing each item
             await Task.Delay(2500, cancellationToken);
             if (item.Group.GroupId == 12) throw new Exception("Simulated failure"); // Simulate error
-          
+            return "";
         }, batchSize: 3);
    
         await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, task2, "Repporting", Statics.ReportingColor,
@@ -505,7 +530,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     }
     private int _processedLines;
 
-    private async Task ProcessLineWithProgress(
+    private async Task<string> ProcessLineWithProgress(
         string line,
         int totalLines,
         IProgress<int> progress,
@@ -517,7 +542,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         if (data.Length != 7)
         {
             // Handle incorrect data format, e.g., skip the line or log an error
-            return;
+            return "";
         }
 
         var emailAccount = new CreateEmailAccountDto
@@ -542,6 +567,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     // Update and report progress
         int percentComplete = (int)((Interlocked.Increment(ref _processedLines) * 100.0) / totalLines);
         progress.Report(percentComplete);
+        return "";
     }
     private bool ValidateFile(string filePath)
     {
@@ -584,7 +610,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                 Name = name,
                 Color = color,
                 SoftColor = softColor,
-                AssignedGroup = assignedGroupEmails,
+                AssignedEmails = assignedGroupEmails,
+                AssignedEmailsDisplayInfo = assignedGroupEmails,
                 CancelCommand = new RelayCommand(() =>
                 {
                     CancelTask(taskId);
@@ -637,11 +664,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     {
         
         RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay -  _taskInfoManager.GetTasksCount()} Open";
+        TasksCount = _taskInfoManager.GetTasksCount();
     } 
     private void OnCampaignTasksChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         
         RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay -  _taskInfoManager.GetTasksCount()} Open";
+        TasksCount = _taskInfoManager.GetTasksCount();
     } 
     private void OnTaskCompleted(object? sender, TaskCompletedEventArgs e)
     {
@@ -680,7 +709,8 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                 taskInfo.ItemSuccesMessasges.Add(new ItemInfo()
                 {
                     Email = emailProcessed,
-                    Message = $"Email processed successfully in task {e.TaskId}."
+                    Title = "Success",
+                    Message = e.Message
                 });
                 TaskMessages.Add($"Email processed successfully in task {e.TaskId}.");
             }
@@ -688,6 +718,7 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
             {
                 taskInfo.ItemSuccesMessasges.Add(new ItemInfo()
                 {
+                    
                     Message = $"Non-email item processed successfully in task {e.TaskId}: {e.Item}"
                 });
                 TaskMessages.Add($"Non-email item processed successfully in task {e.TaskId}: {e.Item}");
@@ -703,6 +734,7 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                 taskInfo.ItemFailedMessasges.Add(new ItemInfo()
                 {
                     Email = emailProcessed,
+                    Title = e.Error?.Message.GetValueBetweenBrackets() ,
                     Message = $"Email failed in task {e.TaskId}: {e.Error?.Message}"
                 });
                 ErrorMessages.Add($"Email failed in task {e.TaskId}: {e.Error?.Message}");
@@ -724,35 +756,107 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     #endregion
 
     #region Main reporting logic
+    public ObservableCollection<EmailAccount> FilterEmailsBySelectedGroups()
+    {
+        if (!SelectedEmailGroupForTask.Any())
+        {
+            // If no groups are selected, return an empty collection or the full list, depending on your requirements
+            return new ObservableCollection<EmailAccount>();
+        }
+
+        var filteredEmails = EmailAccounts
+            ?.Where(email => SelectedEmailGroupForTask.Any(group => group.GroupId == email.Group.GroupId))
+            .ToList();
+
+        return new ObservableCollection<EmailAccount>(filteredEmails!.ToObservableCollection());
+    }
 
     #region campaign
-
+    
     [RelayCommand]
     private async Task ReadAllEmailsInboxMessages()
     {
-        // todo : display a confirmation popup
         if (!SelectedProcesses.Any())
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
             await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
             return;
         }
-        //todo : filter emails 
-        var emailsGroupToWork = new ObservableCollection<EmailAccount>(EmailAccounts);
-        var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
+        var emailsGroupToWork = FilterEmailsBySelectedGroups();
+        if (!emailsGroupToWork.Any())
         {
-            foreach (var processName in SelectedProcesses)
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+            return;
+        }
+
+        if (SelectedProcesses[0] == null)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
+            return;
+        }
+
+        ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
+        foreach (var processName in SelectedProcesses)
+        {
+            var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
             {
                 if (_processsMapping.TryGetValue(processName, out var processFunction))
                 {
-                    await processFunction(emailAccount);
+                     result=  await processFunction(emailAccount);
+                     switch (processName)
+                     {
+                         case "CollectMessagesCount":
+                             await PostCollectMessages((ObservableCollection<InboxMessages>)result.ReturnedValue);
+                             break;
+                         default:
+                             throw new InvalidCastException("Unknown process type");
+                         break;
+                     }
                 }
-            }
-        });
-        await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,"Get Inbox Messages",Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork);
+                
+                return result.Message;
+            });
+            await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,processName,Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork);
+            await _taskManager.WaitForTaskCompletion(taskId);
+        }
+       
+       
     }
 
-    
+    #region post processors
+
+    #region collect data
+
+    private async Task PostCollectMessages(ObservableCollection<InboxMessages> inboxMessages)
+    {
+        if (IsGenerateNumberCollectionRequested)
+        {
+            await GenerateNumberCollection();
+        }
+
+        if (IsGenerateCsvSubjectTableRequested)
+        {
+            await GenerateCsvSubjectTable();
+        }
+    }
+    private async Task GenerateNumberCollection()
+    {
+        // Logic to generate the number collection
+        await Task.Delay(100); // Simulating async work
+        Debug.WriteLine("Number collection generated.");
+    }
+
+    private async Task GenerateCsvSubjectTable()
+    {
+        // Logic to generate the CSV subject table
+        await Task.Delay(100); // Simulating async work
+        Debug.WriteLine("CSV subject table generated.");
+    }
+    #endregion
+
+    #endregion
     [RelayCommand]
     public async Task AddSingleCampaignTask()
     {

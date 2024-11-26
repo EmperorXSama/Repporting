@@ -32,8 +32,10 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     public ObservableCollection<ItemInfo> _itemSuccesMessasges  = new ObservableCollection<ItemInfo>();
     [ObservableProperty]  public ObservableCollection<ItemInfo> _itemFailedMessasges  = new ObservableCollection<ItemInfo>();
-    [ObservableProperty]  public ObservableCollection<EmailAccount>? _assignedGroup  = new ObservableCollection<EmailAccount>();
+    [ObservableProperty]  public ObservableCollection<EmailAccount>? _assignedEmails  = new ObservableCollection<EmailAccount>();
+    [ObservableProperty]  public ObservableCollection<EmailAccount>? _assignedEmailsDisplayInfo  = new ObservableCollection<EmailAccount>();
     [ObservableProperty] public EmailAccount _selectedEmail;
+    [ObservableProperty] public ItemInfo _viewDetailSelectedMessage;
     partial void OnSelectedEmailChanged(EmailAccount value)
     {
         if (value != null)
@@ -73,6 +75,11 @@ public partial class TaskInfoUiModel : ObservableObject
     [RelayCommand]
     private void ToggleViewConsoleDetails()
     {
+        
+        if ( !AssignedEmailsDisplayInfo!.Any() || AssignedEmailsDisplayInfo!.FirstOrDefault()!.ApiResponses.Count <1)
+        {
+            return;
+        }
         IsConsoleNeeded = !IsConsoleNeeded;
     } 
     [RelayCommand]
@@ -89,6 +96,7 @@ public class ItemInfo()
 {
     public EmailAccount Email { get; set; }
     public string Message { get; set; }
+    public string? Title { get; set; }
 }
 
 public enum TakInfoType{

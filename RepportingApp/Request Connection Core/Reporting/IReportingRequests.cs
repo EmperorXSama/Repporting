@@ -3,8 +3,8 @@
 public interface IReportingRequests
 {
     Task<bool> SendReportAsync(EmailAccount emailAccount,string messageId);
-    Task ProcessGetMessagesFromInbox(EmailAccount emailAccount, int thread);
+    Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount, string directoryId);
 
-    Task<int> ProcessMarkMessagesAsReadFromInbox(EmailAccount emailAccount, int bulkThreshold = 60,
-        int bulkChunkSize = 30, int singleThreshold = 20, IEnumerable<InboxMessages>? messages = null);
+    Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount, int bulkThreshold = 60,
+        int bulkChunkSize = 30, int singleThreshold = 20,string directoryId =Statics.InboxDir , IEnumerable<InboxMessages>? messages = null);
 }

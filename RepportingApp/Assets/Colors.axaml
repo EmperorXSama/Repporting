@@ -7,6 +7,7 @@
             <SolidColorBrush x:Key="Secondary" Color="#A6A2A2" />
             <SolidColorBrush x:Key="TentGrey" Color="#CFD2CD" />
             <SolidColorBrush x:Key="LightGrey" Color="#E5E6E4" />
+            <SolidColorBrush x:Key="SLightGrey" Color="#F5F5F5" />
             <SolidColorBrush x:Key="MainWhite" Color="#FBFBF2" />
             <SolidColorBrush x:Key="MainRed" Color="#EC4067" />
             <SolidColorBrush x:Key="MainAlert" Color="#FF5E2B" />

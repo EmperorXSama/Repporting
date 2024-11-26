@@ -16,25 +16,25 @@ public class ReportingRequests : IReportingRequests
         _apiConnector = apiConnector;
        
     }
-    public async Task ProcessGetMessagesFromInbox(EmailAccount emailAccount,int thread)
+    public async Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount,string directoryId)
     {
-        var messasges = await GetMessagesFromInboxFolder(emailAccount);
+        CheckEmailMetaData(emailAccount);
+        var messasges = await GetMessagesFromInboxFolder(emailAccount,directoryId);
 
-        foreach (var messasge in messasges)
-        {
-            Console.WriteLine(messasge.id);
-        }
+
+        return new ReturnTypeObject() { ReturnedValue = messasges,Message = $" number of messages in inbox : {messasges.Count}" };
     }
 
-    public async Task<int> ProcessMarkMessagesAsReadFromInbox(EmailAccount emailAccount,int   bulkThreshold= 60,int bulkChunkSize= 30,int singleThreshold=  20 , IEnumerable<InboxMessages>? messages= null)
+    public async Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount,int   bulkThreshold= 60,int bulkChunkSize= 30,int singleThreshold=  20 ,string directoryId =Statics.InboxDir, IEnumerable<InboxMessages>? messages= null)
     {
         try
         {
-            if (messages is null) messages = await GetMessagesFromInboxFolder(emailAccount);
+            CheckEmailMetaData(emailAccount);
+            if (messages is null) messages = await GetMessagesFromInboxFolder(emailAccount , directoryId);
 
-            var numberOfMessagesMarkedAsRead = await MarkMessagesAsRead(emailAccount, messages,bulkThreshold, bulkChunkSize, singleThreshold);
+            var result = await MarkMessagesAsRead(emailAccount, messages,bulkThreshold, bulkChunkSize, singleThreshold);
             
-            return numberOfMessagesMarkedAsRead;
+            return new ReturnTypeObject(){Message = result};
         }
         catch (Exception e)
         {
@@ -101,14 +101,14 @@ public class ReportingRequests : IReportingRequests
 
     #region Pre reporting calls
 
-    private async Task<ObservableCollection<InboxMessages>> GetMessagesFromInboxFolder(EmailAccount emailAccount )
+    private async Task<ObservableCollection<InboxMessages>> GetMessagesFromInboxFolder(EmailAccount emailAccount , string dirId )
     {
         try
         {
            
-            string endpoint = GenerateEndpoint(emailAccount, EndpointType.UnifiedUpdate);
+            string endpoint = GenerateEndpoint(emailAccount, EndpointType.ReadSync);
             PopulateHeaders(emailAccount);
-            string payload = PayloadManager.GetCorrectFolderPayload(emailAccount.MetaIds.MailId, Statics.InboxDir);
+            string payload = PayloadManager.GetCorrectFolderPayload(emailAccount.MetaIds.MailId, dirId);
             string response = await _apiConnector.PostDataAsync<string>(
                 endpoint,
                 payload,
@@ -125,18 +125,17 @@ public class ReportingRequests : IReportingRequests
             {
                 result = resp.result.messages;
             }
-
             return result;
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            throw new Exception($"[Request Error] {e.Message}");
         }
+        
         
     }
 
-    private async Task<int> MarkMessagesAsRead(EmailAccount emailAccount, 
+    private async Task<string> MarkMessagesAsRead(EmailAccount emailAccount, 
         IEnumerable<InboxMessages> messages,
         int   bulkThreshold,int bulkChunkSize,int singleThreshold)
     {
@@ -182,7 +181,7 @@ public class ReportingRequests : IReportingRequests
                     string firstId = messageIds.First();
                     string lastId = messageIds.Last();
                     emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
-                        $"[BulkMarkMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"[BulkReadMessages] {DateTime.UtcNow.ToString("g")}",
                         $"Successfully marked {inboxMessagesEnumerable.Count()} messages. IDs: {firstId} to {lastId} \n"
                     ));
 
@@ -194,7 +193,7 @@ public class ReportingRequests : IReportingRequests
                     string firstId = messagesEnumerable.FirstOrDefault()?.id ?? "N/A";
                     string lastId = messagesEnumerable.LastOrDefault()?.id ?? "N/A";
                     emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
-                        $"[BulkMarkMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"[BulkReadMessages] {DateTime.UtcNow.ToString("g")}",
                         $"Failed to mark messages. IDs: {firstId} to {lastId}. Error: {ex.Message} \n"
                     ));
 
@@ -223,7 +222,7 @@ public class ReportingRequests : IReportingRequests
                     // Increment the marked count and add a success message
                     marked++;
                     emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
-                        $"[ReplyMessages] {DateTime.UtcNow.ToString("g")}", 
+                        $"[ReadMessage] {DateTime.UtcNow.ToString("g")}", 
                         $"{marked} out of {numberOfMessagesToMarkAsRead} id: {singleMessages.id} \n"
                     ));
                     
@@ -232,7 +231,7 @@ public class ReportingRequests : IReportingRequests
                 {
                     // Handle errors and add an error message to the responses
                     emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
-                        $"[ReplyMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"[ReadMessage] {DateTime.UtcNow.ToString("g")}",
                         $"Failed to mark message id: {singleMessages.id}. Error: {ex.Message} \n"
                     ));
                     
@@ -249,7 +248,7 @@ public class ReportingRequests : IReportingRequests
         
      
         
-        return marked;
+        return $"{marked} of {messages.Count()} messages has been marked as read ";
     }
 
     #endregion
@@ -286,11 +285,36 @@ public class ReportingRequests : IReportingRequests
             EndpointType.ReadFlagUpdate =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=messages.readFlagUpdate&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.UnifiedUpdate =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=messages.UnifiedUpdate&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"https://mail.yahoo.com/ws/v3/batch?name=messages.UnifiedUpdate&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}", 
+            EndpointType.ReadSync =>
+                $"https://mail.yahoo.com/ws/v3/batch?name=folderChange.getList&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.OtherEndpoint =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=messages.OtherEndpoint&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             _ => throw new ArgumentException("Invalid endpoint type", nameof(endpointType))
         };
+    }
+
+    private void  CheckEmailMetaData(EmailAccount emailAccount)
+    {
+        if (emailAccount.MetaIds == null)
+        {
+            throw new Exception($"[MetaDataError] Invalid email metadata (MetaIds is null). Please check your email metadata. (email ma3andoxi ids )");
+        }
+        var metadataProperties = new Dictionary<string, object>
+        {
+            { "YmreqId", emailAccount.MetaIds.YmreqId },
+            { "Wssid", emailAccount.MetaIds.Wssid },
+            { "MailId", emailAccount.MetaIds.MailId },
+            { "Cookie", emailAccount.MetaIds.Cookie }
+        };
+
+        foreach (var property in metadataProperties)
+        {
+            if (property.Value == null)
+            {
+                throw new Exception($"[{property.Key} Error] Invalid email metadata ({property.Key} is null). Please check your email metadata.");
+            }
+        }
     }
 
 
@@ -300,5 +324,6 @@ public enum EndpointType
 {
     ReadFlagUpdate,
     UnifiedUpdate,
+    ReadSync,
     OtherEndpoint
 }

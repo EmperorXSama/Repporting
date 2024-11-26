@@ -35,7 +35,6 @@ public partial class EmailAccount: ObservableObject
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, object>> apiResponses = new()
     {
-        new KeyValuePair<string, object>("[action name]  [time]", "MESSAGE"),
     };
 
     [JsonPropertyName("processLogs")] public ICollection<ProcessLog> ProcessLogs { get; set; } = new List<ProcessLog>();

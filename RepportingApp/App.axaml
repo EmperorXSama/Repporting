@@ -30,6 +30,7 @@
          <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
          <helper:EnumToBooleanConverter x:Key="EnumToBooleanConverter "/>
          <helper:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter"/>
+         <helper:SelectedForgroundConverter x:Key="SelectedForgroundConverter"/>
          <helper:IconNameToResourceConverter x:Key="IconNameToResourceConverter"/>
          <helper:TaskInfoTypeToVisibilityConverter x:Key="TaskInfoTypeToVisibilityConverter"/>
          <helper:CheckedToFillConverter x:Key="CheckedToFillConverter"/>
