@@ -25,6 +25,8 @@ C:\Users\khali\.nuget\packages\avalonia.win32\11.2.0-rc1\lib\net8.0\Avalonia.Win
 C:\Users\khali\.nuget\packages\avalonia.x11\11.2.0-rc1\lib\net8.0\Avalonia.X11.dll
 C:\Users\khali\.nuget\packages\azure.core\1.38.0\lib\net6.0\Azure.Core.dll
 C:\Users\khali\.nuget\packages\azure.identity\1.11.4\lib\netstandard2.0\Azure.Identity.dll
+C:\Users\khali\.nuget\packages\closedxml\0.104.2\lib\netstandard2.1\ClosedXML.dll
+C:\Users\khali\.nuget\packages\closedxml.parser\1.2.0\lib\netstandard2.1\ClosedXML.Parser.dll
 C:\Users\khali\.nuget\packages\communitytoolkit.mvvm\8.3.2\lib\net8.0\CommunityToolkit.Mvvm.dll
 C:\Users\khali\.nuget\packages\dapper\2.1.35\lib\net7.0\Dapper.dll
 C:\Users\khali\RiderProjects\Repporting\DataAccess\obj\Debug\net8.0\ref\DataAccess.dll
@@ -32,6 +34,9 @@ C:\Users\khali\.nuget\packages\dialoghost.avalonia\0.8.1\lib\netstandard2.0\Dial
 C:\Users\khali\.nuget\packages\dock.avalonia\0.10.0\lib\net5.0\Dock.Avalonia.dll
 C:\Users\khali\.nuget\packages\dock.avalonia.themes.default\0.10.0\lib\net5.0\Dock.Avalonia.Themes.Default.dll
 C:\Users\khali\.nuget\packages\dock.model\0.10.0\lib\net5.0\Dock.Model.dll
+C:\Users\khali\.nuget\packages\documentformat.openxml\3.1.1\lib\net8.0\DocumentFormat.OpenXml.dll
+C:\Users\khali\.nuget\packages\documentformat.openxml.framework\3.1.1\lib\net8.0\DocumentFormat.OpenXml.Framework.dll
+C:\Users\khali\.nuget\packages\excelnumberformat\1.1.0\lib\netstandard2.0\ExcelNumberFormat.dll
 C:\Users\khali\.nuget\packages\excss\4.2.3\lib\net7.0\ExCSS.dll
 C:\Users\khali\.nuget\packages\harfbuzzsharp\7.3.0.2\lib\net6.0\HarfBuzzSharp.dll
 C:\Users\khali\.nuget\packages\livechartscore\2.0.0-rc4.5\lib\net8.0\LiveChartsCore.dll
@@ -69,6 +74,8 @@ C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\Micro
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\Microsoft.VisualBasic.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\Microsoft.Win32.Primitives.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\Microsoft.Win32.Registry.dll
+C:\Users\khali\.nuget\packages\windowsapicodepack-core\1.1.1\lib\Microsoft.WindowsAPICodePack.dll
+C:\Users\khali\.nuget\packages\windowsapicodepack-shell\1.1.1\lib\Microsoft.WindowsAPICodePack.Shell.dll
 C:\Users\khali\.nuget\packages\messagebox.avalonia\3.2.0\lib\netstandard2.0\MsBox.Avalonia.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\mscorlib.dll
 C:\Users\khali\.nuget\packages\naudio.asio\2.2.1\lib\netstandard2.0\NAudio.Asio.dll
@@ -79,8 +86,10 @@ C:\Users\khali\.nuget\packages\naudio.wasapi\2.2.1\lib\netstandard2.0\NAudio.Was
 C:\Users\khali\.nuget\packages\naudio.winmm\2.2.1\lib\netstandard2.0\NAudio.WinMM.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\netstandard.dll
 C:\Users\khali\.nuget\packages\newtonsoft.json\13.0.3\lib\net6.0\Newtonsoft.Json.dll
+C:\Users\khali\.nuget\packages\rbush\4.0.0\lib\net8.0\RBush.dll
 C:\Users\khali\RiderProjects\Repporting\Reporting.lib\obj\Debug\net8.0\ref\Reporting.lib.dll
 C:\Users\khali\.nuget\packages\shimskiasharp\2.0.0.1\lib\net8.0\ShimSkiaSharp.dll
+C:\Users\khali\.nuget\packages\sixlabors.fonts\1.0.0\lib\netcoreapp3.1\SixLabors.Fonts.dll
 C:\Users\khali\.nuget\packages\skiasharp\2.88.8\lib\net6.0\SkiaSharp.dll
 C:\Users\khali\.nuget\packages\skiasharp.harfbuzz\2.88.8\lib\net6.0\SkiaSharp.HarfBuzz.dll
 C:\Users\khali\.nuget\packages\svg.custom\2.0.0.1\lib\net8.0\Svg.Custom.dll
@@ -138,6 +147,7 @@ C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\Syste
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\System.IO.FileSystem.Watcher.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\System.IO.IsolatedStorage.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\System.IO.MemoryMappedFiles.dll
+C:\Users\khali\.nuget\packages\system.io.packaging\8.0.1\lib\net8.0\System.IO.Packaging.dll
 C:\Users\khali\.nuget\packages\system.io.pipelines\8.0.0\lib\net8.0\System.IO.Pipelines.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\System.IO.Pipes.AccessControl.dll
 C:\Users\khali\.nuget\packages\microsoft.netcore.app.ref\8.0.10\ref\net8.0\System.IO.Pipes.dll

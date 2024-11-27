@@ -13,6 +13,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\DataAccess\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],

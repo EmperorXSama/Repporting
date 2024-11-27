@@ -1,6 +1,8 @@
 ﻿
 using System.Diagnostics;
+using ClosedXML.Excel;
 using Microsoft.VisualBasic;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Dto;
 using MsBox.Avalonia.Enums;
@@ -54,6 +56,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     [ObservableProperty] private bool _isReportingChoiceSelected;
     [ObservableProperty] private bool _isMMRIChoiceSelected;
+    [ObservableProperty] private bool _isCollectDataSelected;
 
     [ObservableProperty]
     private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
@@ -103,9 +106,30 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     #region Collect Directories Messages Variabless
 
         [ObservableProperty] private string _folderId = Statics.InboxDir;
+        [ObservableProperty] private string _pathToSaveCountFile =  Statics.GetDesktopFilePath();
+        [ObservableProperty] private string _subjectFileName = "SubjectsCollector";
+        [ObservableProperty] private string _pathToSaveSubjectFile = Statics.GetDesktopFilePath();
+        [ObservableProperty] private string _countFileName = "CountCollector";
         [ObservableProperty] private bool _isGenerateNumberCollectionRequested = true;
         [ObservableProperty] private bool _isGenerateCsvSubjectTableRequested = true;
+        public ObservableCollection<KeyValuePair<string, string>> Folders { get; } = 
+            new()
+            {
+                new KeyValuePair<string, string>("Inbox", Statics.InboxDir),
+                new KeyValuePair<string, string>("Spam", Statics.SpamDir),
+                new KeyValuePair<string, string>("Draft", Statics.DraftDir),
+                new KeyValuePair<string, string>("Sent", Statics.SentDir),
+                new KeyValuePair<string, string>("Trash", Statics.TrashDir),
+                new KeyValuePair<string, string>("Archive", Statics.ArchiveDir),
+            };
         
+        [ObservableProperty]
+        private KeyValuePair<string, string> _selectedFolder;
+        
+        partial void OnSelectedFolderChanged(KeyValuePair<string, string> value)
+        {
+            FolderId = value.Value; 
+        }
     #endregion
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private int _tasksCount;
@@ -288,6 +312,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         };
         IsReportingChoiceSelected = SelectedProcessesUi.IsReportingSelected;
         IsMMRIChoiceSelected = SelectedProcessesUi.IsMMRI;
+        IsCollectDataSelected = SelectedProcessesUi.IsGetSpamNumbersSelected;
         foreach (var mapping in processIconMapping)
         {
             var isSelected = mapping.Key(SelectedProcessesUi);
@@ -808,7 +833,7 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                      switch (processName)
                      {
                          case "CollectMessagesCount":
-                             await PostCollectMessages((ObservableCollection<InboxMessages>)result.ReturnedValue);
+                             await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<InboxMessages>)result.ReturnedValue);
                              break;
                          default:
                              throw new InvalidCastException("Unknown process type");
@@ -828,9 +853,16 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     #region post processors
 
     #region collect data
+    private List<(string Email, ObservableCollection<InboxMessages> Messages)> allMessages = new();
 
-    private async Task PostCollectMessages(ObservableCollection<InboxMessages> inboxMessages)
+    #region relay commands
+
+  
+
+    #endregion
+    private async Task PostCollectMessages(string email,ObservableCollection<InboxMessages> inboxMessages)
     {
+        allMessages.Add((email, inboxMessages));
         if (IsGenerateNumberCollectionRequested)
         {
             await GenerateNumberCollection();
@@ -838,22 +870,91 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 
         if (IsGenerateCsvSubjectTableRequested)
         {
-            await GenerateCsvSubjectTable();
+            await GenerateCsvSubjectTable(inboxMessages);
         }
     }
     private async Task GenerateNumberCollection()
     {
         // Logic to generate the number collection
+        var filePath = Path.Combine(PathToSaveCountFile, $"{CountFileName}.xlsx");
+
+        // Write the CSV file
+        using (var writer = new StreamWriter(filePath))
+        {
+            writer.WriteLine("Email,MessageCount");
+
+            foreach (var (email, messages) in allMessages)
+            {
+                writer.WriteLine($"{email},{messages.Count}");
+            }
+        }
+
         await Task.Delay(100); // Simulating async work
         Debug.WriteLine("Number collection generated.");
     }
 
-    private async Task GenerateCsvSubjectTable()
+    private async Task GenerateCsvSubjectTable(ObservableCollection<InboxMessages> allMessages)
     {
-        // Logic to generate the CSV subject table
-        await Task.Delay(100); // Simulating async work
-        Debug.WriteLine("CSV subject table generated.");
+        // Group messages by email
+        var groupedByEmail = allMessages
+            .GroupBy(msg => msg.headers.from[0].email) // Group by sender email
+            .ToDictionary(
+                g => g.Key,
+                g => g.GroupBy(msg => msg.headers.subject)
+                      .ToDictionary(
+                          sg => sg.Key,
+                          sg => sg.Count()
+                      )
+            );
+
+        // Initialize Excel workbook
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Subject Counts");
+
+        // Add headers
+        worksheet.Cell(1, 1).Value = "Email";
+        int columnIndex = 2;
+
+        // Collect unique subjects to create dynamic columns
+        var uniqueSubjects = groupedByEmail
+            .SelectMany(emailGroup => emailGroup.Value.Keys)
+            .Distinct()
+            .ToList();
+
+        // Add subject headers
+        foreach (var subject in uniqueSubjects)
+        {
+            worksheet.Cell(1, columnIndex++).Value = subject;
+        }
+
+        worksheet.Cell(1, columnIndex).Value = "Total"; // Add a 'Total' column
+
+        // Add data rows
+        int rowIndex = 2;
+        foreach (var emailGroup in groupedByEmail)
+        {
+            worksheet.Cell(rowIndex, 1).Value = emailGroup.Key; // Add email
+
+            columnIndex = 2;
+            int total = 0;
+
+            foreach (var subject in uniqueSubjects)
+            {
+                // Get count for the subject under this email or 0 if not present
+                int count = emailGroup.Value.TryGetValue(subject, out var subjectCount) ? subjectCount : 0;
+                worksheet.Cell(rowIndex, columnIndex++).Value = $"x{count}";
+                total += count; // Calculate total
+            }
+
+            worksheet.Cell(rowIndex, columnIndex).Value = $"x{total}"; // Add total count
+            rowIndex++;
+        }
+
+        // Save file to desktop
+        var filePath = Path.Combine(PathToSaveSubjectFile, $"{SubjectFileName}.xlsx");
+        workbook.SaveAs(filePath);
     }
+
     #endregion
 
     #endregion

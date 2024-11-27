@@ -21,4 +21,12 @@ public static  class Statics
     public const string DraftDir = "3";
 
     #endregion
+    
+    #region file Statics
+
+    public static string GetDesktopFilePath()
+    {
+        return Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+    }
+    #endregion
 }

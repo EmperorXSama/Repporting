@@ -18,11 +18,23 @@ public class ReportingRequests : IReportingRequests
     }
     public async Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount,string directoryId)
     {
+        var folderNames = new Dictionary<string, string>
+        {
+         
+               { Statics.InboxDir,"Inbox"},
+                { Statics.SpamDir,"Spam"},
+                { Statics.DraftDir,"Draft"},
+                { Statics.SentDir,"Sent"},
+                { Statics.TrashDir,"Trash"},
+                { Statics.ArchiveDir,"Archive"},
+        };
+        folderNames.TryGetValue(directoryId, out var folderName);
+        folderName ??= "Unknown";
         CheckEmailMetaData(emailAccount);
         var messasges = await GetMessagesFromInboxFolder(emailAccount,directoryId);
 
 
-        return new ReturnTypeObject() { ReturnedValue = messasges,Message = $" number of messages in inbox : {messasges.Count}" };
+        return new ReturnTypeObject() { ReturnedValue = messasges,Message = $" number of messages in {folderName} : {messasges.Count}" };
     }
 
     public async Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount,int   bulkThreshold= 60,int bulkChunkSize= 30,int singleThreshold=  20 ,string directoryId =Statics.InboxDir, IEnumerable<InboxMessages>? messages= null)

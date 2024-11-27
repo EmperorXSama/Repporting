@@ -76,6 +76,63 @@ public partial class ReportingPageView : UserControl
         }
     }
 
+    private async void SelectPathForSubjectFile(object sender, RoutedEventArgs e)
+    {
+        // Get the storage provider from the current window
+        var storageProvider = ((Window)this.VisualRoot!)?.StorageProvider;
+
+        if (storageProvider != null)
+        {
+            // Open the folder picker dialog
+            var folderResult = await storageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
+            {
+                Title = "Select a Folder"
+            });
+
+            if (folderResult.Count > 0)
+            {
+                // Get the selected folder path
+                var folderPath = folderResult[0]?.Path.LocalPath;
+
+                if (!string.IsNullOrEmpty(folderPath))
+                {
+                    if (DataContext is ReportingPageViewModel viewModel)
+                    {
+                        viewModel.PathToSaveSubjectFile = folderPath;
+                    }
+                }
+            }
+        }
+    }
+
+
+    private async void  SelectPathForCountFile(object sender, RoutedEventArgs e)
+    {
+        var storageProvider = ((Window)this.VisualRoot!)?.StorageProvider;
+
+        if (storageProvider != null)
+        {
+            // Open the folder picker dialog
+            var folderResult = await storageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
+            {
+                Title = "Select a Folder"
+            });
+
+            if (folderResult.Count > 0)
+            {
+                // Get the selected folder path
+                var folderPath = folderResult[0]?.Path.LocalPath;
+
+                if (!string.IsNullOrEmpty(folderPath))
+                {
+                    if (DataContext is ReportingPageViewModel viewModel)
+                    {
+                        viewModel.PathToSaveCountFile = folderPath;
+                    }
+                }
+            }
+        }
+    }
     private async void Border_OnDrop(object? sender, DragEventArgs e)
     {
         e.DragEffects = DragDropEffects.Copy;

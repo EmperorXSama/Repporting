@@ -21,6 +21,7 @@
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.0-rc1" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.0-rc1" />
+        <PackageReference Include="ClosedXML" Version="0.104.2" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
         <PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.10.0" />
         <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc4.5" />
@@ -34,6 +35,7 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="System.Net.Http.Json" Version="8.0.1" />
         <PackageReference Include="System.Text.Json" Version="8.0.5" />
+        <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     </ItemGroup>
 
     <ItemGroup>

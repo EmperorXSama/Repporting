@@ -13,6 +13,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\DataAccess\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -106,6 +107,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\Reporting.lib\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -207,6 +209,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\RepportingApp\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -279,6 +282,10 @@
               "target": "Package",
               "version": "[11.2.0-rc1, )"
             },
+            "ClosedXML": {
+              "target": "Package",
+              "version": "[0.104.2, )"
+            },
             "CommunityToolkit.Mvvm": {
               "target": "Package",
               "version": "[8.3.2, )"
@@ -330,6 +337,10 @@
             "System.Text.Json": {
               "target": "Package",
               "version": "[8.0.5, )"
+            },
+            "WindowsAPICodePack-Shell": {
+              "target": "Package",
+              "version": "[1.1.1, )"
             }
           },
           "imports": [
