@@ -55,3 +55,5 @@ global using RepportingApp.Helper;
 global using RepportingApp.IServices;
 global using RepportingApp.Models.RequestModels;
 global using RepportingApp.Request_Connection_Core.Reporting;
+global using RepportingApp.Request_Connection_Core.Config;
+global using RepportingApp.Request_Connection_Core.Payload;

@@ -104,8 +104,7 @@ public partial class ReportingPageView : UserControl
             }
         }
     }
-
-
+    
     private async void  SelectPathForCountFile(object sender, RoutedEventArgs e)
     {
         var storageProvider = ((Window)this.VisualRoot!)?.StorageProvider;

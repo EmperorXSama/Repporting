@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using RepportingApp.Request_Connection_Core.Payload;
+﻿using System.Collections;
+using System.Diagnostics;
+
 
 namespace RepportingApp.Request_Connection_Core.Reporting;
 
@@ -31,29 +32,56 @@ public class ReportingRequests : IReportingRequests
         folderNames.TryGetValue(directoryId, out var folderName);
         folderName ??= "Unknown";
         CheckEmailMetaData(emailAccount);
-        var messasges = await GetMessagesFromInboxFolder(emailAccount,directoryId);
+        var messasges = await GetMessagesFromFolder(emailAccount,directoryId);
 
 
-        return new ReturnTypeObject() { ReturnedValue = messasges,Message = $" number of messages in {folderName} : {messasges.Count}" };
+        return new ReturnTypeObject() { ReturnedValue = messasges,Message = $" number of retrieved messages in {folderName} : {messasges.Count} \n total number of messages : {(messasges.Any()? messasges[0].folder.total:0 )}" };
     }
 
-    public async Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount,int   bulkThreshold= 60,int bulkChunkSize= 30,int singleThreshold=  20 ,string directoryId =Statics.InboxDir, IEnumerable<InboxMessages>? messages= null)
+    public async Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount,
+        MarkMessagesAsReadConfig config,string directoryId = "1")
     {
-        try
-        {
             CheckEmailMetaData(emailAccount);
-            if (messages is null) messages = await GetMessagesFromInboxFolder(emailAccount , directoryId);
+            var messages = await GetMessagesFromFolder(emailAccount ,directoryId);
 
-            var result = await MarkMessagesAsRead(emailAccount, messages,bulkThreshold, bulkChunkSize, singleThreshold);
+            var result = await MarkMessagesAsRead(emailAccount, messages,config.BulkThreshold,config.BulkChunkSize,config.SingleThreshold,config.MinMessagesValue ,config.MaxMessagesValue);
             
             return new ReturnTypeObject(){Message = result};
-        }
-        catch (Exception e)
+    }  
+    public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount, 
+        MarkMessagesAsReadConfig config)
+    {
+        CheckEmailMetaData(emailAccount);
+    
+        int totalMessages = 0;
+        int processedMessages = 0;
+
+        while (true)
         {
-            Console.WriteLine(e);
-            throw;
+            // Fetch messages from the spam folder with pagination
+            var messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
+        
+            if (!messages.Any())
+            {
+                break; // No more messages to process
+            }
+
+            // Set totalMessages once based on folder metadata
+            if (totalMessages == 0)
+            {
+                totalMessages = messages[0].folder.total;
+            }
+
+            // Process the messages
+            processedMessages += await MarkMessagesAsNotSpam(
+                emailAccount, messages, config.BulkThreshold, config.BulkChunkSize, config.SingleThreshold);
             
         }
+
+        return new ReturnTypeObject
+        {
+            Message = $"Marked messages: {processedMessages} out of {totalMessages}"
+        };
     }
     
     public async Task<bool> SendReportAsync(EmailAccount emailAccount,string messageId)
@@ -109,11 +137,7 @@ public class ReportingRequests : IReportingRequests
         }
     }
    
-
-
-    #region Pre reporting calls
-
-    private async Task<ObservableCollection<InboxMessages>> GetMessagesFromInboxFolder(EmailAccount emailAccount , string dirId )
+    private async Task<ObservableCollection<FolderMessages>> GetMessagesFromFolder(EmailAccount emailAccount , string dirId)
     {
         try
         {
@@ -132,7 +156,7 @@ public class ReportingRequests : IReportingRequests
             InboxResult res = jsonResponse.result;
             InboxResponses[] responses = res.responses;
             InboxResponse resp = responses[1].response;
-            ObservableCollection<InboxMessages> result = new();
+            ObservableCollection<FolderMessages> result = new();
             if (resp.result.messages != null)
             {
                 result = resp.result.messages;
@@ -147,13 +171,15 @@ public class ReportingRequests : IReportingRequests
         
     }
 
+    #region Pre reporting calls
+    
     private async Task<string> MarkMessagesAsRead(EmailAccount emailAccount, 
-        IEnumerable<InboxMessages> messages,
-        int   bulkThreshold,int bulkChunkSize,int singleThreshold)
+        IEnumerable<FolderMessages> messages,
+        int  bulkThreshold,int bulkChunkSize,int singleThreshold,int minMessagesValue,int maxMessagesValue)
     {
         int marked = 0;
-        int numberOfMessagesToMarkAsRead = RandomGenerator.GetRandomBetween2Numbers(6, 11);
-        ObservableCollection<InboxMessages> messagesToMarkAsRead = new ObservableCollection<InboxMessages>();
+        int numberOfMessagesToMarkAsRead = RandomGenerator.GetRandomBetween2Numbers(minMessagesValue, maxMessagesValue);
+        ObservableCollection<FolderMessages> messagesToMarkAsRead = new ObservableCollection<FolderMessages>();
         foreach (var ms in messages)
         {
             if (!ms.flags.read)
@@ -166,14 +192,14 @@ public class ReportingRequests : IReportingRequests
                 break;
             }
         }
-        await BulkProcessor<InboxMessages>.ProcessItemsAsync(messagesToMarkAsRead,
+        await BulkProcessor<FolderMessages>.ProcessItemsAsync(messagesToMarkAsRead,
 
             async (bulkMessages) =>
             {
-                var messagesEnumerable = bulkMessages as InboxMessages[] ?? bulkMessages.ToArray();
+                var messagesEnumerable = bulkMessages as FolderMessages[] ?? bulkMessages.ToArray();
                 try
                 {
-                    var inboxMessagesEnumerable = bulkMessages as InboxMessages[] ?? messagesEnumerable.ToArray();
+                    var inboxMessagesEnumerable = bulkMessages as FolderMessages[] ?? messagesEnumerable.ToArray();
                     var messageIds = inboxMessagesEnumerable.Select(m => m.id).ToList();
 
                     // Create the payload
@@ -196,8 +222,6 @@ public class ReportingRequests : IReportingRequests
                         $"[BulkReadMessages] {DateTime.UtcNow.ToString("g")}",
                         $"Successfully marked {inboxMessagesEnumerable.Count()} messages. IDs: {firstId} to {lastId} \n"
                     ));
-
-                    Debug.WriteLine($"Marked {marked} of {messages.Count()} messages || IDs: {firstId} to {lastId}");
                 }
                 catch (Exception ex)
                 {
@@ -208,8 +232,6 @@ public class ReportingRequests : IReportingRequests
                         $"[BulkReadMessages] {DateTime.UtcNow.ToString("g")}",
                         $"Failed to mark messages. IDs: {firstId} to {lastId}. Error: {ex.Message} \n"
                     ));
-
-                    Debug.WriteLine($"Error marking messages. Exception: {ex}");
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2));
             },
@@ -227,10 +249,6 @@ public class ReportingRequests : IReportingRequests
 
                     // Ensure the request was successful
                     responseMessage?.EnsureSuccessStatusCode();
-                    if (marked >=2)
-                    {
-                        throw new Exception($"Marked {marked} of {messages.Count()} messages");
-                    }
                     // Increment the marked count and add a success message
                     marked++;
                     emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
@@ -260,11 +278,101 @@ public class ReportingRequests : IReportingRequests
         
      
         
-        return $"{marked} of {messages.Count()} messages has been marked as read ";
+        return $"{marked} of {numberOfMessagesToMarkAsRead} messages has been marked as read ";
     }
-
+                                     
     #endregion
+
+    #region Mark not spam
+        
+        private async Task<int> MarkMessagesAsNotSpam(
+            EmailAccount emailAccount,
+            IEnumerable<FolderMessages> messages,
+            int bulkThreshold,
+            int bulkChunkSize,
+            int singleThreshold)
+        {
+            int marked = 0;
+            var folderMessagesArray = messages.ToArray();
+
+            // Helper method for adding API responses
+            void AddApiResponse(string tag, string message) =>
+                emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                    $"[{tag}] {DateTime.UtcNow:g}", message));
+            // Helper method to process bulk messages
+            async Task ProcessBulkMessages(FolderMessages[] bulkMessages)
+            {
+                var messageIds = bulkMessages.Select(m => m.id).ToList();
+                try
+                {
+                    string payload = PayloadManager.GetMarkMessagesAsNotSpamPayload(emailAccount.MetaIds.MailId, messageIds);
+                    string endpoint = GenerateEndpoint(emailAccount, EndpointType.UnifiedUpdate);
+                    PopulateHeaders(emailAccount);
+
+                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    var responseMessage = JsonConvert.DeserializeObject<MNSRootObject>(response);
+
+                    if (responseMessage.result.status.successRequests.Any())
+                    {
+                        marked += bulkMessages.Length;
+                        AddApiResponse(
+                            "BulkMNSMessages",
+                            $"Successfully marked {bulkMessages.Length} messages. IDs: {messageIds.First()} to {messageIds.Last()}");
+                    }
+                    else
+                    {
+                        AddApiResponse("BulkMNSMessages", $"Failed to mark {bulkMessages.Length} messages.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AddApiResponse(
+                        "BulkMNSMessages",
+                        $"Failed to mark messages. IDs: {messageIds.FirstOrDefault()} to {messageIds.LastOrDefault()}. Error: {ex.Message}");
+                }
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+
+            // Helper method to process single messages
+            async Task ProcessSingleMessage(FolderMessages singleMessage)
+            {
+                try
+                {
+                    string payload = PayloadManager.GetMarkMessageAsNotSpamPayload(emailAccount.MetaIds.MailId, singleMessage.id);
+                    string endpoint = GenerateEndpoint(emailAccount, EndpointType.UnifiedUpdate);
+                    PopulateHeaders(emailAccount);
+
+                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
+                    responseMessage?.EnsureSuccessStatusCode();
+
+                    marked++;
+                    AddApiResponse(
+                        "ReadMessage",
+                        $"{marked} out of {folderMessagesArray.FirstOrDefault()?.folder.total ?? 0} marked. ID: {singleMessage.id}");
+                }
+                catch (Exception ex)
+                {
+                    AddApiResponse("MNSMessage", $"Failed to mark message ID: {singleMessage.id}. Error: {ex.Message}");
+                }
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+
+            // Use BulkProcessor to handle messages
+            await BulkProcessor<FolderMessages>.ProcessItemsAsync(
+                folderMessagesArray,
+                bulkMessages => ProcessBulkMessages(bulkMessages.ToArray()),
+                singleMessage => ProcessSingleMessage(singleMessage),
+                bulkThreshold: bulkThreshold,
+                bulkChunkSize: bulkChunkSize,
+                singleThreshold: singleThreshold);
+
+            return marked;
+        }
+
     
+    
+    #endregion
     
     private void PopulateHeaders(EmailAccount emailAccount) 
     {

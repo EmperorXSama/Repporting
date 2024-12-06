@@ -49,20 +49,29 @@
                        
                         <!-- Console Area -->
                         <Border Grid.Row="2" CornerRadius="9" Background="#353B3C">
-                            <ListBox  ItemsSource="{Binding SelectedEmail.ApiResponses}" Margin="5" Background="Transparent">
+                            <ListBox ItemsSource="{Binding SelectedEmail.ApiResponses}" Margin="5" Background="Transparent">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Key}" Margin="1" FontWeight="Medium" Foreground="{StaticResource MainWhite}" />
-                                            <TextBlock Text="{Binding Value}" Margin="1" 
-                                                       FontWeight="Light"
-                                                       TextWrapping="Wrap"
+                                        <!-- Use Vertical Orientation to allow wrapping -->
+                                        <StackPanel Orientation="Vertical">
+                                            <!-- Key TextBlock -->
+                                            <TextBlock Text="{Binding Key}" 
+                                                       Margin="1" 
+                                                       FontWeight="Medium" 
+                                                       Foreground="{StaticResource MainWhite}" />
+                    
+                                            <!-- Value TextBlock with wrapping -->
+                                            <TextBlock Text="{Binding Value}" 
+                                                       Margin="1" 
+                                                       FontWeight="Light" 
+                                                       TextWrapping="Wrap" 
                                                        Foreground="{Binding Value, Converter={StaticResource ForegroundColorConverter}}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
                         </Border>
+
                    
                     </Grid>
                 </Border>

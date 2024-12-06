@@ -3,8 +3,10 @@
 public interface IReportingRequests
 {
     Task<bool> SendReportAsync(EmailAccount emailAccount,string messageId);
+
+    Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount,
+        MarkMessagesAsReadConfig config);
     Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount, string directoryId);
 
-    Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount, int bulkThreshold = 60,
-        int bulkChunkSize = 30, int singleThreshold = 20,string directoryId =Statics.InboxDir , IEnumerable<InboxMessages>? messages = null);
+    Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount, MarkMessagesAsReadConfig config,string directoryId = "1");
 }

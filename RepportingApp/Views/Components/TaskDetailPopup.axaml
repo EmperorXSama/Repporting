@@ -97,7 +97,7 @@
                                        HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}"/>
                             <TextBlock Text="{Binding ViewDetailSelectedMessage.Message}" Margin="5,10,0,0" Foreground="{StaticResource TextMain}" 
                                        HorizontalAlignment="Center" FontWeight="Medium" FontFamily="{StaticResource Roboto}"
-                                       TextWrapping="WrapWithOverflow"/>
+                                       TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </Grid>

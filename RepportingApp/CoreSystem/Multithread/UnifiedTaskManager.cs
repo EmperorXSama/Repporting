@@ -8,7 +8,6 @@ namespace RepportingApp.CoreSystem.Multithread
     public class UnifiedTaskManager
     {
         // Core properties
-        private readonly ConcurrentDictionary<Guid, Task> _activeTasks = new();
         private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _cancellationTokens;
         private readonly ConcurrentQueue<Func<Task>> _taskQueue;
         private readonly SemaphoreSlim _semaphore;
@@ -149,6 +148,41 @@ namespace RepportingApp.CoreSystem.Multithread
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
+                        DateTime nextRunTime = DateTime.Now + interval;
+                        var taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign).FirstOrDefault(t => t.TaskId == taskId);
+                        UpdateUiThreadValues(()=>
+                        {
+                            if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Waiting;
+                        });
+                        // Update remaining time every second
+                        while (DateTime.Now < nextRunTime)
+                        {
+                            var remainingTime = nextRunTime - DateTime.Now;
+                
+                            // Use Dispatcher to update the UI-bound TaskInfo object
+                            UpdateUiThreadValues(() =>
+                            {
+                                if (taskInfo != null)
+                                {
+                                    taskInfo.TimeUntilNextRun = remainingTime;
+                                }
+                            });
+                       
+                            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
+                        }
+                    
+                        var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
+                        using var audioFile = new AudioFileReader(relativePath);
+                        using var outputDevice = new WaveOutEvent();
+                        outputDevice.Volume = 0.1f;
+                        outputDevice.Init(audioFile);
+                        outputDevice.Play();
+                    
+                    
+                        UpdateUiThreadValues(()=>
+                        {
+                            if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Running;
+                        });
                     // Process the batch of items in chunks
                     var itemBatches = items.Batch(batchSize);
                     foreach (var batch in itemBatches)
@@ -193,7 +227,7 @@ namespace RepportingApp.CoreSystem.Multithread
                 _cancellationTokens.TryRemove(taskId, out _);
             }
         }
-                public Guid StartLoopingTask(Func<CancellationToken, Task> taskFunc, TimeSpan interval)
+        public Guid StartLoopingTask(Func<CancellationToken, Task> taskFunc, TimeSpan interval)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();

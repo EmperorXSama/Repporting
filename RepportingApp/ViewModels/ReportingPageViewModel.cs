@@ -97,12 +97,10 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #region mark messages as read UI variables
 
-    [ObservableProperty] private int _bulkThreasholdMMRI = 1;
-    [ObservableProperty] private int _singleThreasholdMMRI;
-    [ObservableProperty] private int _bulkChunkCountMMRI = 3;
+    [ObservableProperty] private MarkMessagesAsReadConfig _markMessagesAsReadConfig = new MarkMessagesAsReadConfig();
+    [ObservableProperty] private MarkMessagesAsReadConfig _markMessagesAsNotSpamConfig = new MarkMessagesAsReadConfig();
 
     #endregion
-
     #region Collect Directories Messages Variabless
 
         [ObservableProperty] private string _folderId = Statics.InboxDir;
@@ -201,15 +199,14 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             {"IsReportingSelected", async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    ReturnTypeObject result = await _reportingRequests.ProcessGetMessagesFromDir(emailAcc, FolderId);
+                    ReturnTypeObject result = await _reportingRequests.ProcessMarkMessagesAsNotSpam(emailAcc,MarkMessagesAsNotSpamConfig);
                     return result; 
                 }
             },
             {"MarkMessagesAsReadFromInbox",async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    return await _reportingRequests.ProcessMarkMessagesAsReadFromDir(emailAcc, BulkThreasholdMMRI,
-                        BulkChunkCountMMRI, SingleThreasholdMMRI,FolderId);
+                    return await _reportingRequests.ProcessMarkMessagesAsReadFromDir(emailAcc,MarkMessagesAsReadConfig,FolderId);
                 }
             },
             {"CollectMessagesCount",async (emailAcc) =>
@@ -724,7 +721,11 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 {
     TaskInfoUiModel? taskInfo = _taskInfoManager.GetTasks(TaskCategory.Active)
         .FirstOrDefault(t => t.TaskId == e.TaskId);
-
+    if (taskInfo == null)
+    {
+        taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign)
+            .FirstOrDefault(t => t.TaskId == e.TaskId);
+    }
     if (e.Success)
     {
         Dispatcher.UIThread.Post(() =>
@@ -833,10 +834,9 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                      switch (processName)
                      {
                          case "CollectMessagesCount":
-                             await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<InboxMessages>)result.ReturnedValue);
+                             await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
                              break;
                          default:
-                             throw new InvalidCastException("Unknown process type");
                          break;
                      }
                 }
@@ -853,16 +853,19 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     #region post processors
 
     #region collect data
-    private List<(string Email, ObservableCollection<InboxMessages> Messages)> allMessages = new();
+    private List<(string Email, ObservableCollection<FolderMessages> Messages)> allMessages = new();
 
     #region relay commands
 
   
 
     #endregion
-    private async Task PostCollectMessages(string email,ObservableCollection<InboxMessages> inboxMessages)
+    private async Task PostCollectMessages(string email,ObservableCollection<FolderMessages> inboxMessages)
     {
         allMessages.Add((email, inboxMessages));
+        var emailMessages = allMessages
+            .Select(account => (account.Email, account.Messages))
+            .ToList();
         if (IsGenerateNumberCollectionRequested)
         {
             await GenerateNumberCollection();
@@ -870,43 +873,77 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 
         if (IsGenerateCsvSubjectTableRequested)
         {
-            await GenerateCsvSubjectTable(inboxMessages);
+            await GenerateCsvSubjectTableMultithreadAsync(emailMessages);
         }
     }
     private async Task GenerateNumberCollection()
     {
-        // Logic to generate the number collection
         var filePath = Path.Combine(PathToSaveCountFile, $"{CountFileName}.xlsx");
 
-        // Write the CSV file
-        using (var writer = new StreamWriter(filePath))
+        // Step 1: Lock access to the file
+        lock (_fileLock)
         {
-            writer.WriteLine("Email,MessageCount");
-
-            foreach (var (email, messages) in allMessages)
+            // Step 2: Create a new Excel workbook and worksheet
+            using (var workbook = new XLWorkbook())
             {
-                writer.WriteLine($"{email},{messages.Count}");
+                var worksheet = workbook.AddWorksheet("Message Count");
+
+                // Step 3: Add headers
+                worksheet.Cell(1, 1).Value = "Email";
+                worksheet.Cell(1, 2).Value = "MessageCount";
+
+                int row = 2; // Start from the second row
+                foreach (var (email, messages) in allMessages)
+                {
+                    if (messages.Any())
+                    {
+                        worksheet.Cell(row, 1).Value = email;
+                        worksheet.Cell(row, 2).Value = messages[0].folder.total;
+                    }
+                    else
+                    {
+                        worksheet.Cell(row, 1).Value = email;
+                        worksheet.Cell(row, 2).Value = 0;
+                    }
+                    row++;
+                }
+
+                // Step 4: Save the workbook to the file
+                workbook.SaveAs(filePath);
             }
         }
 
-        await Task.Delay(100); // Simulating async work
-        Debug.WriteLine("Number collection generated.");
+        // Simulate async operation
+        await Task.CompletedTask;
     }
 
-    private async Task GenerateCsvSubjectTable(ObservableCollection<InboxMessages> allMessages)
-    {
-        // Group messages by email
-        var groupedByEmail = allMessages
-            .GroupBy(msg => msg.headers.from[0].email) // Group by sender email
-            .ToDictionary(
-                g => g.Key,
-                g => g.GroupBy(msg => msg.headers.subject)
-                      .ToDictionary(
-                          sg => sg.Key,
-                          sg => sg.Count()
-                      )
-            );
 
+
+   private readonly object _fileLock = new(); // Synchronization object
+
+private ConcurrentDictionary<string, Dictionary<string, int>> _subjectCounts = new(); // Shared memory buffer
+
+private async Task ProcessEmailSubjects(string email, ObservableCollection<FolderMessages> messages)
+{
+    // Step 1: Process messages for the current email
+    var subjectCounts = messages
+        .GroupBy(msg => msg.headers.subject)
+        .ToDictionary(
+            g => g.Key,   // Subject
+            g => g.Count() // Count of messages with this subject
+        );
+
+    // Step 2: Add to shared memory (thread-safe with ConcurrentDictionary)
+    _subjectCounts[email] = subjectCounts;
+
+    await Task.CompletedTask; // Simulate async processing
+}
+
+private async Task SaveSubjectCountsToExcelAsync(string filePath)
+{
+    // Step 3: Lock access to the file
+    lock (_fileLock)
+    {
         // Initialize Excel workbook
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Subject Counts");
@@ -915,13 +952,12 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
         worksheet.Cell(1, 1).Value = "Email";
         int columnIndex = 2;
 
-        // Collect unique subjects to create dynamic columns
-        var uniqueSubjects = groupedByEmail
+        // Collect unique subjects across all emails to create dynamic columns
+        var uniqueSubjects = _subjectCounts
             .SelectMany(emailGroup => emailGroup.Value.Keys)
             .Distinct()
             .ToList();
 
-        // Add subject headers
         foreach (var subject in uniqueSubjects)
         {
             worksheet.Cell(1, columnIndex++).Value = subject;
@@ -931,29 +967,47 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 
         // Add data rows
         int rowIndex = 2;
-        foreach (var emailGroup in groupedByEmail)
+        foreach (var emailGroup in _subjectCounts)
         {
-            worksheet.Cell(rowIndex, 1).Value = emailGroup.Key; // Add email
+            worksheet.Cell(rowIndex, 1).Value = emailGroup.Key; // Email
 
             columnIndex = 2;
             int total = 0;
 
             foreach (var subject in uniqueSubjects)
             {
-                // Get count for the subject under this email or 0 if not present
-                int count = emailGroup.Value.TryGetValue(subject, out var subjectCount) ? subjectCount : 0;
+                // Get count for the subject or 0 if not present
+                int count = emailGroup.Value.TryGetValue(subject, out var countValue) ? countValue : 0;
                 worksheet.Cell(rowIndex, columnIndex++).Value = $"x{count}";
-                total += count; // Calculate total
+                total += count;
             }
 
-            worksheet.Cell(rowIndex, columnIndex).Value = $"x{total}"; // Add total count
+            worksheet.Cell(rowIndex, columnIndex).Value = $"x{total}"; // Total count
             rowIndex++;
         }
 
-        // Save file to desktop
-        var filePath = Path.Combine(PathToSaveSubjectFile, $"{SubjectFileName}.xlsx");
+        // Save file
         workbook.SaveAs(filePath);
     }
+    await Task.CompletedTask;
+}
+
+public async Task GenerateCsvSubjectTableMultithreadAsync(List<(string Email, ObservableCollection<FolderMessages> Messages)> allMessages)
+{
+    // Prepare the file path
+    string filePath = Path.Combine(PathToSaveSubjectFile, $"{SubjectFileName}.xlsx");
+
+    // Step 1: Process each email in parallel
+    var tasks = allMessages
+        .Select(account => Task.Run(() => ProcessEmailSubjects(account.Email, account.Messages)))
+        .ToList();
+
+    await Task.WhenAll(tasks);
+
+    // Step 2: Save all results to the Excel file
+    await SaveSubjectCountsToExcelAsync(filePath);
+}
+
 
     #endregion
 
@@ -961,11 +1015,54 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     [RelayCommand]
     public async Task AddSingleCampaignTask()
     {
-        var modifier = GetStartProcessNotifierModel();
         TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.TimeUntilNextRun);
-        Func<CancellationToken, Task> taskFunc =await _emailAccountServices.SendEmailAsync(modifier);
-        Guid taskId = _taskManager.StartLoopingTask(taskFunc, interval);
-        await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor,EmailAccounts);
+        var modifier = GetStartProcessNotifierModel();
+        if (!SelectedProcesses.Any())
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
+            return;
+        }
+        var emailsGroupToWork = FilterEmailsBySelectedGroups();
+        if (!emailsGroupToWork.Any())
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+            return;
+        }
+
+        if (SelectedProcesses[0] == null)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
+            return;
+        }
+
+        ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
+        foreach (var processName in SelectedProcesses)
+        {
+            var taskId = _taskManager.StartLoopingTaskBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
+            {
+                if (_processsMapping.TryGetValue(processName, out var processFunction))
+                {
+                    result=  await processFunction(emailAccount);
+                    switch (processName)
+                    {
+                        case "CollectMessagesCount":
+                            await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                
+                return result.Message;
+            }, ReportingSettingsValuesDisplay.Thread,interval);
+            await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor,EmailAccounts);
+            await _taskManager.WaitForTaskCompletion(taskId);
+        }
+        
+       
        
     }
     #endregion

@@ -35,7 +35,7 @@ public class InboxResult1
 {
     public string id { get; set; }
     public InboxCounts[] counts { get; set; }
-    public ObservableCollection<InboxMessages> messages { get; set; }
+    public ObservableCollection<FolderMessages> messages { get; set; }
     public InboxConversations[] conversations { get; set; }
     public InboxQuery query { get; set; }
 }
@@ -46,7 +46,7 @@ public class InboxCounts
     public int unseen { get; set; }
 }
 
-public class InboxMessages
+public class FolderMessages
 {
     public InboxLink link { get; set; }
     public InboxFolder folder { get; set; }

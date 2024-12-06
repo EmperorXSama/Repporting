@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="RepportingApp.Views.Components.MMRIThreashold"
+             x:Class="RepportingApp.Views.Components.MNSThreashold"
              x:DataType="viewModels:ReportingPageViewModel">
     <Border
         Padding="9"
@@ -48,7 +48,7 @@
                     Padding="5"
                     FontFamily="{StaticResource Roboto}"
                     HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsReadConfig.BulkThreshold,Mode=TwoWay}">
+                    Text="{Binding MarkMessagesAsNotSpamConfig.BulkThreshold,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -101,7 +101,7 @@
                     HorizontalContentAlignment="Center"
                     BorderThickness="1"
                     BorderBrush="{StaticResource Primary}"
-                    Text="{Binding MarkMessagesAsReadConfig.SingleThreshold,Mode=TwoWay}">
+                    Text="{Binding MarkMessagesAsNotSpamConfig.SingleThreshold,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -149,7 +149,7 @@
                     Padding="5"
                     FontFamily="{StaticResource Roboto}"
                     HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsReadConfig.BulkChunkSize,Mode=TwoWay}">
+                    Text="{Binding MarkMessagesAsNotSpamConfig.BulkChunkSize,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -204,7 +204,7 @@
                     HorizontalContentAlignment="Center"
                     BorderThickness="1"
                     BorderBrush="{StaticResource Primary}"
-                    Text="{Binding MarkMessagesAsReadConfig.MinMessagesValue,Mode=TwoWay}">
+                    Text="{Binding MarkMessagesAsNotSpamConfig.MinMessagesValue,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -252,7 +252,7 @@
                     Padding="5"
                     FontFamily="{StaticResource Roboto}"
                     HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsReadConfig.MaxMessagesValue,Mode=TwoWay}">
+                    Text="{Binding MarkMessagesAsNotSpamConfig.MaxMessagesValue,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
