@@ -23,7 +23,7 @@ public class SelectedForgroundConverter:IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool isChecked = (bool)value;
-        return isChecked ? new SolidColorBrush(Color.Parse("#1570ef")) : new SolidColorBrush(Color.Parse("#000814"));
+        return isChecked ? new SolidColorBrush(Color.Parse("#1570ef")) : new SolidColorBrush(Color.Parse("#847577"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

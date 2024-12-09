@@ -44,7 +44,17 @@ public class ReportingRequests : IReportingRequests
             CheckEmailMetaData(emailAccount);
             var messages = await GetMessagesFromFolder(emailAccount ,directoryId);
 
-            var result = await MarkMessagesAsRead(emailAccount, messages,config.BulkThreshold,config.BulkChunkSize,config.SingleThreshold,config.MinMessagesValue ,config.MaxMessagesValue);
+            var result = await MarkMessagesAsRead(emailAccount, messages,config.BulkThreshold,config.BulkChunkSize,config.SingleThreshold,config.PreReportingSettings.MinMessagesToRead ,config.PreReportingSettings.MaxMessagesToRead);
+            
+            return new ReturnTypeObject(){Message = result};
+    }   
+    public async Task<ReturnTypeObject> ProcessArchiveMessages(EmailAccount emailAccount,
+        MarkMessagesAsReadConfig config,string directoryId = "1")
+    {
+            CheckEmailMetaData(emailAccount);
+            var messages = await GetMessagesFromFolder(emailAccount ,directoryId);
+
+            var result = await SendMessagesToArchive(emailAccount, messages,config.BulkThreshold,config.BulkChunkSize,config.SingleThreshold,config.PreReportingSettings.MinMessagesToArchive ,config.PreReportingSettings.MaxMessagesToArchive);
             
             return new ReturnTypeObject(){Message = result};
     }  
@@ -55,7 +65,13 @@ public class ReportingRequests : IReportingRequests
     
         int totalMessages = 0;
         int processedMessages = 0;
-
+        // start pre reporting 
+        if (config.PreReportingSettings.IsPreReporting)
+        {
+            await ProcessMarkMessagesAsReadFromDir(emailAccount, config);
+            await ProcessArchiveMessages(emailAccount, config);
+        }
+        // start reporting logic
         while (true)
         {
             // Fetch messages from the spam folder with pagination
@@ -84,58 +100,6 @@ public class ReportingRequests : IReportingRequests
         };
     }
     
-    public async Task<bool> SendReportAsync(EmailAccount emailAccount,string messageId)
-    {
-        PopulateHeaders(emailAccount);
-        emailAccount.MetaIds.YmreqId = YmriqId.GetYmreqid(emailAccount.MetaIds.YmreqId, 2).LastOrDefault()!;
-        
-        string endpoint = GenerateEndpoint(emailAccount, EndpointType.OtherEndpoint);
-        
-        var batchPayload = new
-        {
-            requests = new[]
-            {
-                new
-                {
-                    id = "UnifiedUpdateMessage_0",
-                    uri = $"/ws/v3/mailboxes/@.id=={emailAccount.MetaIds.MailId}/messages/@.select==q?q=id%3A({messageId})",
-                    method = "POST",
-                    payloadType = "embedded",
-                    payload = new
-                    {
-                        message = new
-                        {
-                            flags = new { spam = false },
-                            folder = new { id = "1" }
-                        }
-                    }
-                }
-            },
-            responseType = "json"
-        };
-
-        // Serialize payload to JSON
-        var payloadJson = JsonConvert.SerializeObject(batchPayload);
-
-        // Send the request using the UnifiedApiClient
-        try
-        {
-            var response = await _apiConnector.PostDataAsync<string>(
-                endpoint,
-                payloadJson,
-                _headers,
-                emailAccount.Proxy
-            );
-
-            return true; // Success if no exception is thrown
-        }
-        catch (Exception ex)
-        {
-            // Log or handle the error
-            Console.WriteLine($"Error sending report: {ex.Message}");
-            return false;
-        }
-    }
    
     private async Task<ObservableCollection<FolderMessages>> GetMessagesFromFolder(EmailAccount emailAccount , string dirId)
     {
@@ -281,6 +245,111 @@ public class ReportingRequests : IReportingRequests
         return $"{marked} of {numberOfMessagesToMarkAsRead} messages has been marked as read ";
     }
                                      
+     private async Task<string> SendMessagesToArchive(EmailAccount emailAccount, 
+        IEnumerable<FolderMessages> messages,
+        int  bulkThreshold,int bulkChunkSize,int singleThreshold,int minMessagesValue,int maxMessagesValue)
+    {
+        int marked = 0;
+        int numberOfMessagesToMarkAsRead = RandomGenerator.GetRandomBetween2Numbers(minMessagesValue, maxMessagesValue);
+        ObservableCollection<FolderMessages> messagesToArchive = new ObservableCollection<FolderMessages>();
+        var folderMessagesEnumerable = messages.ToList();
+        for (int i = 0; i < numberOfMessagesToMarkAsRead; i++)
+        {
+            int index = RandomGenerator.GetRandomBetween2Numbers(0, folderMessagesEnumerable.Count() - 1);
+            messagesToArchive.Add(folderMessagesEnumerable[index]);
+            if (messagesToArchive.Count >= numberOfMessagesToMarkAsRead)
+            {
+                break;
+            }
+        }
+        await BulkProcessor<FolderMessages>.ProcessItemsAsync(messagesToArchive,
+
+            async (bulkMessages) =>
+            {
+                var messagesEnumerable = bulkMessages as FolderMessages[] ?? bulkMessages.ToArray();
+                try
+                {
+                    var inboxMessagesEnumerable = bulkMessages as FolderMessages[] ?? messagesEnumerable.ToArray();
+                    var messageIds = inboxMessagesEnumerable.Select(m => m.id).ToList();
+
+                    // Create the payload
+                    string payload = PayloadManager.GetArchiveMessageBulkPayload(emailAccount.MetaIds.MailId, messageIds);
+                    string endpoint = GenerateEndpoint(emailAccount, EndpointType.Move);
+                    PopulateHeaders(emailAccount);
+
+                    // Send the request
+                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
+
+                    // Ensure the request was successful
+                    responseMessage?.EnsureSuccessStatusCode();
+
+                    // Increment the marked count and add a success message
+                    marked += inboxMessagesEnumerable.Count();
+                    string firstId = messagesEnumerable.First().headers.subject;
+                    string lastId = messagesEnumerable.Last().headers.subject;
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[BulkArchiveMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"Successfully archived {inboxMessagesEnumerable.Count()} messages. IDs: {firstId} to {lastId} \n"
+                    ));
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors and add an error message to the responses
+                    string firstId = messagesEnumerable.FirstOrDefault()?.id ?? "N/A";
+                    string lastId = messagesEnumerable.LastOrDefault()?.id ?? "N/A";
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[BulkArchiveMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"Failed to archive messages. IDs: {firstId} to {lastId}. Error: {ex.Message} \n"
+                    ));
+                }
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            },
+            async (singleMessages) =>
+            {
+                try
+                {
+                    string payload = PayloadManager.GetArchiveMessageSinglePayload(emailAccount.MetaIds.MailId, singleMessages.id);
+                    string endpoint = GenerateEndpoint(emailAccount, EndpointType.Move);
+                    PopulateHeaders(emailAccount);
+
+                    // Send the request
+                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
+
+                    // Ensure the request was successful
+                    responseMessage?.EnsureSuccessStatusCode();
+                    // Increment the marked count and add a success message
+                    marked++;
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[ReadMessage] {DateTime.UtcNow.ToString("g")}", 
+                        $"{marked} out of {numberOfMessagesToMarkAsRead} id: {singleMessages.headers.subject} \n"
+                    ));
+                    
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors and add an error message to the responses
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[ReadMessage] {DateTime.UtcNow.ToString("g")}",
+                        $"Failed to mark message id: {singleMessages.id}. Error: {ex.Message} \n"
+                    ));
+                    
+                }
+                
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            },
+            bulkThreshold: bulkThreshold,
+            bulkChunkSize: bulkChunkSize,
+            singleThreshold: singleThreshold
+            
+            
+            );
+        
+     
+        
+        return $"{marked} of {numberOfMessagesToMarkAsRead} messages has been sent as archive ";
+    }
     #endregion
 
     #region Mark not spam
@@ -407,7 +476,9 @@ public class ReportingRequests : IReportingRequests
             EndpointType.UnifiedUpdate =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=messages.UnifiedUpdate&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}", 
             EndpointType.ReadSync =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=folderChange.getList&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"https://mail.yahoo.com/ws/v3/batch?name=folderChange.getList&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",  
+            EndpointType.Move =>
+                $"https://mail.yahoo.com/ws/v3/batch?name=messages.move&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.OtherEndpoint =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=messages.OtherEndpoint&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             _ => throw new ArgumentException("Invalid endpoint type", nameof(endpointType))
@@ -445,5 +516,6 @@ public enum EndpointType
     ReadFlagUpdate,
     UnifiedUpdate,
     ReadSync,
+    Move,
     OtherEndpoint
 }

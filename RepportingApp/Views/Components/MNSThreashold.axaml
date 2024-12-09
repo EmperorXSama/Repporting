@@ -162,107 +162,155 @@
             </StackPanel>
 
             <!--min max messages value to read-->
-            <StackPanel Grid.Row="2" Grid.Column="0" DockPanel.Dock="Left">
-                <StackPanel Orientation="Horizontal">
-                    <PathIcon
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" IsEnabled="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.IsPreReporting}">
+                <Grid RowDefinitions="*,10,*">
+                    <Border>
+                        <Grid ColumnDefinitions="*,10,*,10,*" RowDefinitions="40,10,*">
+                            <StackPanel Orientation="Horizontal">
+                            <PathIcon
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0"
+                                FontFamily="{StaticResource Roboto}"
+                                Width="14"
+                                FontWeight="Light"
 
-                        Margin="0,0,4,0"
-                        FontFamily="{StaticResource Roboto}"
-                        Width="14"
-                        FontWeight="Light"
+                                Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                <ToolTip.Tip>
+                                    <StackPanel>
+                                        <TextBlock FontSize="16" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            min
+                                        </TextBlock>
+                                        <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            سيتم استخدام هذه القيمة لتحديد عدد المرات التي سيعيد فيها النظام تنفيذ العملية.
 
-                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
-                        <ToolTip.Tip>
-                            <StackPanel>
-                                <TextBlock FontSize="16" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    min
-                                </TextBlock>
-                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    سيتم استخدام هذه القيمة لتحديد عدد المرات التي سيعيد فيها النظام تنفيذ العملية.
+                                            على سبيل المثال، إذا قمت بتعيينها على 2، فعند انتهاء العملية ستبدأ من جديد (سيتم التعامل مع حسابات البريد الإلكتروني التي فشلت خلال التشغيل الأول بطريقة مختلفة).
+                                        </TextBlock>
+                                    </StackPanel>
+                                </ToolTip.Tip>
 
-                                    على سبيل المثال، إذا قمت بتعيينها على 2، فعند انتهاء العملية ستبدأ من جديد (سيتم التعامل مع حسابات البريد الإلكتروني التي فشلت خلال التشغيل الأول بطريقة مختلفة).
-                                </TextBlock>
-                            </StackPanel>
-                        </ToolTip.Tip>
+                            </PathIcon>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="{StaticResource Roboto}"
+                                FontSize="14"
+                                Foreground="{StaticResource Secondary}"
+                                FontWeight="SemiLight"
+                                Text="Read messages" />
+                        </StackPanel>
+                            <TextBox
+                                Grid.Row="2" Grid.Column="0" Watermark="Ex : 2"
+                                Padding="5"
+                                FontFamily="{StaticResource Roboto}"
+                                HorizontalContentAlignment="Center"
+                                BorderThickness="1"
+                                BorderBrush="{StaticResource Primary}"
+                                Text="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.MinMessagesToRead,Mode=TwoWay}">
+                                <TextBox.Styles>
+                                    <Style Selector="TextBox:pressed /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                    <Style Selector="TextBox:pointerover /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                </TextBox.Styles>
+                            </TextBox>
+                            <TextBox Grid.Row="2" Grid.Column="2"
+                                     Watermark="Ex : 30"
+                                     Padding="5"
+                                     FontFamily="{StaticResource Roboto}"
+                                     HorizontalContentAlignment="Center"
+                                     Text="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.MaxMessagesToRead,Mode=TwoWay}">
+                                <TextBox.Styles>
+                                    <Style Selector="TextBox:pressed /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                    <Style Selector="TextBox:pointerover /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                </TextBox.Styles>
+                            </TextBox>
+                        </Grid>
+                        
+                    </Border>
+                    <Border Grid.Row="2">
+                        <Grid ColumnDefinitions="*,10,*,10,*" RowDefinitions="40,10,*">
+                            <StackPanel Orientation="Horizontal">
+                            <PathIcon
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0"
+                                FontFamily="{StaticResource Roboto}"
+                                Width="14"
+                                FontWeight="Light"
 
-                    </PathIcon>
-                    <TextBlock
-                        FontFamily="{StaticResource Roboto}"
-                        FontSize="14"
-                        Foreground="{StaticResource Secondary}"
-                        FontWeight="SemiLight"
-                        Text="Min" />
-                </StackPanel>
-                <TextBox
-                    Watermark="Ex : 2"
-                    Padding="5"
-                    FontFamily="{StaticResource Roboto}"
-                    HorizontalContentAlignment="Center"
-                    BorderThickness="1"
-                    BorderBrush="{StaticResource Primary}"
-                    Text="{Binding MarkMessagesAsNotSpamConfig.MinMessagesValue,Mode=TwoWay}">
-                    <TextBox.Styles>
-                        <Style Selector="TextBox:pressed /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                        <Style Selector="TextBox:pointerover /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                    </TextBox.Styles>
-                </TextBox>
-            </StackPanel>
-            <StackPanel Grid.Row="2" Grid.Column="4" DockPanel.Dock="Right">
-                <StackPanel Orientation="Horizontal">
-                    <PathIcon
-                        Margin="0,0,4,0"
-                        FontFamily="{StaticResource Roboto}"
-                        Width="14"
-                        FontWeight="Light"
-                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
-                        <ToolTip.Tip>
-                            <StackPanel>
-                                <TextBlock FontSize="16" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    Max
-                                </TextBlock>
-                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    ستُستخدم هذه القيمة لتعيين مؤقت بالدقائق، بحيث ينتظر النظام بين كل تكرار للعملية.
+                                Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                <ToolTip.Tip>
+                                    <StackPanel>
+                                        <TextBlock FontSize="16" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            min
+                                        </TextBlock>
+                                        <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            سيتم استخدام هذه القيمة لتحديد عدد المرات التي سيعيد فيها النظام تنفيذ العملية.
 
-                                    على سبيل المثال، إذا تم تعيينه على 30، فإن النظام سينتظر 30 دقيقة بعد التكرار الأول قبل بدء التكرار الثاني.
-                                </TextBlock>
-                            </StackPanel>
-                        </ToolTip.Tip>
-                    </PathIcon>
-                    <TextBlock
-                        FontFamily="{StaticResource Roboto}"
-                        FontSize="14"
-                        Foreground="{StaticResource Secondary}"
-                        FontWeight="SemiLight"
-                        Text="Max" />
-                </StackPanel>
-                <TextBox
-                    Watermark="Ex : 30"
-                    Padding="5"
-                    FontFamily="{StaticResource Roboto}"
-                    HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsNotSpamConfig.MaxMessagesValue,Mode=TwoWay}">
-                    <TextBox.Styles>
-                        <Style Selector="TextBox:pressed /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                        <Style Selector="TextBox:pointerover /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                    </TextBox.Styles>
-                </TextBox>
-            </StackPanel>
+                                            على سبيل المثال، إذا قمت بتعيينها على 2، فعند انتهاء العملية ستبدأ من جديد (سيتم التعامل مع حسابات البريد الإلكتروني التي فشلت خلال التشغيل الأول بطريقة مختلفة).
+                                        </TextBlock>
+                                    </StackPanel>
+                                </ToolTip.Tip>
+
+                            </PathIcon>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontFamily="{StaticResource Roboto}"
+                                FontSize="14"
+                                Foreground="{StaticResource Secondary}"
+                                FontWeight="SemiLight"
+                                Text="Archive messages" />
+                        </StackPanel>
+                            <TextBox
+                                Grid.Row="2" Grid.Column="0" Watermark="Ex : 2"
+                                Padding="5"
+                                FontFamily="{StaticResource Roboto}"
+                                HorizontalContentAlignment="Center"
+                                BorderThickness="1"
+                                BorderBrush="{StaticResource Primary}"
+                                Text="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.MinMessagesToArchive,Mode=TwoWay}">
+                                <TextBox.Styles>
+                                    <Style Selector="TextBox:pressed /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                    <Style Selector="TextBox:pointerover /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                </TextBox.Styles>
+                            </TextBox>
+                            <TextBox Grid.Row="2" Grid.Column="2"
+                                     Watermark="Ex : 30"
+                                     Padding="5"
+                                     FontFamily="{StaticResource Roboto}"
+                                     HorizontalContentAlignment="Center"
+                                     Text="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.MaxMessagesToArchive,Mode=TwoWay}">
+                                <TextBox.Styles>
+                                    <Style Selector="TextBox:pressed /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                    <Style Selector="TextBox:pointerover /template/ Border">
+                                        <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                    </Style>
+                                </TextBox.Styles>
+                            </TextBox>
+                        </Grid>
+                        
+                    </Border>
+                </Grid>
+            </Border>
+      
 
 
         </Grid>

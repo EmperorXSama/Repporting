@@ -8,4 +8,5 @@ public class ReportingSittingsProcesses
     public bool IsGetSpamSubjectSelected { get; set; }
     public bool IsFixAfterFinish { get; set; }
     public bool IsMMRI { get; set; }
+    public bool IsArchiveSelected { get; set; }
 }

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="RepportingApp.Views.Components.MMRIThreashold"
+             x:Class="RepportingApp.Views.Components.ArchiveThreashold"
              x:DataType="viewModels:ReportingPageViewModel">
     <Border
         Padding="9"
@@ -48,7 +48,7 @@
                     Padding="5"
                     FontFamily="{StaticResource Roboto}"
                     HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsReadConfig.BulkThreshold,Mode=TwoWay}">
+                    Text="{Binding ArchiveMessagesConfig.BulkThreshold,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -101,7 +101,7 @@
                     HorizontalContentAlignment="Center"
                     BorderThickness="1"
                     BorderBrush="{StaticResource Primary}"
-                    Text="{Binding MarkMessagesAsReadConfig.SingleThreshold,Mode=TwoWay}">
+                    Text="{Binding ArchiveMessagesConfig.SingleThreshold,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -149,7 +149,7 @@
                     Padding="5"
                     FontFamily="{StaticResource Roboto}"
                     HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsReadConfig.BulkChunkSize,Mode=TwoWay}">
+                    Text="{Binding ArchiveMessagesConfig.BulkChunkSize,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -204,7 +204,7 @@
                     HorizontalContentAlignment="Center"
                     BorderThickness="1"
                     BorderBrush="{StaticResource Primary}"
-                    Text="{Binding MarkMessagesAsReadConfig.PreReportingSettings.MinMessagesToRead,Mode=TwoWay}">
+                    Text="{Binding ArchiveMessagesConfig.PreReportingSettings.MinMessagesToArchive,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
@@ -252,7 +252,7 @@
                     Padding="5"
                     FontFamily="{StaticResource Roboto}"
                     HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsReadConfig.PreReportingSettings.MaxMessagesToRead,Mode=TwoWay}">
+                    Text="{Binding ArchiveMessagesConfig.PreReportingSettings.MaxMessagesToArchive,Mode=TwoWay}">
                     <TextBox.Styles>
                         <Style Selector="TextBox:pressed /template/ Border">
                             <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />

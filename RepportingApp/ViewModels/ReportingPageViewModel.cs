@@ -44,7 +44,6 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private bool _isMenuOpen = false;
     [ObservableProperty] private bool _isPopupOpen = false;
     [ObservableProperty] private bool _isNotificationOpen = false;
-    [ObservableProperty] private bool _isCampaignPopupOpen = false;
     
 
     [ObservableProperty] private bool _isFixed;
@@ -57,11 +56,18 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private bool _isReportingChoiceSelected;
     [ObservableProperty] private bool _isMMRIChoiceSelected;
     [ObservableProperty] private bool _isCollectDataSelected;
+    [ObservableProperty] private bool _isArchiveChoiceSelected;
+  
 
     [ObservableProperty]
     private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
 
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator = new ErrorIndicatorViewModel();
+    
+    // process selector popup
+    [ObservableProperty] private bool _isCampaignSelected = false;
+
+
 
     #endregion
 
@@ -95,11 +101,11 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #endregion
 
-    #region mark messages as read UI variables
+    #region mark messages as read & spam UI variables
 
     [ObservableProperty] private MarkMessagesAsReadConfig _markMessagesAsReadConfig = new MarkMessagesAsReadConfig();
     [ObservableProperty] private MarkMessagesAsReadConfig _markMessagesAsNotSpamConfig = new MarkMessagesAsReadConfig();
-
+    [ObservableProperty] private MarkMessagesAsReadConfig _archiveMessagesConfig = new MarkMessagesAsReadConfig();
     #endregion
     #region Collect Directories Messages Variabless
 
@@ -216,6 +222,12 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                         FolderId);
                 }
             },
+            {"ArchiveMessages",async (emailAcc) =>
+                {
+                    if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
+                    return await _reportingRequests.ProcessArchiveMessages(emailAcc,ArchiveMessagesConfig);
+                }
+            },
         };
     }
     public async Task LoadDataIfFirstVisitAsync()
@@ -310,6 +322,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         IsReportingChoiceSelected = SelectedProcessesUi.IsReportingSelected;
         IsMMRIChoiceSelected = SelectedProcessesUi.IsMMRI;
         IsCollectDataSelected = SelectedProcessesUi.IsGetSpamNumbersSelected;
+        IsArchiveChoiceSelected = SelectedProcessesUi.IsArchiveSelected;
         foreach (var mapping in processIconMapping)
         {
             var isSelected = mapping.Key(SelectedProcessesUi);
@@ -387,16 +400,21 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     }
 
     [RelayCommand]
-    private void OpenPopup() => IsPopupOpen = true;
+    private void OpenPopup()   {
+        IsCampaignSelected = false;
+        IsPopupOpen = true;
+    }
 
     [RelayCommand]
     private void ClosePopup() => IsPopupOpen = false;
 
     [RelayCommand]
-    private void OpenCampaignPopup() => IsCampaignPopupOpen = true;
-
-    [RelayCommand]
-    private void CloseCampaignPopup() => IsCampaignPopupOpen = false;
+    private void OpenCampaignPopup()
+    {
+        IsCampaignSelected = true;
+        IsPopupOpen = true;
+    }
+    
 
     [RelayCommand]
     private void OpenNotificationopup() => IsNotificationOpen = !IsNotificationOpen;

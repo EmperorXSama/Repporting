@@ -29,6 +29,18 @@ public static class PayloadManager
 
     }
 
+    public static string GetArchiveMessageSinglePayload(string id,string messageId)
+    {
+        return 
+            "{\"requests\":[{\"id\":\"UnifiedUpdateMessage_0\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/messages/@.select==q?q=id%3A("+messageId+")\",\"method\":\"POST\",\"payloadType\":\"embedded\",\"payload\":{\"message\":{\"folder\":{\"id\":\"21\"}}}}],\"responseType\":\"json\"}";
+    }
+
+    public static string GetArchiveMessageBulkPayload(string id, IEnumerable<string> messageIds)
+    {
+        string listIds = GetIdsChain(new ObservableCollection<string>(messageIds));
+        return
+            "{\"requests\":[{\"id\":\"UnifiedUpdateMessage_0\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/messages/@.select==q?q=id%3A("+listIds+")\",\"method\":\"POST\",\"payloadType\":\"embedded\",\"payload\":{\"message\":{\"folder\":{\"id\":\"21\"}}}}],\"responseType\":\"json\"}";
+}
 
     #region MNS
 

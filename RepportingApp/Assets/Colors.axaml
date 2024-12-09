@@ -15,8 +15,15 @@
             <SolidColorBrush x:Key="TentOrange" Color="#F15025" />
             <SolidColorBrush x:Key="SecondaryAlert" Color="#C0330C" />
             <SolidColorBrush x:Key="MainGreen" Color="#517d3f" />
-            <SolidColorBrush x:Key="SecondaryGreen" Color="#7fd1ae" />
+            <SolidColorBrush x:Key="SecondaryGreen" Color="#78CEBD" />
             <SolidColorBrush x:Key="TextMain" Color="#171d0e" />
+            
+            
+            
+            
+            <SolidColorBrush x:Key="Spam" Color="#8093F1" />
+            <SolidColorBrush x:Key="Read" Color="#42494C" />
+            <SolidColorBrush x:Key="CollectData" Color="#C695EF" />
         </Style.Resources>
     </Style>
 </Styles>

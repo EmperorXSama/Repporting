@@ -48,6 +48,10 @@
         <DependentUpon>ToastNotificationView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Views\Components\ArchiveThreashold.axaml.cs">
+        <DependentUpon>ArchiveThreashold.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 
     <ItemGroup>
