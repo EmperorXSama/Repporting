@@ -3,13 +3,14 @@ using System.Diagnostics;
 using ClosedXML.Excel;
 using Microsoft.VisualBasic;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Dto;
 using MsBox.Avalonia.Enums;
 using MsBox.Avalonia.Models;
 using Reporting.lib.Models.DTO;
 using RepportingApp.CoreSystem.ApiSystem;
-
+using RepportingApp.CoreSystem.FileSystem;
 using RepportingApp.Services;
 using RepportingApp.ViewModels.BaseServices;
 
@@ -489,6 +490,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #region Upload File/Data Func
     private readonly ConcurrentBag<CreateEmailAccountDto> _emailsToGetUploaded = new();
+    private readonly ConcurrentDictionary<string, EmailMetadataDto> _metadataDictionary = new();
+
 
     
     [RelayCommand] private void OpenFileUploadPopup()  => IsUploadPopupOpen = true;
@@ -530,6 +533,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         
 
             var lines = await File.ReadAllLinesAsync(filePath);
+            var lines2 = await File.ReadAllLinesAsync(FileManager.GetMasterIdsPath());
             var totalLines = lines.Length;
             var progress = new Progress<int>(value => UploadProgress = value);
 
@@ -537,11 +541,17 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                 lines, 
                 (line, cancellationToken) => ProcessLineWithProgress(line, totalLines, progress, cancellationToken), 
                 batchSize: _configEstimator.RecommendedBatchSize
-            );  
-        
-        
+            );    
             await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId, "File Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
             await _taskManager.WaitForTaskCompletion(currentTaskId);
+            
+            var currentTaskId2 = _taskManager.StartBatch(
+                lines2, 
+                (line, cancellationToken) => ProcessMetaData(line, cancellationToken), 
+                batchSize: _configEstimator.RecommendedBatchSize
+            );  
+            await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, currentTaskId2, "MetaData Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
+            await _taskManager.WaitForTaskCompletion(currentTaskId2);
             
             int? groupId = SelectedEmailGroup.GroupId; 
             string? groupName = SelectedEmailGroup.GroupName;
@@ -549,6 +559,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             var payload = new
             {
                 emailAccounts = _emailsToGetUploaded,
+                emailMetadata = _metadataDictionary,
                 groupId,
                 groupName
             };
@@ -567,6 +578,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
             await _taskManager.WaitForTaskCompletion(apiCreateEmails);
             _emailsToGetUploaded.Clear();
+            _metadataDictionary.Clear();
     }
     private int _processedLines;
 
@@ -601,12 +613,52 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             Group = SelectedEmailGroup,
         };
         
+        
+
+        
         await Dispatcher.UIThread.InvokeAsync(
-            () => _emailsToGetUploaded.Add(emailAccount));
+            () =>
+            {
+                _emailsToGetUploaded.Add(emailAccount);
+                
+            });
 
     // Update and report progress
         int percentComplete = (int)((Interlocked.Increment(ref _processedLines) * 100.0) / totalLines);
         progress.Report(percentComplete);
+        return "";
+    }
+    private async Task<string> ProcessMetaData(
+        string line,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var data = line.Split(',');
+        if (data.Length !=  4)
+        {
+            // Handle incorrect data format, e.g., skip the line or log an error
+            return "";
+        }
+        var email = data[0];
+        var emailAccount = new EmailMetadataDto
+        {
+            MailId = data[1],
+            YmreqId = data[2],
+            Wssid = data[3],
+            Cookie = File.ReadAllText(Path.Combine(FileManager.GetProfileCookieFolder(email + ".txt")))
+        };
+        
+       
+
+        
+        await Dispatcher.UIThread.InvokeAsync(
+            () =>
+            {
+                _metadataDictionary.TryAdd(email, emailAccount);
+                
+            });
+
+    // Update and report progress
         return "";
     }
     private bool ValidateFile(string filePath)
@@ -826,7 +878,7 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
             await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
             return;
         }
-        var emailsGroupToWork = FilterEmailsBySelectedGroups();
+        var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
         if (!emailsGroupToWork.Any())
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
@@ -842,27 +894,28 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
         }
 
         ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
-        foreach (var processName in SelectedProcesses)
+        for (int i = 0; i < ReportingSettingsValuesDisplay.Repetition; i++)
         {
-            var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
+            foreach (var processName in SelectedProcesses)
             {
-                if (_processsMapping.TryGetValue(processName, out var processFunction))
+                var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
                 {
-                     result=  await processFunction(emailAccount);
-                     switch (processName)
-                     {
-                         case "CollectMessagesCount":
-                             await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
-                             break;
-                         default:
-                         break;
-                     }
-                }
-                
-                return result.Message;
-            });
-            await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,processName,Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork);
-            await _taskManager.WaitForTaskCompletion(taskId);
+                    if (_processsMapping.TryGetValue(processName, out var processFunction))
+                    {
+                        result=  await processFunction(emailAccount);
+                        switch (processName)
+                        {
+                            case "CollectMessagesCount":
+                                await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
+                                break;
+                        }
+                    }
+                    return result.Message;
+                },ReportingSettingsValuesDisplay.Thread);
+                await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,processName,Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork.ToObservableCollection());
+                await _taskManager.WaitForTaskCompletion(taskId);
+            }
+            await Task.Delay(ReportingSettingsValuesDisplay.RepetitionDelay);
         }
        
        

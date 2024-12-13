@@ -92,6 +92,21 @@ public class DataConnection : IDataConnection
     }
 
 
+    public async Task<IEnumerable<T>> SaveDataAsync<T>(string storeProcedure, object param, string connectionStringName = "Default")
+    {
+        string? connectionString = _configuration.GetConnectionString(connectionStringName);
+
+        using IDbConnection connection = new SqlConnection(connectionString);
+
+        // Fetch multiple rows using QueryAsync
+        var result = await connection.QueryAsync<T>(
+            storeProcedure, 
+            param, 
+            commandType: CommandType.StoredProcedure
+        );
+
+        return result;
+    }
     public async Task<int> SaveDataAsync<T>(string storeProcedure, T param, string connectionStringName = "Default")
     {
         string? connectionString = _configuration.GetConnectionString(connectionStringName);

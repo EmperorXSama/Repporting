@@ -62,14 +62,18 @@ public class TaskInfoManager :INotifyPropertyChanged
     }
     public void MoveTaskToCategory(Guid taskId, TaskCategory fromCategory, TaskCategory toCategory)
     {
-        var TaskInfoUiModel = _taskCollections[fromCategory].FirstOrDefault(t => t.TaskId == taskId);
-        if (TaskInfoUiModel != null)
+        var taskInfoUiModel = _taskCollections[fromCategory].FirstOrDefault(t => t.TaskId == taskId);
+        if (taskInfoUiModel != null)
         {
-            TaskInfoUiModel.FinishedTime = DateTime.Now.ToString("g");
-            _taskCollections[fromCategory].Remove(TaskInfoUiModel);
-            _taskCollections[toCategory].Add(TaskInfoUiModel);
+            taskInfoUiModel.FinishedTime = DateTime.Now.ToString("g");
+            Dispatcher.UIThread.Post(() =>
+            {
+                _taskCollections[fromCategory].Remove(taskInfoUiModel);
+                _taskCollections[toCategory].Add(taskInfoUiModel);
+            });
         }
     }
+
     public async void CompleteTask(Guid taskId, TaskCategory category = TaskCategory.Active)
     {
         TaskInfoUiModel? taskInfo =  GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == taskId);

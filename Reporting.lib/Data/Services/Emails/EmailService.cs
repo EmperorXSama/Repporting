@@ -29,45 +29,71 @@ public class EmailService : IEmailService
         );// Use the name of the column where the split should occur
         return result;
     }
-    public async Task AddEmailsToGroupAsync(IEnumerable<CreateEmailAccountDto> emails, int? groupId = null, string? groupName = null)
-    {
-        var emailTable = new DataTable();
-        emailTable.Columns.Add("EmailAddress", typeof(string));
-        emailTable.Columns.Add("Password", typeof(string));
-        emailTable.Columns.Add("RecoveryEmail", typeof(string));
-        emailTable.Columns.Add("Status", typeof(int));
-        emailTable.Columns.Add("ProxyIp", typeof(string));
-        emailTable.Columns.Add("Port", typeof(int));
-        emailTable.Columns.Add("ProxyUsername", typeof(string));
-        emailTable.Columns.Add("ProxyPassword", typeof(string));
+public async Task AddEmailsToGroupWithMetadataAsync(
+    IEnumerable<CreateEmailAccountDto> emails,
+    Dictionary<string, EmailMetadataDto> emailMetadata,
+    int? groupId = null,
+    string? groupName = null)
+{
+    var emailTable = new DataTable();
+    emailTable.Columns.Add("EmailAddress", typeof(string));
+    emailTable.Columns.Add("Password", typeof(string));
+    emailTable.Columns.Add("RecoveryEmail", typeof(string));
+    emailTable.Columns.Add("Status", typeof(int));
+    emailTable.Columns.Add("ProxyIp", typeof(string));
+    emailTable.Columns.Add("Port", typeof(int));
+    emailTable.Columns.Add("ProxyUsername", typeof(string));
+    emailTable.Columns.Add("ProxyPassword", typeof(string));
 
-        foreach (var email in emails)
+    foreach (var email in emails)
+    {
+        var proxy = email.Proxy;
+        emailTable.Rows.Add(
+            email.EmailAddress,
+            email.Password,
+            email.RecoveryEmail,
+            (int)email.Status,
+            proxy?.ProxyIp,
+            proxy?.Port,
+            proxy?.Username,
+            proxy?.Password
+        );
+    }
+
+    // Call the procedure and retrieve the output
+    var parameters = new
+    {
+        Emails = emailTable.AsTableValuedParameter("EmailTableTypeMain"),
+        GroupId = groupId,
+        GroupName = groupName
+    };
+
+    // Retrieve inserted emails
+    var insertedEmails = await _dbConnection.SaveDataAsync<(int EmailAccountId, string EmailAddress)>(
+        "[dbo].[AddEmailsToGroupWithProxy_Create]",
+        parameters
+    );
+
+    foreach (var (emailId, emailAddress) in insertedEmails)
+    {
+        if (emailMetadata.TryGetValue(emailAddress, out var metadata))
         {
-            var proxy = email.Proxy;
-            emailTable.Rows.Add(
-                email.EmailAddress, 
-                email.Password, 
-                email.RecoveryEmail, 
-                (int)email.Status, 
-                proxy?.ProxyIp, 
-                proxy?.Port, 
-                proxy?.Username, 
-                proxy?.Password
+            await _dbConnection.SaveDataAsync<dynamic>(
+                "[dbo].[InsertEmailMetadata]",
+                new
+                {
+                    EmailAccountId = emailId,
+                    metadata.MailId,
+                    metadata.YmreqId,
+                    metadata.Wssid,
+                    Cookie = metadata.Cookie
+                }
             );
         }
-        if (emailTable.Rows.Count == 0)
-        {
-            throw new InvalidOperationException("The email table is empty and has no rows to insert.");
-        }
-        var parameters = new
-        {
-            Emails = emailTable.AsTableValuedParameter("EmailTableTypeMain"),
-            GroupId = groupId,
-            GroupName = groupName
-        };
-
-        await _dbConnection.SaveDataAsync("[dbo].[AddEmailsToGroupWithProxy_Create]", parameters);
     }
+}
+
+
     public async Task<IEnumerable<EmailAccount>> GetEmailsByGroupAsync(int groupId)
     {
         var results = await _dbConnection.LoadDataAsync<EmailAccount, dynamic>("[dbo].[GetEmailsByGroup]", new

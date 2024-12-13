@@ -53,6 +53,7 @@
             
                                 <!-- Header Text -->
                                 <TextBlock FontFamily="{StaticResource Roboto}" Text="Failed Items" FontWeight="SemiBold" Foreground="Black" />
+                                
                                 <TextBlock FontFamily="{StaticResource Roboto}"  Text="{Binding ItemFailedMessasges.Count}" FontWeight="Light" Foreground="{StaticResource  MainAlert}" />
                             </StackPanel>
                         </Expander.Header>
@@ -69,6 +70,21 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
                     </Expander>
+                
+                <Button Background="Transparent"  Command="{Binding DownloadFailedEmailsCommand}" VerticalAlignment="Bottom" Cursor="Hand">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock >
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Download Failed "></TextBlock>
+                                <PathIcon Data="{StaticResource Downloadicon}" Foreground="{StaticResource MainAlert}"></PathIcon>
+                            </StackPanel>
+                        </TextBlock>
+                        
+                        
+                    </StackPanel>
+                   
+                </Button>
+                <TextBlock HorizontalAlignment="Center" Text="{Binding DownloadValue}" TextWrapping="Wrap"></TextBlock>
                 </StackPanel>
         </SplitView.Pane>
 

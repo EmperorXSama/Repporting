@@ -303,7 +303,7 @@
                         </StackPanel>
                        
                     </Border>
-                    <Border Margin="0,0,0,15"
+                    <!--<Border Margin="0,0,0,15"
                             CornerRadius="5">
                         <StackPanel IsVisible="{Binding IsReportingChoiceSelected}">
                             <StackPanel Orientation="Horizontal" >
@@ -409,7 +409,7 @@
                             </DockPanel>
                         </StackPanel>
                       
-                    </Border>
+                    </Border>-->
                           <StackPanel>
                                                     <StackPanel Orientation="Horizontal">
                                                         <PathIcon
@@ -848,7 +848,6 @@
                                     >
                                         <DataGrid.Columns>
                                             <DataGridTextColumn FontFamily="{StaticResource Roboto}"  Header="Email Address" Binding="{Binding EmailAddress}" />
-                                            <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Recovery Email" Binding="{Binding RecoveryEmail}" />
                                             <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Proxy IP" Binding="{Binding Proxy.ProxyIp}" />
                                             <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Port" Binding="{Binding Proxy.Port}" />
                                             <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Group" Binding="{Binding Group.GroupName}" />
@@ -1558,8 +1557,12 @@
                             Height="550"
                         >
                             
-                            <StackPanel>
-                                
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
                                 <Border BorderBrush="LightGray" BorderThickness="1" Cursor="Hand" Margin="0,0,0,10" >
                                     <Button Theme="{StaticResource CustomBtn}"
                                             Command="{Binding ClearAllNotificationsCommand}"
@@ -1567,7 +1570,7 @@
                                         <TextBlock Text="Clear All" ></TextBlock>
                                     </Button>
                                 </Border>
-                                <ScrollViewer >
+                                <ScrollViewer Grid.Row="1" >
                                      <ListBox ItemsSource="{Binding NotificationTasks}" Background="White">
                                                 <ListBox.Styles>
                                                     <!-- Style for ListBoxItem -->
@@ -1708,7 +1711,7 @@
                                             </ListBox>
                                 </ScrollViewer>
                                
-                            </StackPanel>
+                            </Grid>
                             
                            
                              

@@ -15,7 +15,9 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     private string name; 
     [ObservableProperty]
-    private string color = ""; 
+    private string color = "";  
+    [ObservableProperty]
+    private string downloadValue = ""; 
     [ObservableProperty]
     private string softColor = ""; 
     [ObservableProperty] private bool _isMoreDetailNeeded = false;
@@ -86,6 +88,56 @@ public partial class TaskInfoUiModel : ObservableObject
     private void CloseConsoleDetailNeede()
     {
         IsConsoleNeeded = false;
+    }
+    [RelayCommand]
+    private void DownloadFailedEmails()
+    {
+        try
+        {
+            if (ItemFailedMessasges == null || !ItemFailedMessasges.Any())
+            {
+                DownloadValue = "No failed messages to download.";
+                return;
+            }
+
+            // Create a list of email credentials
+            var failedEmails = ItemFailedMessasges
+                .Where(info => info.Email != null) // Ensure Email is not null
+                .Select(info =>
+                {
+                    var proxy = info.Email.Proxy;
+                    var proxyDetails = proxy != null
+                        ? $"{proxy.ProxyIp};{proxy.Port};{proxy.Username};{proxy.Password}"
+                        : "No Proxy";
+                    return $"{info.Email.EmailAddress};{info.Email.Password};;{proxyDetails} = {info.Message}";
+                })
+                .ToList();
+
+            if (!failedEmails.Any())
+            {
+                DownloadValue = "No valid emails to download.";
+                return;
+            }
+
+            // Convert to a single string
+            string content = string.Join(Environment.NewLine, failedEmails);
+
+            // Ensure the directory exists before saving the file
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Results");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string filePath = Path.Combine(directoryPath, "FailedEmails.txt");
+            File.WriteAllText(filePath, content);
+
+            DownloadValue = "Download complete: " + filePath;
+        }
+        catch (Exception e)
+        {
+            DownloadValue = "Error: " + e.Message;
+        }
     }
 
     #endregion

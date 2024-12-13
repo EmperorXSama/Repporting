@@ -29,7 +29,7 @@ namespace ReportingApi.Controllers
         {
             try
             {
-                await _emailService.AddEmailsToGroupAsync(request.EmailAccounts, request.GroupId, request.GroupName);
+                await _emailService.AddEmailsToGroupWithMetadataAsync(request.EmailAccounts,request.emailMetadata, request.GroupId, request.GroupName);
                 return Ok();
             }
             catch (Exception e)

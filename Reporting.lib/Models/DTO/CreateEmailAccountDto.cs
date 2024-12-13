@@ -21,6 +21,13 @@ public class CreateEmailAccountDto
     public EmailStatus Status { get; set; }
 
     [JsonPropertyName("group")]
-    public EmailGroup Group { get; set; }
+    public EmailGroup Group { get; set; }  
 
+}
+public class EmailMetadataDto
+{
+    public string MailId { get; set; }
+    public string YmreqId { get; set; }
+    public string Wssid { get; set; }
+    public string Cookie { get; set; }
 }

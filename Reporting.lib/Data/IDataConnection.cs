@@ -5,6 +5,9 @@ public interface IDataConnection
     Task<IEnumerable<T>> LoadDataAsync<T, TU>(string storeProcedure, TU param,
         string connectionStringName = "Default");
 
+    Task<IEnumerable<T>> SaveDataAsync<T>(string storeProcedure, object param,
+        string connectionStringName = "Default");
+
     Task<int> SaveDataAsync<T>(string storeProcedure, T param, string connectionStringName = "Default");
 
     Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TU>(
