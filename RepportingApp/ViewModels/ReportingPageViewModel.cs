@@ -239,7 +239,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             {
                 IsLoading = true;
                 // Load data here
-                await LoadDataAsync();
+                await LoadDataAsync(true);
             }
         }
         catch (Exception e)
@@ -254,9 +254,9 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     }
 
-    private async Task LoadDataAsync()
+    private async Task LoadDataAsync(bool ignoreCache = false)
     {
-        var groups = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
+        var groups = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups,ignoreCache:ignoreCache);
         var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);
         Groups = groups.ToObservableCollection();
         EmailAccounts = emails.ToObservableCollection();
@@ -433,6 +433,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     [ObservableProperty] private bool _isNewGroupSelected;
     [ObservableProperty] private bool _isExistingGroupSelected;
+    [ObservableProperty] private bool _isDeleteGroupSelected;
     [ObservableProperty] private bool _isEnabled = true;
     [ObservableProperty] private bool _isGroupSettingsDropdownOpen = false;
     [ObservableProperty] private bool _isGroupSettingsDropdownOpen1 = false;
@@ -451,6 +452,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     {
         IsNewGroupSelected = true;
         IsExistingGroupSelected = false;
+        IsDeleteGroupSelected = false;
         SelectedEmailGroup = new EmailGroup();
     }
 
@@ -458,9 +460,16 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     private void SelectExistingGroup()
     {
         IsNewGroupSelected = false;
+        IsDeleteGroupSelected = false;
         IsExistingGroupSelected = true;
     }
-
+    [RelayCommand]
+    private void SelectDeleteGroup()
+    {
+        IsNewGroupSelected = false;
+        IsDeleteGroupSelected = true;
+        IsExistingGroupSelected = false;
+    }
     [RelayCommand]
     private async Task CreateNewGroup()
     {
@@ -485,6 +494,36 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         {
             IsEnabled = true;
         }
+    }
+    [RelayCommand]
+    private async Task DeleteGroup()
+    {
+        IsEnabled = false;
+
+        try
+        {
+            if (SelectedEmailGroup == null)
+            {
+                throw new Exception("You must select a group to delete");
+            }
+            var result = await _apiConnector.PostDataObjectAsync<bool>(ApiEndPoints.DeleteGroup, SelectedEmailGroup.GroupId!);
+            if (!result) throw new Exception("Delete group failed");
+
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("no group deleted",
+                e.Message);
+        }
+        finally
+        {
+            IsEnabled = true;
+            SelectedEmailGroup = null;
+        }
+            
+       
+            
     }
     #endregion
 

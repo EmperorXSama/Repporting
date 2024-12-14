@@ -74,12 +74,12 @@ public class UnifiedApiClient : IApiConnector
         }
       
     }
-    public async Task<T> GetDataAsync<T>(string endpoint, Dictionary<string, string>? headers = null,Proxy? proxy = null)
+    public async Task<T> GetDataAsync<T>(string endpoint, Dictionary<string, string>? headers = null,Proxy? proxy = null,bool ignoreCache = false)
     {
         // Attempt to retrieve from cache first
         HttpClient client = proxy != null ? CreateHttpClientWithProxy(proxy) : _httpClient;
         var cachedData = _cacheService.Get<T>(endpoint);
-        if (cachedData != null)
+        if (cachedData != null && !ignoreCache)
         {
             return cachedData;
         }

@@ -1023,7 +1023,7 @@
                                 <li:LoadingIndicator VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" IsActive="{Binding !IsEnabled , Mode=TwoWay}"  Mode="Arcs" SpeedRatio="1.2"/>
                             </Border>
                             <Border Padding="12,12,12,0">
-                                <Grid RowDefinitions="40,Auto,Auto,60,Auto,*"  >
+                                <Grid RowDefinitions="40,Auto,Auto,Auto,60,Auto,*"  >
                                     <Border>
                                         <TextBlock Text="group selection"
                                                    FontFamily="{StaticResource Roboto}"
@@ -1046,6 +1046,12 @@
                                                    GroupName="VisitOption"
                                                    Command="{Binding SelectExistingGroupCommand}"
                                                    IsChecked="{Binding IsExistingGroupSelected, Mode=TwoWay}"
+                                                   Theme="{StaticResource CustomRadioButtonTheme}" />  
+                                     <RadioButton  Grid.Row="3" Content="selecting this option will provide you with a group drop down to delete a group"
+                                                   Tag="select to delete"
+                                                   GroupName="VisitOption"
+                                                   Command="{Binding SelectDeleteGroupCommand}"
+                                                   IsChecked="{Binding IsDeleteGroupSelected, Mode=TwoWay}"
                                                    Theme="{StaticResource CustomRadioButtonTheme}" />
                             
                                     <StackPanel Grid.Row="4" IsVisible="{Binding IsNewGroupSelected}" Orientation="Vertical" Spacing="5">
@@ -1074,7 +1080,7 @@
                                       
                                     </StackPanel>
                                 
-                                    <ComboBox Grid.Row="4" ItemsSource="{Binding Groups,Mode=TwoWay}"
+                                    <ComboBox Grid.Row="5" ItemsSource="{Binding Groups,Mode=TwoWay}"
                                               SelectedItem="{Binding SelectedEmailGroup, Mode=TwoWay}"
                                               IsEnabled="{Binding IsExistingGroupSelected}"
                                               IsVisible="{Binding IsExistingGroupSelected}"
@@ -1085,9 +1091,31 @@
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
+                                     <StackPanel Grid.Row="5" Orientation="Vertical" HorizontalAlignment="Center"
+                                                 IsEnabled="{Binding IsDeleteGroupSelected}"
+                                                 IsVisible="{Binding IsDeleteGroupSelected}">
+                                         <ComboBox  ItemsSource="{Binding Groups,Mode=TwoWay}"
+                                                    SelectedItem="{Binding SelectedEmailGroup, Mode=TwoWay}"
+                                                    PlaceholderText="Select a group to delete"
+                                                    Padding="3"
+                                                    FontFamily="{StaticResource Roboto}">
+                                             <ComboBox.ItemTemplate>
+                                                 <DataTemplate>
+                                                     <TextBlock Text="{Binding GroupName}" />
+                                                 </DataTemplate>
+                                             </ComboBox.ItemTemplate>
+                                         </ComboBox>
+                                         
+                                         <Button Command="{Binding DeleteGroupCommand}"
+                                                 Foreground="White"
+                                             HorizontalAlignment="Center" Theme="{StaticResource CustomBtn}" Content="Delete" Background="{StaticResource MainRed}" >
+                                             
+                                         </Button>
+                                     </StackPanel>
+                                    
 
                             <!-- Display selected group details, for demonstration purposes -->
-                                     <Border  Grid.Row="5" >
+                                     <Border  Grid.Row="6" >
                                          <Border Width="220"
                                                  Height="30"
                                                  HorizontalAlignment="Center"

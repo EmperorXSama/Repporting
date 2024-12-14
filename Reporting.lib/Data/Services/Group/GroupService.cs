@@ -22,4 +22,17 @@ public class GroupService : IGroupService
     {
         return await _dataConnection.SaveDataAsync("[dbo].[AddGroup]", new {Name  = group});
     }
+
+    public async Task<bool> DeleteGroup(int groupId)
+    {
+        try
+        {
+            await _dataConnection.SaveDataAsync("DeleteGroupAndEmails", new {GroupId = groupId});
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+    }
 }

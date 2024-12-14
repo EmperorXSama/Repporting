@@ -5,4 +5,5 @@ public interface IGroupService
 {
     Task<IEnumerable<EmailGroup>> GetAllGroups();
     Task<int> AddGroup(string groupName);
+    Task<bool> DeleteGroup(int groupId);
 }

@@ -26,5 +26,10 @@ namespace ReportingApi.Controllers
         {
             return await _groupService.AddGroup(newGroupName);
         }
+        [HttpPost("DeleteGroup")]
+        public async Task<bool> Post([FromBody] int groupId)
+        {
+            return await _groupService.DeleteGroup(groupId);
+        }
     }
 }
