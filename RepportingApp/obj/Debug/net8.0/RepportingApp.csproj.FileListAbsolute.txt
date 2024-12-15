@@ -158,3 +158,9 @@ C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\SixLabors
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\System.IO.Packaging.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.WindowsAPICodePack.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.WindowsAPICodePack.Shell.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Azure.Data.AppConfiguration.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Azure.Messaging.EventGrid.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Azure.Security.KeyVault.Secrets.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\DnsClient.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.AzureAppConfiguration.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll

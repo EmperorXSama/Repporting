@@ -171,13 +171,18 @@ namespace RepportingApp.CoreSystem.Multithread
                             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
                         }
                     
+                        /*
                         var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
                         using var audioFile = new AudioFileReader(relativePath);
                         using var outputDevice = new WaveOutEvent();
-                        outputDevice.Volume = 0.1f;
+                        
                         outputDevice.Init(audioFile);
+                        
+                        outputDevice.Volume = 0.1f;
+
                         outputDevice.Play();
-                    
+                        */
+
                     
                         UpdateUiThreadValues(()=>
                         {
@@ -279,12 +284,14 @@ namespace RepportingApp.CoreSystem.Multithread
                         await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
                     }
                     
+                    /*
                     var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
                     using var audioFile = new AudioFileReader(relativePath);
                     using var outputDevice = new WaveOutEvent();
                     outputDevice.Volume = 0.1f;
                     outputDevice.Init(audioFile);
                     outputDevice.Play();
+                    */
                     
                     
                     UpdateUiThreadValues(()=>

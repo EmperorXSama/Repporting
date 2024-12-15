@@ -16,9 +16,10 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        this.AttachDevTools(); // This line enables the developer tools
         LoadConfiguration();
+        var configService = ShutdownChecker.Instance;
     }
+    
 
     public override void OnFrameworkInitializationCompleted()
     {

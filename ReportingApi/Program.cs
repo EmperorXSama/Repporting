@@ -25,10 +25,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseHttpsRedirection();
 // Map controllers
 app.MapControllers();
-
+app.UseDeveloperExceptionPage();
 app.Run();
 

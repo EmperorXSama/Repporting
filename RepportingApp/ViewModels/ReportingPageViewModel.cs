@@ -835,6 +835,11 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
         taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign)
             .FirstOrDefault(t => t.TaskId == e.TaskId);
     }
+    if (taskInfo == null)
+    {
+        taskInfo = _taskInfoManager.GetTasks(TaskCategory.Notification)
+            .FirstOrDefault(t => t.TaskId == e.TaskId);
+    }
     if (e.Success)
     {
         Dispatcher.UIThread.Post(() =>
@@ -911,51 +916,60 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     [RelayCommand]
     private async Task ReadAllEmailsInboxMessages()
     {
-        if (!SelectedProcesses.Any())
+        try
         {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
-            return;
-        }
-        var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
-        if (!emailsGroupToWork.Any())
-        {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
-            return;
-        }
+         if (!SelectedProcesses.Any())
+         {
+             ErrorIndicator = new ErrorIndicatorViewModel();
+             await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
+             return;
+         }
+         var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
+         if (!emailsGroupToWork.Any())
+         {
+             ErrorIndicator = new ErrorIndicatorViewModel();
+             await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+             return;
+         }
 
-        if (SelectedProcesses[0] == null)
+         if (SelectedProcesses[0] == null)
+         {
+             ErrorIndicator = new ErrorIndicatorViewModel();
+             await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
+             return;
+         }
+
+         ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
+         for (int i = 0; i < ReportingSettingsValuesDisplay.Repetition; i++)
+         {
+             foreach (var processName in SelectedProcesses)
+             {
+                 var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
+                 {
+                     if (_processsMapping.TryGetValue(processName, out var processFunction))
+                     {
+                         result=  await processFunction(emailAccount);
+                         switch (processName)
+                         {
+                             case "CollectMessagesCount":
+                                 await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
+                                 break;
+                         }
+                     }
+                     return result.Message;
+                 },ReportingSettingsValuesDisplay.Thread);
+                 await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,processName,Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork.ToObservableCollection());
+                 //await _taskManager.WaitForTaskCompletion(taskId);
+             }
+             await Task.Delay(ReportingSettingsValuesDisplay.RepetitionDelay);
+         }
+        }
+        catch (Exception e)
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
-            return;
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", e.Message);
         }
-
-        ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
-        for (int i = 0; i < ReportingSettingsValuesDisplay.Repetition; i++)
-        {
-            foreach (var processName in SelectedProcesses)
-            {
-                var taskId = _taskManager.StartBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
-                {
-                    if (_processsMapping.TryGetValue(processName, out var processFunction))
-                    {
-                        result=  await processFunction(emailAccount);
-                        switch (processName)
-                        {
-                            case "CollectMessagesCount":
-                                await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
-                                break;
-                        }
-                    }
-                    return result.Message;
-                },ReportingSettingsValuesDisplay.Thread);
-                await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Batch,taskId,processName,Statics.ReportingColor,Statics.ReportingSoftColor,emailsGroupToWork.ToObservableCollection());
-                await _taskManager.WaitForTaskCompletion(taskId);
-            }
-            await Task.Delay(ReportingSettingsValuesDisplay.RepetitionDelay);
-        }
+       
        
        
     }
@@ -1169,7 +1183,7 @@ public async Task GenerateCsvSubjectTableMultithreadAsync(List<(string Email, Ob
                 return result.Message;
             }, ReportingSettingsValuesDisplay.Thread,interval);
             await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Single,taskId,"reporting",Statics.UploadFileColor,Statics.UploadFileSoftColor,EmailAccounts);
-            await _taskManager.WaitForTaskCompletion(taskId);
+           
         }
         
        

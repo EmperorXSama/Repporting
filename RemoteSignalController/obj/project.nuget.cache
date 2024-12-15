@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "/pyTzL4EHOk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\khali\\RiderProjects\\Repporting\\RemoteSignalController\\RemoteSignalController.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.10\\microsoft.netcore.app.ref.8.0.10.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.10\\microsoft.netcore.app.runtime.win-x64.8.0.10.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.10\\microsoft.windowsdesktop.app.ref.8.0.10.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.10\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.10.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.10\\microsoft.aspnetcore.app.ref.8.0.10.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.10\\microsoft.aspnetcore.app.runtime.win-x64.8.0.10.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.10\\microsoft.netcore.app.host.win-x64.8.0.10.nupkg.sha512"
+  ],
+  "logs": []
+}
