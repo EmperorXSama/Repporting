@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics;
-
+﻿using Reporting.lib.Models.Secondary;
 
 namespace RepportingApp.Request_Connection_Core.Reporting;
 
@@ -33,8 +31,22 @@ public class ReportingRequests : IReportingRequests
         folderName ??= "Unknown";
         CheckEmailMetaData(emailAccount);
         var messasges = await GetMessagesFromFolder(emailAccount,directoryId);
+        if (emailAccount.Stats == null)
+        {
+            emailAccount.Stats = new EmailAccountStats();
+        }
+        var count = messasges.Any() ? messasges[0].folder.total : 0;
 
-
+        switch (directoryId)
+        {
+            case Statics.InboxDir:
+                emailAccount.Stats.InboxCount = count;
+                break;
+            case Statics.SpamDir:
+                emailAccount.Stats.SpamCount = count;
+                break;
+        }
+        
         return new ReturnTypeObject() { ReturnedValue = messasges,Message = $" number of retrieved messages in {folderName} : {messasges.Count} \n total number of messages : {(messasges.Any()? messasges[0].folder.total:0 )}" };
     }
 
@@ -49,7 +61,7 @@ public class ReportingRequests : IReportingRequests
             return new ReturnTypeObject(){Message = result};
     }   
     public async Task<ReturnTypeObject> ProcessArchiveMessages(EmailAccount emailAccount,
-        MarkMessagesAsReadConfig config,string directoryId = "1")
+        MarkMessagesAsReadConfig config,string directoryId =Statics.ArchiveDir)
     {
             CheckEmailMetaData(emailAccount);
             var messages = await GetMessagesFromFolder(emailAccount ,directoryId);
@@ -62,7 +74,15 @@ public class ReportingRequests : IReportingRequests
         MarkMessagesAsReadConfig config)
     {
         CheckEmailMetaData(emailAccount);
-    
+        // Fetch messages from the spam folder with pagination
+        var messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
+        if (!messages.Any())
+        {
+            return new ReturnTypeObject
+            {
+                Message = $" spam empty"
+            };
+        }
         int totalMessages = 0;
         int processedMessages = 0;
         // start pre reporting 
@@ -75,7 +95,7 @@ public class ReportingRequests : IReportingRequests
         while (true)
         {
             // Fetch messages from the spam folder with pagination
-            var messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
+            messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
         
             if (!messages.Any())
             {
@@ -93,7 +113,7 @@ public class ReportingRequests : IReportingRequests
                 emailAccount, messages, config.BulkThreshold, config.BulkChunkSize, config.SingleThreshold);
             
         }
-
+        emailAccount.Stats.LastNotSpamCount = processedMessages;
         return new ReturnTypeObject
         {
             Message = $"Marked messages: {processedMessages} out of {totalMessages}"
@@ -241,7 +261,7 @@ public class ReportingRequests : IReportingRequests
             );
         
      
-        
+        emailAccount.Stats.LastReadCount = marked;
         return $"{marked} of {numberOfMessagesToMarkAsRead} messages has been marked as read ";
     }
                                      
@@ -347,7 +367,7 @@ public class ReportingRequests : IReportingRequests
             );
         
      
-        
+        emailAccount.Stats.LastArchivedCount = marked;
         return $"{marked} of {numberOfMessagesToMarkAsRead} messages has been sent as archive ";
     }
     #endregion
@@ -435,7 +455,7 @@ public class ReportingRequests : IReportingRequests
                 bulkThreshold: bulkThreshold,
                 bulkChunkSize: bulkChunkSize,
                 singleThreshold: singleThreshold);
-
+            
             return marked;
         }
 

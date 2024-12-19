@@ -1,14 +1,11 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
-using CommunityToolkit.Mvvm.ComponentModel;
-using Reporting.lib.enums.Core;
+﻿
 
 namespace Reporting.lib.Models.Core;
 
 
 public partial class EmailAccount: ObservableObject
 {
-    public int Id { get; set; }
+    #region core info 
 
     [JsonPropertyName("emailAddress")]
     public string EmailAddress { get; set; }
@@ -22,20 +19,21 @@ public partial class EmailAccount: ObservableObject
     [JsonPropertyName("proxy")]
     public Proxy Proxy { get; set; }
 
+    #endregion
+    public int Id { get; set; }
+
     [JsonPropertyName("status")]
     public EmailStatus Status { get; set; }
 
     [JsonPropertyName("group")]
     public EmailGroup Group { get; set; }
-
+    public EmailAccountStats Stats { get; set; } = new();
     public string UserAgent { get; set; } =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
     
     public EmailMetaData MetaIds { get; set; } = new();
     [ObservableProperty]
-    private ObservableCollection<KeyValuePair<string, object>> apiResponses = new()
-    {
-    };
+    private ObservableCollection<KeyValuePair<string, object>> apiResponses = new();
 
     [JsonPropertyName("processLogs")] public ICollection<ProcessLog> ProcessLogs { get; set; } = new List<ProcessLog>();
     

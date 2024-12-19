@@ -15,20 +15,23 @@ public class EmailService : IEmailService
 
     public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
     {
-        var result = await _dbConnection.LoadDataWithMappingAsync<EmailAccount, Proxy,EmailGroup,EmailMetaData, dynamic>(
+        var result = await _dbConnection.LoadDataWithMappingAsync<
+            EmailAccount, Proxy, EmailGroup, EmailMetaData, EmailAccountStats, dynamic>(
             "[dbo].[GetAllEmails]",
             new { }, // Replace with your actual parameters
-            (email, proxy,group,emailMetaData) =>
+            (email, proxy, group, emailMetaData, stats) =>
             {
                 email.Proxy = proxy;
                 email.Group = group;
                 email.MetaIds = emailMetaData;
+                email.Stats = stats;
                 return email;
             },
-            "ProxyId,GroupId,MetaDataId"
-        );// Use the name of the column where the split should occur
+            "ProxyId,GroupId,MetaDataId,InboxCount" // Update "splitOn" to include the first column of EmailStats
+        ); 
         return result;
     }
+
 public async Task AddEmailsToGroupWithMetadataAsync(
     IEnumerable<CreateEmailAccountDto> emails,
     Dictionary<string, EmailMetadataDto> emailMetadata,
@@ -104,4 +107,35 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         return results;
     }
 
+    public async Task UpdateEmailStatsBatchAsync(IEnumerable<EmailAccount> emailAccounts)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailAccountId", typeof(int));
+        table.Columns.Add("InboxCount", typeof(int));
+        table.Columns.Add("SpamCount", typeof(int));
+        table.Columns.Add("LastReadCount", typeof(int));
+        table.Columns.Add("LastArchivedCount", typeof(int));
+        table.Columns.Add("LastNotSpamCount", typeof(int));
+        table.Columns.Add("UpdatedAt", typeof(DateTime));
+
+        foreach (var email in emailAccounts)
+        {
+            table.Rows.Add(
+                email.Id,
+                email.Stats.InboxCount,
+                email.Stats.SpamCount,
+                email.Stats.LastReadCount,
+                email.Stats.LastArchivedCount,
+                email.Stats.LastNotSpamCount,
+                DateTime.UtcNow
+            );
+        }
+
+        var parameters = new { EmailStats = table.AsTableValuedParameter("EmailStatsType") };
+
+        await _dbConnection.SaveDataAsync(
+            "[dbo].[UpdateEmailStatsBatch]",
+            parameters
+        );
+    }
 }

@@ -98,41 +98,55 @@ namespace RepportingApp.CoreSystem.Multithread
             }
         }
 
-        // Processes a batch of items in chunks
-        private async Task ProcessBatch<T>(Guid taskId, IEnumerable<T>? items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, CancellationToken cancellationToken)
+ 
+        private async Task ProcessBatch<T>(
+            Guid taskId,
+            IEnumerable<T>? items,
+            Func<T, CancellationToken, Task<string>> processFunc,
+            int batchSize,
+            CancellationToken cancellationToken)
         {
             try
             {
+                var taskInfo = await WaitForTaskInfo(taskId, TaskCategory.Active, TimeSpan.FromSeconds(5));
+                if (taskInfo == null)
+                {
+                    // Handle the case where the task is not added within the timeout
+                    throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
+                }
+                var allProcessedItems = new List<object>(); // Collect all processed items
+
                 var itemBatches = items.Batch(batchSize);
                 foreach (var batch in itemBatches)
                 {
                     cancellationToken.ThrowIfCancellationRequested(); // Check for cancellation before processing each batch
-            
+
                     var batchTasks = batch.Select(async item =>
                     {
                         try
                         {
                             string result = await processFunc(item, cancellationToken);
-                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true,result));
+                            allProcessedItems.Add(item); // Collect successfully processed item
+                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true, result));
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)
                         {
-                            // Only handle non-cancellation exceptions at the item level
-                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null));
+                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false, null));
                         }
                     }).ToList();
 
                     await Task.WhenAll(batchTasks); // Wait for the current batch to complete
                 }
 
-                // Signal completion if no cancellation was requested
-                BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId));
+                // Signal completion with processed items
+                BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, allProcessedItems));
             }
             catch (OperationCanceledException)
             {
                 // Handle batch-level cancellation
                 TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Batch process was cancelled")));
-            }  catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, ex));
             }
@@ -140,24 +154,46 @@ namespace RepportingApp.CoreSystem.Multithread
             {
                 _cancellationTokens.TryRemove(taskId, out _);
             }
+            TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
         }
+        private async Task<TaskInfoUiModel?> WaitForTaskInfo(Guid taskId, TaskCategory category, TimeSpan timeout)
+        {
+            var startTime = DateTime.UtcNow;
+            while (DateTime.UtcNow - startTime < timeout)
+            {
+                var taskInfo = _taskInfoManager.GetTasks(category).FirstOrDefault(t => t.TaskId == taskId);
+                if (taskInfo != null)
+                    return taskInfo;
+
+                await Task.Delay(50); // Check every 50ms
+            }
+            return null;
+        }
+
         // Process a looping batch of tasks with specified interval
-        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval, CancellationToken cancellationToken)
+        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval, int repitition ,CancellationToken cancellationToken)
         {
             try
             {
-                while (!cancellationToken.IsCancellationRequested)
+                var tour = 0;
+                var taskInfo = await WaitForTaskInfo(taskId, TaskCategory.Campaign, TimeSpan.FromSeconds(5));
+                if (taskInfo == null)
                 {
-                        DateTime nextRunTime = DateTime.Now + interval;
-                        var taskInfo = _taskInfoManager.GetTasks(TaskCategory.Campaign).FirstOrDefault(t => t.TaskId == taskId);
+                    // Handle the case where the task is not added within the timeout
+                    throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
+                }
+                while (!cancellationToken.IsCancellationRequested && tour < repitition)
+                {
+                        DateTime nextRunTime = DateTime.UtcNow + interval;
+                        
                         UpdateUiThreadValues(()=>
                         {
                             if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Waiting;
                         });
                         // Update remaining time every second
-                        while (DateTime.Now < nextRunTime)
+                        while (DateTime.UtcNow < nextRunTime)
                         {
-                            var remainingTime = nextRunTime - DateTime.Now;
+                            var remainingTime = nextRunTime - DateTime.UtcNow;
                 
                             // Use Dispatcher to update the UI-bound TaskInfo object
                             UpdateUiThreadValues(() =>
@@ -170,18 +206,7 @@ namespace RepportingApp.CoreSystem.Multithread
                        
                             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
                         }
-                    
-                        /*
-                        var relativePath = Path.Combine("Assets", "SFX", "UiSfx.mp3");
-                        using var audioFile = new AudioFileReader(relativePath);
-                        using var outputDevice = new WaveOutEvent();
                         
-                        outputDevice.Init(audioFile);
-                        
-                        outputDevice.Volume = 0.1f;
-
-                        outputDevice.Play();
-                        */
 
                     
                         UpdateUiThreadValues(()=>
@@ -207,15 +232,14 @@ namespace RepportingApp.CoreSystem.Multithread
                                 ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null));
                             }
                         }).ToList();
-
+                        // Signal completion of the batch if no cancellation was requested
+                        BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, null));
                         await Task.WhenAll(batchTasks); // Wait for the current batch to complete
                     }
-
-                    // Signal completion of the batch if no cancellation was requested
-                    BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId));
-
+                    
                     // Delay for the specified interval, unless cancellation is requested
-                    await Task.Delay(interval, cancellationToken);
+                    await Task.Delay(5, cancellationToken);
+                    tour++;
                 }
             }
             catch (OperationCanceledException)
@@ -230,7 +254,9 @@ namespace RepportingApp.CoreSystem.Multithread
             finally
             {
                 _cancellationTokens.TryRemove(taskId, out _);
+                
             }
+            TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
         }
         public Guid StartLoopingTask(Func<CancellationToken, Task> taskFunc, TimeSpan interval)
         {
@@ -243,13 +269,13 @@ namespace RepportingApp.CoreSystem.Multithread
             return taskId;
         }
         // New StartLoopingTaskBatch method
-        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval)
+        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize,int repitition, TimeSpan interval)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
             _cancellationTokens[taskId] = cts;
 
-            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, cts.Token));
+            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, repitition ,cts.Token));
             TryDequeueTask();
 
             return taskId;
@@ -378,8 +404,13 @@ namespace RepportingApp.CoreSystem.Multithread
     public class BatchCompletedEventArgs : EventArgs
     {
         public Guid TaskId { get; }
+        public IEnumerable<object>? ProcessedItems { get; }
 
-        public BatchCompletedEventArgs(Guid taskId) => TaskId = taskId;
+        public BatchCompletedEventArgs(Guid taskId, IEnumerable<object>? processedItems)
+        {
+            TaskId = taskId;
+            ProcessedItems = processedItems;
+        }
     }
 
     public class ItemProcessedEventArgs : EventArgs

@@ -16,7 +16,7 @@ public class ReportingSettingValues
         Thread = int.Parse(configuration["AppSettings:thread"] ?? "0");
         Repetition = int.Parse(configuration["AppSettings:repetition"] ?? "0");
         RepetitionDelay = int.Parse(configuration["AppSettings:repetition_delay"] ?? "0");
-        TimeUntilNextRun = int.Parse(configuration["AppSettings:Interval"] ?? "30");
+        TimeUntilNextRun = int.Parse(configuration["AppSettings:Interval"] ?? "0");
     }
     
     public async Task SaveConfigurationAsync()

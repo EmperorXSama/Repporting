@@ -76,7 +76,14 @@ public class TaskInfoManager :INotifyPropertyChanged
 
     public async void CompleteTask(Guid taskId, TaskCategory category = TaskCategory.Active)
     {
-        TaskInfoUiModel? taskInfo =  GetTasks(TaskCategory.Active).FirstOrDefault(t => t.TaskId == taskId);
+        TaskInfoUiModel? taskInfo =  GetTasks(category).FirstOrDefault(t => t.TaskId == taskId);
+        if (taskInfo == null)
+        {
+            category = TaskCategory.Campaign;
+             taskInfo =  GetTasks(category).FirstOrDefault(t => t.TaskId == taskId);
+        }
+
+        
         if (taskInfo != null)
         {
             await DispatcherHelper.ExecuteOnUIThreadAsync( async () =>

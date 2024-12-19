@@ -9,6 +9,7 @@ public class ApiEndPoints
     public static string DeleteGroup => $"{BaseUrl}/Group/DeleteGroup";
     public static string GetEmails => $"{BaseUrl}/Emails/GetEmails";
     public static string GetAddEmails => $"{BaseUrl}/Emails/AddEmails";
+    public static string UpdateStatsEmails => $"{BaseUrl}/Emails/UpdateStats";
 
     #region other api's endpoints 
 

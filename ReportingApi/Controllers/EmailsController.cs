@@ -37,5 +37,18 @@ namespace ReportingApi.Controllers
               return BadRequest(e.Message);
             }
         }
+        [HttpPost("UpdateStats")]
+        public async Task<IActionResult> UpdateEmailsStats([FromBody] IEnumerable<EmailAccount> emails)
+        {
+            try
+            {
+                await _emailService.UpdateEmailStatsBatchAsync(emails);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+              return BadRequest(e.Message);
+            }
+        }
     }
 }

@@ -57,8 +57,8 @@
 
 
                                                 <!-- Conditionally visible TextBlock for Success Messages -->
-                                                <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2"
-                                                        BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3"
+                                                <Border Margin="0,0,6,0" Width="50" Height="50" Padding="2"
+                                                        BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3"
                                                         BorderThickness="0"
                                                         IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
                                                     <TextBlock VerticalAlignment="Center"
@@ -66,10 +66,10 @@
                                                                Margin="5" FontSize="12"
                                                                FontFamily="{StaticResource Roboto}"
                                                                FontWeight="SemiBold"
-                                                               Foreground="{StaticResource MainAlert}"
+                                                               Foreground="{StaticResource MainGreen}"
                                                                HorizontalAlignment="Center" />
                                                 </Border>
-                                                <Border Padding="2" Width="30" Height="30"
+                                                <Border Padding="2" Width="50" Height="50"
                                                         BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3"
                                                         BorderThickness="0"
                                                         IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
@@ -78,7 +78,7 @@
                                                                Margin="5" FontSize="12"
                                                                FontFamily="{StaticResource Roboto}"
                                                                FontWeight="SemiBold"
-                                                               Foreground="{StaticResource MainGreen}"
+                                                               Foreground="{StaticResource MainAlert}"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center" />
                                                 </Border>

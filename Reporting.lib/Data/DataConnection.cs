@@ -69,10 +69,10 @@ public class DataConnection : IDataConnection
 
         return result;
     }  
-    public async Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TThird,TFourth, TU>(
+    public async Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TThird,TFourth,TFifth, TU>(
         string storeProcedure, 
         TU param, 
-        Func<TPrimary, TSecondary, TThird,TFourth, TPrimary> map, 
+        Func<TPrimary, TSecondary, TThird,TFourth,TFifth, TPrimary> map, 
         string splitOn, 
         string connectionStringName = "Default")
     {
@@ -80,7 +80,7 @@ public class DataConnection : IDataConnection
 
         using IDbConnection connection = new SqlConnection(connectionString);
 
-        var result = await connection.QueryAsync<TPrimary, TSecondary, TThird,TFourth, TPrimary>(
+        var result = await connection.QueryAsync<TPrimary, TSecondary, TThird,TFourth,TFifth, TPrimary>(
             storeProcedure, 
             map,
             param, 

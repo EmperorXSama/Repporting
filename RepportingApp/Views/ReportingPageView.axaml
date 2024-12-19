@@ -836,27 +836,202 @@
                                 </StackPanel>
                                
                             </Border>
-                            <Border Grid.Row="2" >
-                                <ScrollViewer Padding="0,0,0,10">
-                                    <DataGrid 
-                                        ItemsSource="{Binding EmailAccounts}" 
-                                        AutoGenerateColumns="False"
-                                        GridLinesVisibility="Horizontal"
-                                    
-                                        HorizontalAlignment="Center"
-                                        RowHeight="50"
-                                    >
-                                        <DataGrid.Columns>
-                                            <DataGridTextColumn FontFamily="{StaticResource Roboto}"  Header="Email Address" Binding="{Binding EmailAddress}" />
-                                            <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Proxy IP" Binding="{Binding Proxy.ProxyIp}" />
-                                            <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Port" Binding="{Binding Proxy.Port}" />
-                                            <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Group" Binding="{Binding Group.GroupName}" />
-                                            <DataGridTextColumn FontFamily="{StaticResource Roboto}" Header="Status" Binding="{Binding Status}" />
-                                        </DataGrid.Columns>
-                                    </DataGrid>
-                                </ScrollViewer>
-                                
-                            </Border>
+                                <Border Grid.Row="2" Grid.Column="0"
+                                        Background="White"
+                                        Margin="10"
+                                        BorderBrush="#B8B8B8"
+                                        BorderThickness="0"
+                                        CornerRadius="15"
+                                        Padding="15">
+                                    <Grid RowDefinitions="50,*">
+                                        <Border>
+                                            <Grid>
+                                                <TextBlock
+                                                    FontFamily="{StaticResource Roboto}"
+                                                    FontSize="17"
+                                                    FontWeight="ExtraBold"
+                                                    Text="Email Data-Grid"
+                                                    Foreground="{StaticResource TextMain}"
+                                                    VerticalAlignment="Center"/>
+                                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                           Text="{Binding CountFilter}"
+                                                           Foreground="{StaticResource TextMain}"
+                                                           FontFamily="{StaticResource Roboto}"
+                                                           FontWeight="Bold"
+                                                           FontSize="24"></TextBlock>
+                                                <Button x:Name="GridFilterButton" DockPanel.Dock="Right"
+                                                        Background="{StaticResource MainAlert}"
+                                                        Foreground="{StaticResource TentGrey}"
+                                                        Width="100"
+                                                        Padding="3"
+                                                        BorderBrush="#F6F7EB"
+                                                        BorderThickness="2"
+                                                       VerticalAlignment="Center"
+                                                        Command="{Binding ToggleGridFilterPopupCommand}" HorizontalAlignment="Right" >
+                                                    <Button.Styles>
+                                                        <Style Selector="Button">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                        </Style>
+                                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                            <Setter Property="Background" Value="{StaticResource MainAlert}" />
+                                                            <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                           </Style>
+                                                        <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                            <Setter Property="Background" Value="{StaticResource MainAlert}" />
+                                                            <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                        </Style>
+                                                    </Button.Styles>
+                                                    
+                                                    <DockPanel >
+                                                        
+                                                        <TextBlock Text="Filter"
+                                                                   Foreground="#F6F7EB"
+                                                                   FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                        <PathIcon x:Name="FilterIcon" HorizontalAlignment="Right" Foreground="#F6F7EB" Data="{StaticResource GridPopupIconFilter}"></PathIcon>
+                                                    </DockPanel>
+                                                  
+                                                </Button>
+
+                                                <!-- Popup that shows when IsPopupOpen is true -->
+                                                <Popup IsLightDismissEnabled="True" 
+                                                       Width="350"
+                                                       Height="550"
+                                                       PlacementTarget="{Binding ElementName=GridFilterButton}" 
+                                                       IsOpen="{Binding IsGridPopupOpen, Mode=TwoWay}">
+                                                    <Border BorderBrush="#CFD2CD" BorderThickness="1" Background="{StaticResource LightGrey}"
+                                                            CornerRadius="15"
+                                                            Padding="15"
+                                                            Width="350"
+                                                            Height="550"
+                                                          >
+                                                        
+                                                        <Grid RowDefinitions="30, 2,2*, 1,*, 1,*,1,*, 1,*, 1,40"
+                                                            >
+                                                            <TextBlock Text="Filter"
+                                                                       FontFamily="{StaticResource Roboto}"
+                                                                       Foreground="{StaticResource Primary}"
+                                                                       FontWeight="Bold"
+                                                                       HorizontalAlignment="Center"/>
+                                                            <Border Grid.Row="1" Background="{StaticResource Primary}" />
+                                                            <Border Grid.Row="2"
+                                                                    Padding="7,10">
+                                                                <Grid RowDefinitions="30,*">
+                                                                
+                                                                    <TextBlock FontFamily="{StaticResource Roboto}"
+                                                                               Foreground="{StaticResource Primary}"
+                                                                               Text="by Group"/>
+                                                                     
+                                                                
+                                                                    <Border Grid.Row="1" >
+                                                                        <ComboBox   HorizontalAlignment="Stretch"
+                                                                                   VerticalAlignment="Center" 
+                                                                                   PlaceholderText="Group"
+                                                                                   Background="{StaticResource MainWhite}"
+                                                                                   Foreground="{StaticResource Primary}"
+                                                                                   ItemsSource="{Binding Groups}"
+                                                                                   SelectedItem="{Binding SelectedEmailGroupFilter}">
+                                                                                    
+                                                                        </ComboBox>
+                                                                    </Border>
+                                                                  
+                                                                </Grid>
+                                                            </Border> 
+                                                            <Border Grid.Row="3" Background="{StaticResource Primary}" />
+                                                            <Border Grid.Row="4"
+                                                                    Padding="7,10">
+                                                                <Grid RowDefinitions="*">
+                                                                
+                                                                    
+                                                                
+                                                                    <Border  Background="{StaticResource MainWhite}">
+                                                                        <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center"
+                                                                            >
+                                                                           
+                                                                            <CheckBox   HorizontalAlignment="Stretch"
+                                                                                VerticalAlignment="Center" 
+                                                                            IsChecked="{Binding IsGetContainSpam}">
+                                                                                    
+                                                                            </CheckBox>
+                                                                            <TextBlock Text="Contain spam" VerticalAlignment="Center" ></TextBlock>
+                                                                        </StackPanel>
+                                                                        
+                                                                    </Border>
+                                                                  
+                                                                </Grid>
+                                                            </Border>
+                                                            <Border Grid.Row="12"
+                                                                   >
+                                                              
+                                                                    <DockPanel>
+                                                                        <Button Cursor="Hand" HorizontalAlignment="Left" Content="Apply" Command="{Binding FilterTableCommand}">
+                                                                            <Button.Styles>
+                                                                                <Style Selector="Button">
+                                                                                    <Setter Property="Background" Value="{StaticResource Primary}" />
+                                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                                </Style>
+                                                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                                                    <Setter Property="Background" Value="{StaticResource MainWhite}" />
+                                                                                    <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                                                                                </Style>
+                                                                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                                                    <Setter Property="Background" Value="{StaticResource MainWhite}" />
+                                                                                    <Setter Property="Foreground" Value="{StaticResource Secondary}" />
+                                                                                </Style>
+                                                                            </Button.Styles>
+
+                                                                        </Button>
+                                                                        <Button HorizontalAlignment="Right" Content="reset" Command="{Binding ResetFilterTableCommand}" >
+                                                                            <Button.Styles>
+                                                                                <Style Selector="Button">
+                                                                                    <Setter Property="Background" Value="{StaticResource MainRed}" />
+                                                                                    <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
+                                                                                </Style>
+                                                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                                                    <Setter Property="Background" Value="{StaticResource MainWhite}" />
+                                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                                </Style>
+                                                                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                                                    <Setter Property="Background" Value="{StaticResource MainWhite}" />
+                                                                                    <Setter Property="Foreground" Value="{StaticResource MainRed}" />
+                                                                                </Style>
+                                                                            </Button.Styles>
+                                                                        </Button>
+                                                                    </DockPanel>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Border>
+                                                </Popup>
+                                            </Grid>
+                                        </Border>
+                                        <DataGrid
+                                            Grid.Row="1" ItemsSource="{Binding EmailDiaplysTable ,Mode=TwoWay}" 
+                                            AutoGenerateColumns="False"
+                                            GridLinesVisibility="All"
+                                            BorderThickness="1" BorderBrush="{StaticResource Primary}"
+                                            IsReadOnly="True"
+                                            CanUserReorderColumns="True"
+                                           >
+                                            <DataGrid.Styles>
+                                                <Style Selector="DataGridColumnHeader">
+                                                    <Setter Property="Foreground" Value="Black" />
+                                                    <Setter Property="Background" Value="White" />
+                                                    <Setter Property="FontFamily" Value="{StaticResource Roboto}"></Setter>
+                                                </Style>
+                                            </DataGrid.Styles>
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn  Header="Id" Foreground="Black" Binding="{Binding Id}" Width="Auto"/>
+                                                <DataGridTextColumn  Header="EmailAddress" Foreground="Black" Binding="{Binding EmailAddress}" Width="Auto"/>
+                                                <DataGridTextColumn Header="Group" Foreground="Black" Binding="{Binding Group.GroupName}" Width="Auto"/>
+                                                <DataGridTextColumn Header="Inbox count" Foreground="Black" Binding="{Binding Stats.InboxCount}" Width="*"/>
+                                                <DataGridTextColumn Header="Spam count" Foreground="Black" Binding="{Binding Stats.SpamCount}" Width="*"/>
+                                                <DataGridTextColumn Header="last archive" Foreground="Black" Binding="{Binding Stats.LastArchivedCount}" Width="*"/>
+                                                <DataGridTextColumn Header="last read" Foreground="Black" Binding="{Binding Stats.LastReadCount}" Width="*"/>
+                                                <DataGridTextColumn Header="last reported count" Foreground="Black" Binding="{Binding Stats.LastNotSpamCount}" Width="*"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Grid>
+                    
+                         </Border>
                            
                         </Grid>
                         <!--<StackPanel Grid.Row="3" Grid.Column="2">
@@ -1458,7 +1633,7 @@
                                                     </Border>
                                                   
                                                     
-                                                    <TextBox Text="{Binding SubjectFileName}"
+                                                    <TextBox Text="{Binding CountFileName}"
                                                              Watermark="file name"
                                                              BorderThickness="0" VerticalAlignment="Center" Background="White"
                                                              
@@ -1646,14 +1821,14 @@
                                                                       
                                                                         
                                                                                 <!-- Conditionally visible TextBlock for Success Messages -->
-                                                                                <Border Margin="0,0,6,0" Width="30" Height="30" Padding="2" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                <Border Margin="0,0,6,0" Width="50" Height="50" Padding="2" BorderBrush="{StaticResource SecondaryGreen}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
                                                                                     <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
                                                                                         Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
                                                                                         FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
                                                                                         HorizontalAlignment="Center"
                                                                                        />
                                                                                 </Border>    
-                                                                                <Border Padding="2" Width="30" Height="30" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
+                                                                                <Border Padding="2" Width="50" Height="50" BorderBrush="{StaticResource SecondaryAlert}" CornerRadius="3" BorderThickness="0"  IsVisible="{Binding TakInfoType, Converter={StaticResource TaskInfoTypeToVisibilityConverter}}">
                                                                                     <!-- Conditionally visible TextBlock for Failed Messages -->
                                                                                     <TextBlock Text="{Binding ItemFailedMessasges.Count}"
                                                                                         Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 

@@ -24,10 +24,10 @@ public interface IDataConnection
         string splitOn,
         string connectionStringName = "Default");
 
-    Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TThird, TFourth, TU>(
+    Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TThird, TFourth, TFifth, TU>(
         string storeProcedure,
         TU param,
-        Func<TPrimary, TSecondary, TThird, TFourth, TPrimary> map,
+        Func<TPrimary, TSecondary, TThird, TFourth, TFifth, TPrimary> map,
         string splitOn,
         string connectionStringName = "Default");
 }

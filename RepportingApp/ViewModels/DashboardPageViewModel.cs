@@ -321,17 +321,17 @@ protected override async Task OnProcessFinished(string type, string processName,
     await ShowToast(type,processName, parameters);
 }
 
-public async Task LoadDataIfFirstVisitAsync()
-{
-    //NetworkItems = EmailCoreData.GetEmailCoreData(); dummy data 
-    var emailAccountsApiResult = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);
-    NetworkItems = emailAccountsApiResult.ToObservableCollection();
-    EmailDiaplysTable = NetworkItems;
-    CountFilter = EmailDiaplysTable.Count();
-    TotalEmails = NetworkItems.Count();
-    var emailGroupsApi = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
-    DatabaseGroups = emailGroupsApi.ToObservableCollection();
-    //IdLifeSpan = Logic.GetAverageIdLifespan(NetworkItems);
-}
+    public async Task LoadDataIfFirstVisitAsync()
+    {
+        //NetworkItems = EmailCoreData.GetEmailCoreData(); dummy data 
+        var emailAccountsApiResult = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);
+        NetworkItems = emailAccountsApiResult.ToObservableCollection();
+        EmailDiaplysTable = NetworkItems;
+        CountFilter = EmailDiaplysTable.Count();
+        TotalEmails = NetworkItems.Count();
+        var emailGroupsApi = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups);
+        DatabaseGroups = emailGroupsApi.ToObservableCollection();
+        //IdLifeSpan = Logic.GetAverageIdLifespan(NetworkItems);
+    }
 }
 

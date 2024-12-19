@@ -9,9 +9,10 @@
     <Border
         Padding="9"
         Margin="0,0,0,15">
-        <Grid ColumnDefinitions="*,10,*,10,*"
+        <Grid ColumnDefinitions="*"
               RowDefinitions="*,10,*">
-            <StackPanel DockPanel.Dock="Left">
+            <Grid   RowDefinitions="*,10,*,10,*">
+                 <StackPanel DockPanel.Dock="Left">
                 <StackPanel Orientation="Horizontal">
                     <PathIcon
                         Margin="0,0,4,0"
@@ -21,26 +22,51 @@
                         Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
                         <ToolTip.Tip>
                             <StackPanel>
+                                <!-- Title -->
                                 <TextBlock FontSize="16" HorizontalAlignment="Center"
                                            Foreground="{StaticResource Secondary}"
                                            FontFamily="{StaticResource Roboto}">
-                                    Bulk TH
+                                    الحد الأدنى لتفعيل الوضع الجماعي
                                 </TextBlock>
-                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
+
+                                <!-- Description -->
+                                <TextBlock FontSize="14" FontWeight="Light" TextWrapping="Wrap" Margin="10,5,10,0"
                                            Foreground="{StaticResource Secondary}"
                                            FontFamily="{StaticResource Roboto}">
-                                    سيتم استخدام القيمة لتحديد عدد حسابات البريد الإلكتروني التي سيتم معالجتها في كل مرة.
-                                    مثال: إذا كان لديك 500 حساب بريد إلكتروني وقمت بتحديد 50، فإن النظام سيقسم 500/50 وسيعالج كل مرة مجموعة من 50 حسابًا.
+                                    عندما يتجاوز عدد الرسائل هذه القيمة، ستقوم العملية باستخدام الوضع الجماعي (Bulk) لمعالجة الرسائل على شكل دفعات.
+                                    إذا كان العدد أقل من هذه القيمة، ستتم معالجة الرسائل باستخدام الوضع الفردي (Single). يمكن التحكم بالسلوك بناءً على الحالات التالية:
+                                </TextBlock>
+
+                                <!-- Case -1 -->
+                                <TextBlock FontSize="14" FontWeight="Light" TextWrapping="Wrap" Margin="10,5,10,0"
+                                           Foreground="{StaticResource Secondary}"
+                                           FontFamily="{StaticResource Roboto}">
+                                    - إذا كانت القيمة -1: يتم تعطيل الوضع الجماعي تمامًا، وتتم معالجة جميع الرسائل بشكل فردي.
+                                </TextBlock>
+
+                                <!-- Case 0 -->
+                                <TextBlock FontSize="14" FontWeight="Light" TextWrapping="Wrap" Margin="10,5,10,0"
+                                           Foreground="{StaticResource Secondary}"
+                                           FontFamily="{StaticResource Roboto}">
+                                    - إذا كانت القيمة 0: يتم تفعيل الوضع الجماعي دائمًا بغض النظر عن عدد الرسائل.
+                                </TextBlock>
+
+                                <!-- Case > 0 -->
+                                <TextBlock FontSize="14" FontWeight="Light" TextWrapping="Wrap" Margin="10,5,10,0"
+                                           Foreground="{StaticResource Secondary}"
+                                           FontFamily="{StaticResource Roboto}">
+                                    - إذا كانت القيمة > 0: يتم تفعيل الوضع الجماعي فقط عندما يتجاوز عدد الرسائل هذا الحد الأدنى.
                                 </TextBlock>
                             </StackPanel>
                         </ToolTip.Tip>
 
+
                     </PathIcon>
                     <TextBlock
                         FontFamily="{StaticResource Roboto}"
-                        FontSize="14"
+                        FontSize="13"
                         FontWeight="Light"
-                        Text="Bulk TH"
+                        Text="الحد الأدنى لتفعيل الوضع الجماعي"
                         Foreground="{StaticResource Secondary}" />
                 </StackPanel>
                 <TextBox
@@ -59,107 +85,109 @@
                     </TextBox.Styles>
                 </TextBox>
             </StackPanel>
-            <StackPanel Grid.Row="0" Grid.Column="2" DockPanel.Dock="Left">
-                <StackPanel Orientation="Horizontal">
-                    <PathIcon
+                    <StackPanel Grid.Row="2"  DockPanel.Dock="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <PathIcon
 
-                        Margin="0,0,4,0"
-                        FontFamily="{StaticResource Roboto}"
-                        Width="14"
-                        FontWeight="Light"
+                                Margin="0,0,4,0"
+                                FontFamily="{StaticResource Roboto}"
+                                Width="14"
+                                FontWeight="Light"
 
-                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
-                        <ToolTip.Tip>
-                            <StackPanel>
-                                <TextBlock FontSize="16" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    Single TH
-                                </TextBlock>
-                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    سيتم استخدام هذه القيمة لتحديد عدد المرات التي سيعيد فيها النظام تنفيذ العملية.
+                                Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                <ToolTip.Tip>
+                                    <StackPanel>
+                                        <TextBlock FontSize="16" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            Single TH
+                                        </TextBlock>
+                                        <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            سيتم استخدام هذه القيمة لتحديد عدد المرات التي سيعيد فيها النظام تنفيذ العملية.
 
-                                    على سبيل المثال، إذا قمت بتعيينها على 2، فعند انتهاء العملية ستبدأ من جديد (سيتم التعامل مع حسابات البريد الإلكتروني التي فشلت خلال التشغيل الأول بطريقة مختلفة).
-                                </TextBlock>
-                            </StackPanel>
-                        </ToolTip.Tip>
+                                            على سبيل المثال، إذا قمت بتعيينها على 2، فعند انتهاء العملية ستبدأ من جديد (سيتم التعامل مع حسابات البريد الإلكتروني التي فشلت خلال التشغيل الأول بطريقة مختلفة).
+                                        </TextBlock>
+                                    </StackPanel>
+                                </ToolTip.Tip>
 
-                    </PathIcon>
-                    <TextBlock
-                        FontFamily="{StaticResource Roboto}"
-                        FontSize="14"
-                        Foreground="{StaticResource Secondary}"
-                        FontWeight="SemiLight"
-                        Text="Single TH" />
-                </StackPanel>
-                <TextBox
-                    Watermark="Ex : 2"
-                    Padding="5"
-                    FontFamily="{StaticResource Roboto}"
-                    HorizontalContentAlignment="Center"
-                    BorderThickness="1"
-                    BorderBrush="{StaticResource Primary}"
-                    Text="{Binding MarkMessagesAsNotSpamConfig.SingleThreshold,Mode=TwoWay}">
-                    <TextBox.Styles>
-                        <Style Selector="TextBox:pressed /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                        <Style Selector="TextBox:pointerover /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                    </TextBox.Styles>
-                </TextBox>
-            </StackPanel>
-            <StackPanel Grid.Row="0" Grid.Column="4" DockPanel.Dock="Right">
-                <StackPanel Orientation="Horizontal">
-                    <PathIcon
-                        Margin="0,0,4,0"
-                        FontFamily="{StaticResource Roboto}"
-                        Width="14"
-                        FontWeight="Light"
-                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
-                        <ToolTip.Tip>
-                            <StackPanel>
-                                <TextBlock FontSize="16" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    Bulk Count
-                                </TextBlock>
-                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
-                                           Foreground="{StaticResource Secondary}"
-                                           FontFamily="{StaticResource Roboto}">
-                                    ستُستخدم هذه القيمة لتعيين مؤقت بالدقائق، بحيث ينتظر النظام بين كل تكرار للعملية.
+                            </PathIcon>
+                            <TextBlock
+                                FontFamily="{StaticResource Roboto}"
+                                FontSize="14"
+                                Foreground="{StaticResource Secondary}"
+                                FontWeight="SemiLight"
+                                Text="Single TH" />
+                        </StackPanel>
+                        <TextBox
+                            Watermark="Ex : 2"
+                            Padding="5"
+                            FontFamily="{StaticResource Roboto}"
+                            HorizontalContentAlignment="Center"
+                            BorderThickness="1"
+                            BorderBrush="{StaticResource Primary}"
+                            Text="{Binding MarkMessagesAsNotSpamConfig.SingleThreshold,Mode=TwoWay}">
+                            <TextBox.Styles>
+                                <Style Selector="TextBox:pressed /template/ Border">
+                                    <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                </Style>
+                                <Style Selector="TextBox:pointerover /template/ Border">
+                                    <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                </Style>
+                            </TextBox.Styles>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Grid.Row="4"  DockPanel.Dock="Right">
+                        <StackPanel Orientation="Horizontal">
+                            <PathIcon
+                                Margin="0,0,4,0"
+                                FontFamily="{StaticResource Roboto}"
+                                Width="14"
+                                FontWeight="Light"
+                                Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                <ToolTip.Tip>
+                                    <StackPanel>
+                                        <TextBlock FontSize="16" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            Bulk Count
+                                        </TextBlock>
+                                        <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource Secondary}"
+                                                   FontFamily="{StaticResource Roboto}">
+                                            ستُستخدم هذه القيمة لتعيين مؤقت بالدقائق، بحيث ينتظر النظام بين كل تكرار للعملية.
 
-                                    على سبيل المثال، إذا تم تعيينه على 30، فإن النظام سينتظر 30 دقيقة بعد التكرار الأول قبل بدء التكرار الثاني.
-                                </TextBlock>
-                            </StackPanel>
-                        </ToolTip.Tip>
-                    </PathIcon>
-                    <TextBlock
-                        FontFamily="{StaticResource Roboto}"
-                        FontSize="14"
-                        Foreground="{StaticResource Secondary}"
-                        FontWeight="SemiLight"
-                        Text="Bulk Count" />
-                </StackPanel>
-                <TextBox
-                    Watermark="Ex : 30"
-                    Padding="5"
-                    FontFamily="{StaticResource Roboto}"
-                    HorizontalContentAlignment="Center"
-                    Text="{Binding MarkMessagesAsNotSpamConfig.BulkChunkSize,Mode=TwoWay}">
-                    <TextBox.Styles>
-                        <Style Selector="TextBox:pressed /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                        <Style Selector="TextBox:pointerover /template/ Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
-                        </Style>
-                    </TextBox.Styles>
-                </TextBox>
-            </StackPanel>
+                                            على سبيل المثال، إذا تم تعيينه على 30، فإن النظام سينتظر 30 دقيقة بعد التكرار الأول قبل بدء التكرار الثاني.
+                                        </TextBlock>
+                                    </StackPanel>
+                                </ToolTip.Tip>
+                            </PathIcon>
+                            <TextBlock
+                                FontFamily="{StaticResource Roboto}"
+                                FontSize="14"
+                                Foreground="{StaticResource Secondary}"
+                                FontWeight="SemiLight"
+                                Text="Bulk Count" />
+                        </StackPanel>
+                        <TextBox
+                            Watermark="Ex : 30"
+                            Padding="5"
+                            FontFamily="{StaticResource Roboto}"
+                            HorizontalContentAlignment="Center"
+                            Text="{Binding MarkMessagesAsNotSpamConfig.BulkChunkSize,Mode=TwoWay}">
+                            <TextBox.Styles>
+                                <Style Selector="TextBox:pressed /template/ Border">
+                                    <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                </Style>
+                                <Style Selector="TextBox:pointerover /template/ Border">
+                                    <Setter Property="BorderBrush" Value="{StaticResource Secondary}" />
+                                </Style>
+                            </TextBox.Styles>
+                        </TextBox>
+                    </StackPanel>
+            </Grid>
+           
 
             <!--min max messages value to read-->
             <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" IsEnabled="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.IsPreReporting}">

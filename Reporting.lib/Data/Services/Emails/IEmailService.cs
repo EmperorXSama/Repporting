@@ -12,4 +12,5 @@ public interface IEmailService
         int? groupId = null,
         string? groupName = null);
     Task<IEnumerable<EmailAccount>> GetEmailsByGroupAsync(int groupId);
+    Task UpdateEmailStatsBatchAsync(IEnumerable<EmailAccount> emailAccounts);
 }
