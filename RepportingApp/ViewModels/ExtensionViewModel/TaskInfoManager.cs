@@ -49,6 +49,7 @@ public class TaskInfoManager :INotifyPropertyChanged
         _taskCollections = new Dictionary<TaskCategory, ObservableCollection<TaskInfoUiModel?>>
         {
             { TaskCategory.Active, new ObservableCollection<TaskInfoUiModel?>() },
+            { TaskCategory.Invincible, new ObservableCollection<TaskInfoUiModel?>() },
             { TaskCategory.Notification, new ObservableCollection<TaskInfoUiModel?>() },
             { TaskCategory.Campaign, new ObservableCollection<TaskInfoUiModel?>() }
         };
@@ -99,12 +100,12 @@ public class TaskInfoManager :INotifyPropertyChanged
                         taskInfo.AssignedEmailsDisplayInfo.Remove(email);
                     }
                 }
-                // todo : when email is failed should be transferred into another list to be traited
+              
             });
 
-
+            MoveTaskToCategory(taskId, category, TaskCategory.Notification);
         }
-        MoveTaskToCategory(taskId, category, TaskCategory.Notification);
+        
         
     }
     private void SetIntervalWhenTaskFinished(TaskInfoUiModel? taskInfo)
@@ -124,6 +125,7 @@ public class TaskInfoManager :INotifyPropertyChanged
 public enum TaskCategory
 {
     Active,
+    Invincible,
     Notification,
     Campaign,
 }

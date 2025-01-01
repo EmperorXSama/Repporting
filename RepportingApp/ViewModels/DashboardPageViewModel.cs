@@ -321,7 +321,7 @@ protected override async Task OnProcessFinished(string type, string processName,
     await ShowToast(type,processName, parameters);
 }
 
-    public async Task LoadDataIfFirstVisitAsync()
+    public async Task LoadDataIfFirstVisitAsync(bool ignoreCache = false)
     {
         //NetworkItems = EmailCoreData.GetEmailCoreData(); dummy data 
         var emailAccountsApiResult = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails);

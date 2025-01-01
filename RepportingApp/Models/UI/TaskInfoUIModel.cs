@@ -21,7 +21,9 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     private string softColor = ""; 
     [ObservableProperty] private bool _isMoreDetailNeeded = false;
+    [ObservableProperty] private bool _isErrorTypeNeeded = false;
     [ObservableProperty] private bool _isConsoleNeeded = false;
+
 
     [ObservableProperty]
     private ICommand cancelCommand;
@@ -30,7 +32,7 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty] private string startTime;
     [ObservableProperty] private string finishedTime;
     [ObservableProperty] private TimeSpan _interval;
-    
+    [ObservableProperty] private ObservableCollection<KeyValuePair<string, int>> _uniqueErrorMessages = new();
     [ObservableProperty]
     public ObservableCollection<ItemInfo> _itemSuccesMessasges  = new ObservableCollection<ItemInfo>();
     [ObservableProperty]  public ObservableCollection<ItemInfo> _itemFailedMessasges  = new ObservableCollection<ItemInfo>();
@@ -73,6 +75,11 @@ public partial class TaskInfoUiModel : ObservableObject
     private void ToggleViewMoreDetails()
     {
         IsMoreDetailNeeded = !IsMoreDetailNeeded;
+    } 
+    [RelayCommand]
+    private void ToggleErrorType()
+    {
+        IsErrorTypeNeeded = !IsErrorTypeNeeded;
     }
     [RelayCommand]
     private void ToggleViewConsoleDetails()

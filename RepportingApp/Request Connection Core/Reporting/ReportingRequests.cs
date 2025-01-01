@@ -1,13 +1,13 @@
-﻿using Reporting.lib.Models.Secondary;
+﻿using System.Net.Sockets;
+using Polly;
+using Reporting.lib.Models.Secondary;
 
 namespace RepportingApp.Request_Connection_Core.Reporting;
 
 public class ReportingRequests : IReportingRequests
 {
     private readonly IApiConnector _apiConnector;
-
-    // reporting headers 
-    private Dictionary<string, string> _headers = new Dictionary<string, string>();
+    
     
     
     public ReportingRequests(IApiConnector apiConnector)
@@ -70,89 +70,95 @@ public class ReportingRequests : IReportingRequests
             
             return new ReturnTypeObject(){Message = result};
     }  
-    public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount, 
-        MarkMessagesAsReadConfig config)
+    public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount, MarkMessagesAsReadConfig config)
     {
         CheckEmailMetaData(emailAccount);
-        // Fetch messages from the spam folder with pagination
+
         var messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
         if (!messages.Any())
         {
             return new ReturnTypeObject
             {
-                Message = $" spam empty"
+                Message = $"Spam empty"
             };
         }
+
         int totalMessages = 0;
         int processedMessages = 0;
-        // start pre reporting 
+
         if (config.PreReportingSettings.IsPreReporting)
         {
             await ProcessMarkMessagesAsReadFromDir(emailAccount, config);
             await ProcessArchiveMessages(emailAccount, config);
         }
-        // start reporting logic
+
         while (true)
         {
-            // Fetch messages from the spam folder with pagination
             messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
-        
+
             if (!messages.Any())
             {
                 break; // No more messages to process
             }
 
-            // Set totalMessages once based on folder metadata
             if (totalMessages == 0)
             {
                 totalMessages = messages[0].folder.total;
             }
 
-            // Process the messages
             processedMessages += await MarkMessagesAsNotSpam(
                 emailAccount, messages, config.BulkThreshold, config.BulkChunkSize, config.SingleThreshold);
-            
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
         }
+
+        if (emailAccount.Stats == null)
+            emailAccount.Stats = new EmailAccountStats();
+
         emailAccount.Stats.LastNotSpamCount = processedMessages;
         return new ReturnTypeObject
         {
             Message = $"Marked messages: {processedMessages} out of {totalMessages}"
         };
     }
-    
+
    
-    private async Task<ObservableCollection<FolderMessages>> GetMessagesFromFolder(EmailAccount emailAccount , string dirId)
+    private async Task<ObservableCollection<FolderMessages>> GetMessagesFromFolder(EmailAccount emailAccount, string dirId)
     {
-        try
+        var headers = PopulateHeaders(emailAccount);
+        var retryPolicy = Policy
+            .Handle<SocketException>()
+            .Or<HttpRequestException>()
+            .Or<Exception>(ex => ex.Message.Contains("BadRequest") || ex.Message.Contains("Proxy error"))
+            .WaitAndRetryAsync(
+                3, 
+                retryAttempt => TimeSpan.FromSeconds(2) 
+            );
+
+        return await retryPolicy.ExecuteAsync(async () =>
         {
-           
             string endpoint = GenerateEndpoint(emailAccount, EndpointType.ReadSync);
             PopulateHeaders(emailAccount);
             string payload = PayloadManager.GetCorrectFolderPayload(emailAccount.MetaIds.MailId, dirId);
-            string response = await _apiConnector.PostDataAsync<string>(
+            string response = await _apiConnector.PostDataAsync<string>(emailAccount,
                 endpoint,
                 payload,
-                _headers,
+                headers,
                 emailAccount.Proxy
             );
-        
+
             var jsonResponse = JsonConvert.DeserializeObject<InboxRootObject>(response);
             InboxResult res = jsonResponse.result;
             InboxResponses[] responses = res.responses;
             InboxResponse resp = responses[1].response;
+
             ObservableCollection<FolderMessages> result = new();
             if (resp.result.messages != null)
             {
                 result = resp.result.messages;
             }
             return result;
-        }
-        catch (Exception e)
-        {
-            throw new Exception($"[Request Error] {e.Message}");
-        }
-        
-        
+        });
     }
 
     #region Pre reporting calls
@@ -161,6 +167,7 @@ public class ReportingRequests : IReportingRequests
         IEnumerable<FolderMessages> messages,
         int  bulkThreshold,int bulkChunkSize,int singleThreshold,int minMessagesValue,int maxMessagesValue)
     {
+        var headers = PopulateHeaders(emailAccount);
         int marked = 0;
         int numberOfMessagesToMarkAsRead = RandomGenerator.GetRandomBetween2Numbers(minMessagesValue, maxMessagesValue);
         ObservableCollection<FolderMessages> messagesToMarkAsRead = new ObservableCollection<FolderMessages>();
@@ -192,7 +199,7 @@ public class ReportingRequests : IReportingRequests
                     PopulateHeaders(emailAccount);
 
                     // Send the request
-                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
                     var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
 
                     // Ensure the request was successful
@@ -228,7 +235,7 @@ public class ReportingRequests : IReportingRequests
                     PopulateHeaders(emailAccount);
 
                     // Send the request
-                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
                     var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
 
                     // Ensure the request was successful
@@ -269,6 +276,7 @@ public class ReportingRequests : IReportingRequests
         IEnumerable<FolderMessages> messages,
         int  bulkThreshold,int bulkChunkSize,int singleThreshold,int minMessagesValue,int maxMessagesValue)
     {
+        var headers = PopulateHeaders(emailAccount);
         int marked = 0;
         int numberOfMessagesToMarkAsRead = RandomGenerator.GetRandomBetween2Numbers(minMessagesValue, maxMessagesValue);
         ObservableCollection<FolderMessages> messagesToArchive = new ObservableCollection<FolderMessages>();
@@ -298,7 +306,7 @@ public class ReportingRequests : IReportingRequests
                     PopulateHeaders(emailAccount);
 
                     // Send the request
-                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
                     var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
 
                     // Ensure the request was successful
@@ -334,7 +342,7 @@ public class ReportingRequests : IReportingRequests
                     PopulateHeaders(emailAccount);
 
                     // Send the request
-                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
                     var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
 
                     // Ensure the request was successful
@@ -381,6 +389,7 @@ public class ReportingRequests : IReportingRequests
             int bulkChunkSize,
             int singleThreshold)
         {
+            var headers = PopulateHeaders(emailAccount);
             int marked = 0;
             var folderMessagesArray = messages.ToArray();
 
@@ -398,7 +407,7 @@ public class ReportingRequests : IReportingRequests
                     string endpoint = GenerateEndpoint(emailAccount, EndpointType.UnifiedUpdate);
                     PopulateHeaders(emailAccount);
 
-                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
                     var responseMessage = JsonConvert.DeserializeObject<MNSRootObject>(response);
 
                     if (responseMessage.result.status.successRequests.Any())
@@ -431,7 +440,7 @@ public class ReportingRequests : IReportingRequests
                     string endpoint = GenerateEndpoint(emailAccount, EndpointType.UnifiedUpdate);
                     PopulateHeaders(emailAccount);
 
-                    string response = await _apiConnector.PostDataAsync<string>(endpoint, payload, _headers, emailAccount.Proxy);
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
                     var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
                     responseMessage?.EnsureSuccessStatusCode();
 
@@ -463,9 +472,9 @@ public class ReportingRequests : IReportingRequests
     
     #endregion
     
-    private void PopulateHeaders(EmailAccount emailAccount) 
+    private Dictionary<string, string> PopulateHeaders(EmailAccount emailAccount)
     {
-        _headers = new Dictionary<string, string>
+        return new Dictionary<string, string>
         {
             { "accept", "application/json" },
             { "accept-language", "en-US,en;q=0.9" },
@@ -480,9 +489,10 @@ public class ReportingRequests : IReportingRequests
             { "sec-fetch-mode", "cors" },
             { "sec-fetch-site", "same-origin" },
             { "user-agent", emailAccount.UserAgent },
-            { "cookie", emailAccount.MetaIds.Cookie } 
+            { "cookie", emailAccount.MetaIds.Cookie.Trim() }
         };
     }
+
 
     private string GenerateEndpoint(EmailAccount emailAccount, EndpointType endpointType)
     {

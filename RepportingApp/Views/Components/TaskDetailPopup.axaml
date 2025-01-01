@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="1000"
              x:Class="RepportingApp.Views.Components.TaskDetailPopup"
-             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:ui="clr-namespace:RepportingApp.Models.UI"
              x:DataType="ui:TaskInfoUiModel">
 <Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15" Width="1200" Height="800">
@@ -20,56 +19,77 @@
                     </TextBlock>
                 </Border>
                 <!-- Success Messages Dropdown -->
-                <Expander  Background="{StaticResource LightGrey}" IsExpanded="False" Width="260">
+                <Expander Background="{StaticResource LightGrey}" IsExpanded="False" Width="260">
                     <Expander.Header>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <!-- PathIcon -->
-                            <PathIcon Data="{StaticResource SuccessItemsListIcon}" Width="16" Height="16" Foreground="{StaticResource  SecondaryGreen}" />
-            
+                            <PathIcon Data="{StaticResource SuccessItemsListIcon}" Width="16" Height="16" Foreground="{StaticResource SecondaryGreen}" />
+
                             <!-- Header Text -->
-                            <TextBlock FontFamily="{StaticResource Roboto}"  Text="Successful Items" FontWeight="SemiBold" Foreground="Black" />
-                            
-                            <TextBlock FontFamily="{StaticResource Roboto}"  Text="{Binding ItemSuccesMessasges.Count}" FontWeight="Light" Foreground="{StaticResource  SecondaryGreen}" />
+                            <TextBlock FontFamily="{StaticResource Roboto}" Text="Successful Items" FontWeight="SemiBold" Foreground="Black" />
+
+                            <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding ItemSuccesMessasges.Count}" FontWeight="Light" Foreground="{StaticResource SecondaryGreen}" />
                         </StackPanel>
                     </Expander.Header>
-                    <ListBox ItemsSource="{Binding ItemSuccesMessasges}" Background="Transparent" SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="White" Padding="9" CornerRadius="9" Cursor="Hand">
-                                    <TextBlock Text="{Binding Email.EmailAddress}" FontWeight="SemiLight" Foreground="{StaticResource TextMain}"
-                                               FontFamily="{StaticResource Roboto}"/>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Expander>
-                    
-                    <!-- Failed Messages Dropdown -->
-                    <Expander Background="{StaticResource LightGrey}" IsExpanded="False" Width="260">
-                        <Expander.Header>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <!-- PathIcon -->
-                                <PathIcon Data="{StaticResource FailedItemsListIcon}" Width="16" Height="16" Foreground="{StaticResource MainAlert}" />
-            
-                                <!-- Header Text -->
-                                <TextBlock FontFamily="{StaticResource Roboto}" Text="Failed Items" FontWeight="SemiBold" Foreground="Black" />
-                                
-                                <TextBlock FontFamily="{StaticResource Roboto}"  Text="{Binding ItemFailedMessasges.Count}" FontWeight="Light" Foreground="{StaticResource  MainAlert}" />
-                            </StackPanel>
-                        </Expander.Header>
 
-                        <ListBox ItemsSource="{Binding ItemFailedMessasges}" Background="Transparent" SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="White" Padding="9" CornerRadius="9" Cursor="Hand">
-                                        <TextBlock Text="{Binding Email.EmailAddress}" FontWeight="SemiLight" Foreground="{StaticResource TextMain}"
-                                                   FontFamily="{StaticResource Roboto}"/>
-                                    </Border>
-                                    
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Expander>
+                    <!-- Grid Layout -->
+                    <Grid>
+                        <!-- Define a single row that takes available space -->
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Scrollable ListBox -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ListBox ItemsSource="{Binding ItemSuccesMessasges}" Background="Transparent" SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="White" Padding="9" CornerRadius="9" Cursor="Hand">
+                                            <TextBlock Text="{Binding Email.EmailAddress}" FontWeight="SemiLight" Foreground="{StaticResource TextMain}" FontFamily="{StaticResource Roboto}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ScrollViewer>
+                    </Grid>
+                </Expander>
+
+                    
+                <Expander Background="{StaticResource LightGrey}" IsExpanded="False" Width="260">
+                    <Expander.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <!-- PathIcon -->
+                            <PathIcon Data="{StaticResource FailedItemsListIcon}" Width="16" Height="16" Foreground="{StaticResource MainAlert}" />
+
+                            <!-- Header Text -->
+                            <TextBlock FontFamily="{StaticResource Roboto}" Text="Failed Items" FontWeight="SemiBold" Foreground="Black" />
+
+                            <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding ItemFailedMessasges.Count}" FontWeight="Light" Foreground="{StaticResource MainAlert}" />
+                        </StackPanel>
+                    </Expander.Header>
+
+                    <!-- Grid Layout -->
+                    <Grid>
+                        <!-- Define a single row that takes available space -->
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Scrollable ListBox -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ListBox ItemsSource="{Binding ItemFailedMessasges}" Background="Transparent" SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="White" Padding="9" CornerRadius="9" Cursor="Hand">
+                                            <TextBlock Text="{Binding Email.EmailAddress}" FontWeight="SemiLight" Foreground="{StaticResource TextMain}" FontFamily="{StaticResource Roboto}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ScrollViewer>
+                    </Grid>
+                </Expander>
+
                 
                 <Button Background="Transparent"  Command="{Binding DownloadFailedEmailsCommand}" VerticalAlignment="Bottom" Cursor="Hand">
                     <StackPanel Orientation="Vertical">

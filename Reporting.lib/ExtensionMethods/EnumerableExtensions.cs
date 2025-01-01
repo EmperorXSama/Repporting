@@ -19,4 +19,16 @@ public static class EnumerableExtensions
             yield return batch;
         }
     }
+    public static  List<List<T>> SplitList<T>(this List<T> source, int chunks)
+    {
+        var result = new List<List<T>>();
+        int chunkSize = (int)Math.Ceiling(source.Count / (double)chunks);
+
+        for (int i = 0; i < source.Count; i += chunkSize)
+        {
+            result.Add(source.GetRange(i, Math.Min(chunkSize, source.Count - i)));
+        }
+        return result;
+    }
+
 }

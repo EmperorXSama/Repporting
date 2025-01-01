@@ -40,13 +40,13 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Start a batch of tasks with specified batch size
-        public Guid StartBatch<T>(IEnumerable<T>? items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize = 30)
+        public Guid StartBatch<T>(IEnumerable<T>? items, Func<T, CancellationToken, Task<string>> processFunc,TaskCategory taskCategory = TaskCategory.Active, int batchSize = 30)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
             _cancellationTokens[taskId] = cts;
 
-            _taskQueue.Enqueue(() => ProcessBatch(taskId, items, processFunc, batchSize, cts.Token));
+            _taskQueue.Enqueue(() => ProcessBatch(taskId, items, processFunc, batchSize,taskCategory, cts.Token));
             TryDequeueTask();
 
             return taskId;
@@ -104,42 +104,52 @@ namespace RepportingApp.CoreSystem.Multithread
             IEnumerable<T>? items,
             Func<T, CancellationToken, Task<string>> processFunc,
             int batchSize,
+            TaskCategory taskCategory,
             CancellationToken cancellationToken)
         {
             try
             {
-                var taskInfo = await WaitForTaskInfo(taskId, TaskCategory.Active, TimeSpan.FromSeconds(5));
-                if (taskInfo == null)
-                {
-                    // Handle the case where the task is not added within the timeout
-                    throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
-                }
-                var allProcessedItems = new List<object>(); // Collect all processed items
 
+                if (taskCategory != TaskCategory.Invincible)
+                {
+                    var taskInfo = await WaitForTaskInfo(taskId, taskCategory, TimeSpan.FromSeconds(10));
+                    if (taskInfo == null)
+                    {
+                        // Handle the case where the task is not added within the timeout
+                        throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
+                    }
+                }
+             
+                var allProcessedItems = new List<object>(); // Collect all processed items
                 var itemBatches = items.Batch(batchSize);
+                
+                //Random random = new Random();
+               
                 foreach (var batch in itemBatches)
                 {
-                    cancellationToken.ThrowIfCancellationRequested(); // Check for cancellation before processing each batch
-
+                    //var itemBatches2 = batch.ToList();
+                    cancellationToken.ThrowIfCancellationRequested(); 
+                    //var y =  random.Next(1000, 9999);
+                    //itemBatches2.WriteListLine($"EmaulAcc{y}.txt");
                     var batchTasks = batch.Select(async item =>
                     {
                         try
                         {
                             string result = await processFunc(item, cancellationToken);
                             allProcessedItems.Add(item); // Collect successfully processed item
-                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true, result));
+                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true, result, category: taskCategory));
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)
                         {
-                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false, null));
+                            ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false, ex.Message,category: taskCategory));
                         }
                     }).ToList();
-
+                 
                     await Task.WhenAll(batchTasks); // Wait for the current batch to complete
+                    BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, allProcessedItems));
+                    await Task.Delay(5, cancellationToken);
                 }
-
-                // Signal completion with processed items
-                BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, allProcessedItems));
+                
             }
             catch (OperationCanceledException)
             {
@@ -171,7 +181,7 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Process a looping batch of tasks with specified interval
-        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval, int repitition ,CancellationToken cancellationToken)
+        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval, int repitition ,TaskCategory category,CancellationToken cancellationToken)
         {
             try
             {
@@ -224,17 +234,17 @@ namespace RepportingApp.CoreSystem.Multithread
                             try
                             {
                                 string result = await processFunc(item, cancellationToken);
-                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true,result));
+                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true,result,category: category));
                             }
                             catch (Exception ex) when (ex is not OperationCanceledException)
                             {
                                 // Only handle non-cancellation exceptions at the item level
-                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null));
+                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null,category: category));
                             }
                         }).ToList();
                         // Signal completion of the batch if no cancellation was requested
-                        BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, null));
                         await Task.WhenAll(batchTasks); // Wait for the current batch to complete
+                        BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, null));
                     }
                     
                     // Delay for the specified interval, unless cancellation is requested
@@ -269,13 +279,13 @@ namespace RepportingApp.CoreSystem.Multithread
             return taskId;
         }
         // New StartLoopingTaskBatch method
-        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize,int repitition, TimeSpan interval)
+        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize,int repitition,TaskCategory taskCategory, TimeSpan interval)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
             _cancellationTokens[taskId] = cts;
 
-            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, repitition ,cts.Token));
+            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, repitition,taskCategory ,cts.Token));
             TryDequeueTask();
 
             return taskId;
@@ -416,14 +426,16 @@ namespace RepportingApp.CoreSystem.Multithread
     public class ItemProcessedEventArgs : EventArgs
     {
         public Guid TaskId { get; }
+        public TaskCategory TaskCategoryName{ get; }
         public object Item { get; }
         public bool Success { get; }
         public Exception? Error { get; }
         public string? Message { get; }
 
-        public ItemProcessedEventArgs(Guid taskId, object item, Exception? error, bool success,string message)
+        public ItemProcessedEventArgs(Guid taskId, object item, Exception? error, bool success,string message,TaskCategory category)
         {
             TaskId = taskId;
+            TaskCategoryName = category;
             Item = item;
             Success = success;
             Error = error;

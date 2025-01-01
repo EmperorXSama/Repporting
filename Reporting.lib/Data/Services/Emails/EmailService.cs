@@ -27,7 +27,7 @@ public class EmailService : IEmailService
                 email.Stats = stats;
                 return email;
             },
-            "ProxyId,GroupId,MetaDataId,InboxCount" // Update "splitOn" to include the first column of EmailStats
+            "ProxyId,GroupId,MetaDataId,InboxCount"
         ); 
         return result;
     }
@@ -47,6 +47,10 @@ public async Task AddEmailsToGroupWithMetadataAsync(
     emailTable.Columns.Add("Port", typeof(int));
     emailTable.Columns.Add("ProxyUsername", typeof(string));
     emailTable.Columns.Add("ProxyPassword", typeof(string));
+    emailTable.Columns.Add("MailId", typeof(string));
+    emailTable.Columns.Add("YmreqId", typeof(string));
+    emailTable.Columns.Add("Wssid", typeof(string));
+    emailTable.Columns.Add("Cookie", typeof(string));
 
     foreach (var email in emails)
     {
@@ -59,41 +63,26 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             proxy?.ProxyIp,
             proxy?.Port,
             proxy?.Username,
-            proxy?.Password
+            proxy?.Password,
+            emailMetadata[email.EmailAddress].MailId,
+            emailMetadata[email.EmailAddress].YmreqId,
+            emailMetadata[email.EmailAddress].Wssid,
+            emailMetadata[email.EmailAddress].Cookie
         );
     }
 
-    // Call the procedure and retrieve the output
     var parameters = new
     {
-        Emails = emailTable.AsTableValuedParameter("EmailTableTypeMain"),
+        EmailsWithMetadata = emailTable.AsTableValuedParameter("EmailTableWithMetadataType"),
         GroupId = groupId,
         GroupName = groupName
     };
-
     // Retrieve inserted emails
     var insertedEmails = await _dbConnection.SaveDataAsync<(int EmailAccountId, string EmailAddress)>(
         "[dbo].[AddEmailsToGroupWithProxy_Create]",
         parameters
     );
-
-    foreach (var (emailId, emailAddress) in insertedEmails)
-    {
-        if (emailMetadata.TryGetValue(emailAddress, out var metadata))
-        {
-            await _dbConnection.SaveDataAsync<dynamic>(
-                "[dbo].[InsertEmailMetadata]",
-                new
-                {
-                    EmailAccountId = emailId,
-                    metadata.MailId,
-                    metadata.YmreqId,
-                    metadata.Wssid,
-                    Cookie = metadata.Cookie
-                }
-            );
-        }
-    }
+    
 }
 
 
@@ -107,7 +96,7 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         return results;
     }
 
-    public async Task UpdateEmailStatsBatchAsync(IEnumerable<EmailAccount> emailAccounts)
+    public async Task UpdateEmailStatsBatchAsync(IEnumerable<EmailStatsUpdateDto> emailAccounts)
     {
         var table = new DataTable();
         table.Columns.Add("EmailAccountId", typeof(int));
@@ -121,12 +110,12 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         foreach (var email in emailAccounts)
         {
             table.Rows.Add(
-                email.Id,
-                email.Stats.InboxCount,
-                email.Stats.SpamCount,
-                email.Stats.LastReadCount,
-                email.Stats.LastArchivedCount,
-                email.Stats.LastNotSpamCount,
+                email.EmailAccountId,
+                email.InboxCount,
+                email.SpamCount,
+                email.LastReadCount,
+                email.LastArchivedCount,
+                email.LastNotSpamCount,
                 DateTime.UtcNow
             );
         }

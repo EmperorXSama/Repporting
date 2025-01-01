@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "54+VEpbRZWg=",
+  "dgSpecHash": "3dNbRqUKh38=",
   "success": true,
   "projectFilePath": "C:\\Users\\khali\\RiderProjects\\Repporting\\RepportingApp\\RepportingApp.csproj",
   "expectedPackageFiles": [
@@ -84,6 +84,8 @@
     "C:\\Users\\khali\\.nuget\\packages\\naudio.wasapi\\2.2.1\\naudio.wasapi.2.2.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\naudio.winmm\\2.2.1\\naudio.winmm.2.2.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\polly\\8.5.0\\polly.8.5.0.nupkg.sha512",
+    "C:\\Users\\khali\\.nuget\\packages\\polly.core\\8.5.0\\polly.core.8.5.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\rbush\\4.0.0\\rbush.4.0.0.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\shimskiasharp\\2.0.0.1\\shimskiasharp.2.0.0.1.nupkg.sha512",
     "C:\\Users\\khali\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",

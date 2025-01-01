@@ -164,3 +164,5 @@ C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Azure.Sec
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\DnsClient.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.AzureAppConfiguration.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Polly.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Polly.Core.dll

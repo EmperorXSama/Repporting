@@ -2,5 +2,5 @@
 
 public interface ILoadableViewModel
 {
-    Task LoadDataIfFirstVisitAsync();
-}
+    Task LoadDataIfFirstVisitAsync(bool ignoreCach = false);
+}   

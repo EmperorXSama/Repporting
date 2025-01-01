@@ -12,7 +12,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
     }
     
-    public async Task LoadDataIfFirstVisitAsync()
+    public async Task LoadDataIfFirstVisitAsync(bool ignorecache = false)
     {
         if (!_isDataLoaded)
         {

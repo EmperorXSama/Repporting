@@ -1798,7 +1798,7 @@
                                                            <StackPanel>
                                                                <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0" Background="{StaticResource LightGrey}"  Padding="1"  BoxShadow="0 0 0.5 1 LightGray"
                                                                        PointerPressed="OnTaskIdBorderPointerPressed">
-                                                                   <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding TaskId}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
+                                                                   <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssignedEmails[0].Group.GroupName}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
                                                                </Border>
                                                                <Border CornerRadius="5"
                                                                BorderThickness="1"
@@ -1852,8 +1852,8 @@
                                                                             </Border>
                                                                         </Grid>
                                                                                     <!--detail button-->
-                                                                                    <Grid Grid.Row="2" ColumnDefinitions="*,*">
-                                                                                        <Border  Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                    <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
+                                                                                        <Border  Width="80"  Height="30" BorderBrush="{StaticResource LightGrey}"
                                                                                             Background="{StaticResource MainAlert}"
                                                                                             
                                                                                             BorderThickness="1,0,1,1"
@@ -1862,7 +1862,7 @@
                                                                                                 Command="{Binding ToggleViewMoreDetailsCommand}">
                                                                                                 <StackPanel Orientation="Horizontal">
                                                                                                     <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
-                                                                                                    <TextBlock Text="view Details" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                                                                    <TextBlock Text="Details" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
                                                                                                 </StackPanel>
                                                                                             </Button>
                                                                                         </Border>
@@ -1876,7 +1876,38 @@
                                                                                             IsOpen="{Binding IsMoreDetailNeeded, Mode=TwoWay}">
                                                                                             <components1:TaskDetailPopup />
                                                                                         </Popup> 
-                                                                                        <Border Grid.Column="1" Width="130"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                        
+                                                                                                <!--error type-->
+                                                                                        <Border Grid.Column="1" Width="80" Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                                Background="{StaticResource SLightGrey}"
+
+                                                                                                BorderThickness="1,0,1,1"
+                                                                                                CornerRadius="0,0,9,9">
+                                                                                            <Button Theme="{StaticResource CustomBtn}" Background="Transparent"
+                                                                                                    VerticalAlignment="Top"
+                                                                                                    Command="{Binding ToggleErrorTypeCommand}">
+                                                                                                <StackPanel Orientation="Horizontal">
+                                                                                                    <PathIcon Width="11" Data="{StaticResource FlagIcon}"
+                                                                                                              Foreground="{StaticResource LightGrey}"
+                                                                                                              Margin="0,0,10,0" />
+                                                                                                    <TextBlock Text="Error"
+                                                                                                               Foreground="{StaticResource TextMain}"
+                                                                                                               FontSize="11" FontFamily="{StaticResource Roboto}">
+                                                                                                    </TextBlock>
+                                                                                                </StackPanel>
+                                                                                            </Button>
+                                                                                        </Border>
+                                                                                        <Popup IsLightDismissEnabled="True"
+                                                                                               Width="1000"
+                                                                                               Height="900"
+                                                                                               Placement="Center"
+                                                                                               VerticalAlignment="Top"
+                                                                                               HorizontalAlignment="Center"
+                                                                                               PlacementTarget="{Binding ElementName=MainGrid}"
+                                                                                               IsOpen="{Binding IsErrorTypeNeeded, Mode=TwoWay}">
+                                                                                            <components1:ErrorTypePopup />
+                                                                                        </Popup>
+                                                                                        <Border Grid.Column="2" Width="80"  Height="30" BorderBrush="{StaticResource LightGrey}"
                                                                                             Background="{StaticResource MainRed}"
                                                                                             
                                                                                             BorderThickness="1,0,1,1"
@@ -1885,7 +1916,7 @@
                                                                                                 Command="{Binding ToggleViewConsoleDetailsCommand}">
                                                                                                 <StackPanel Orientation="Horizontal">
                                                                                                     <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
-                                                                                                    <TextBlock Text="view console" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                                                                    <TextBlock Text="console" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
                                                                                                 </StackPanel>
                                                                                             </Button>
                                                                                         </Border>

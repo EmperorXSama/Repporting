@@ -34,6 +34,7 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
         <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Polly" Version="8.5.0" />
         <PackageReference Include="System.Net.Http.Json" Version="8.0.1" />
         <PackageReference Include="System.Text.Json" Version="8.0.5" />
         <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
@@ -64,8 +65,5 @@
         <Content Include="Assets\SFX\UiSfx.mp3">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Helper\" />
     </ItemGroup>
 </Project>

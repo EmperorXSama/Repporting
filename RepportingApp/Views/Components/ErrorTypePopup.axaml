@@ -1,0 +1,62 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+
+             x:Class="RepportingApp.Views.Components.ErrorTypePopup"
+             xmlns:ui2="clr-namespace:RepportingApp.Models.UI"
+             x:DataType="ui2:TaskInfoUiModel"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="1000">
+    <Grid Background="{StaticResource SLightGrey}" RowDefinitions="Auto,30,*">
+        <Border Padding="10">
+            <Grid ColumnDefinitions="*,40">
+                
+                <TextBlock Text="Error Type" HorizontalAlignment="Center"
+                           FontFamily="{StaticResource Roboto}"
+                           FontSize="34" FontWeight="Black" Foreground="{StaticResource TextMain}"/>
+                <Button Grid.Column="1" HorizontalAlignment="Right"
+                        Command="{Binding ToggleErrorTypeCommand}"
+                        Width="24"
+                        VerticalAlignment="Top"
+                        Background="Transparent">
+                    <PathIcon Data="{StaticResource CloseAppIcon}" />
+                </Button>
+            </Grid>
+        </Border>
+        
+        
+        <Border Grid.Row="2">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding UniqueErrorMessages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="5" 
+                                    BorderThickness="1" 
+                                    BorderBrush="Gray" 
+                                    Background="#F3F4F6" 
+                                    Padding="10" 
+                                    Margin="5" 
+                                    Width="400">
+                                <StackPanel Orientation="Horizontal" Margin="5">
+                                    <!-- Error Message -->
+                                    <TextBlock Text="{Binding Key}" 
+                                               TextWrapping="Wrap" 
+                                               Margin="5" 
+                                               Width="300"/>
+
+                                    <!-- Separator -->
+                                    <TextBlock Text=":" Margin="2"/>
+
+                                    <!-- Error Count -->
+                                    <TextBlock Text="{Binding Value}" Margin="5"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+    </Grid>
+    
+</UserControl>

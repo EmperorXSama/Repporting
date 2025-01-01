@@ -364,6 +364,10 @@
               "target": "Package",
               "version": "[13.0.3, )"
             },
+            "Polly": {
+              "target": "Package",
+              "version": "[8.5.0, )"
+            },
             "System.Net.Http.Json": {
               "target": "Package",
               "version": "[8.0.1, )"

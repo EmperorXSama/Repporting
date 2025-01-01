@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Reporting.lib.Data.Services.Emails;
 using Reporting.lib.Models.Core;
+using Reporting.lib.Models.DTO;
 using ReportingApi.Models;
 
 namespace ReportingApi.Controllers
@@ -38,7 +39,7 @@ namespace ReportingApi.Controllers
             }
         }
         [HttpPost("UpdateStats")]
-        public async Task<IActionResult> UpdateEmailsStats([FromBody] IEnumerable<EmailAccount> emails)
+        public async Task<IActionResult> UpdateEmailsStats([FromBody] IEnumerable<EmailStatsUpdateDto> emails)
         {
             try
             {

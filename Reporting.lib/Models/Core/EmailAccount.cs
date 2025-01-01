@@ -27,7 +27,7 @@ public partial class EmailAccount: ObservableObject
 
     [JsonPropertyName("group")]
     public EmailGroup Group { get; set; }
-    public EmailAccountStats Stats { get; set; } = new();
+    public EmailAccountStats? Stats { get; set; }
     public string UserAgent { get; set; } =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
     
