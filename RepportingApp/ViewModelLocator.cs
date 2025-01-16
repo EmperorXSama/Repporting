@@ -22,4 +22,5 @@ public class ViewModelLocator
     public DashboardPageViewModel DashboardPageVM => GetViewModel<DashboardPageViewModel>();
     public AutomationPageViewModel AutomationPageVM => GetViewModel<AutomationPageViewModel>();
     public ProxyManagementPageViewModel ProxyManagementPageVM => GetViewModel<ProxyManagementPageViewModel>();
+    public ProcessTrackerPageViewModel ProcessTrackerPageVM => GetViewModel<ProcessTrackerPageViewModel>();
 }

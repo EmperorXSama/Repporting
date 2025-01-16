@@ -8,6 +8,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+#if DEBUG
+        this.AttachDevTools();
+#endif
         this.Width = 1620;
         this.Height = 900;
     }
@@ -18,4 +21,6 @@ public partial class MainWindow : Window
             this.BeginMoveDrag(e);
         }
     }
+    
+    
 }

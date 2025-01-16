@@ -1,0 +1,235 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:components="clr-namespace:RepportingApp.Views.Components"
+             xmlns:ui="clr-namespace:RepportingApp.Models.UI"
+             mc:Ignorable="d" d:DesignWidth="1620" d:DesignHeight="900"
+             x:Class="RepportingApp.Views.ProcessTrackerPageView"
+             x:DataType="viewModels:ProcessTrackerPageViewModel"
+            >
+ <Grid x:Name="MainGrid"
+       ColumnDefinitions="3*,5*"
+       RowDefinitions="100,10,*">
+     
+     <Border  Grid.Row="2" Padding="10">
+          <ScrollViewer >
+                         <ItemsControl ItemsSource="{Binding NotificationTasks}"  Background="White">
+                                    <ItemsControl.Styles>
+                                        <!-- Style for ListBoxItem -->
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                        </Style>
+                                        <!-- Hover effect -->
+                                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                            <Setter Property="Background" Value="Transparent" />
+                                          
+                                        </Style>
+                                        <!-- Selected effect -->
+                                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </Style>
+                                    </ItemsControl.Styles>
+                             <ItemsControl.ItemsPanel>
+                                 <ItemsPanelTemplate>
+                                     <UniformGrid Columns="2"  />
+                                 </ItemsPanelTemplate>
+                             </ItemsControl.ItemsPanel>
+
+                                    <ItemsControl.ItemTemplate>
+                                       <DataTemplate>
+                                           <Border Margin="10" PointerPressed="InputElement_OnPointerPressed"
+                                                  >
+                                               <StackPanel  >
+                                                   <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0" Background="{StaticResource LightGrey}"  Padding="1"  BoxShadow="0 0 0.5 1 LightGray"
+                                                          >
+                                                       <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssignedGroup}" Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
+                                                   </Border>
+                                                   <Border CornerRadius="5"
+                                                   BorderThickness="1"
+                                                   Padding="0"
+                                                   BorderBrush="DarkGray"
+                                                   Background="{Binding IsSelected, Converter={StaticResource BooleanToBrushConverter}}"
+                                           >
+                                                <Grid RowDefinitions="*,4">
+                                                    <Border Padding="6,6,6,6">
+                                                        <Grid RowDefinitions="*,25,*">
+                                                             <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="35" Margin="0,0,0,4">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <Ellipse  VerticalAlignment="Center" Width="10" Height="10" Fill="#027BCE" Margin="0,0,5,0"/>
+                                                                    <TextBlock VerticalAlignment="Center" Text="{Binding StartTime}"  FontFamily="{StaticResource Roboto}"  ></TextBlock>
+                                                                </StackPanel>
+                                                                 
+                                                                 <StackPanel Grid.Column="1"
+                                                                     HorizontalAlignment="Center" Orientation="Horizontal">
+                                                                     
+                                                                </StackPanel>
+                                                                <Border Grid.Column="2"
+                                                                    BorderBrush="{Binding Color}"
+                                                                        BorderThickness="1"
+                                                                        Background="{Binding SoftColor}"
+                                                                        Padding="7"
+                                                                        CornerRadius="15"
+                                                                        HorizontalAlignment="Right">
+                                                                    <TextBlock Text="{Binding Name}"  FontSize="13" FontFamily="{StaticResource Roboto}" FontWeight="Medium" Foreground="{Binding Color}"/>
+                                                                </Border>
+                                                            </Grid>
+                                                                        <!--detail button-->
+                                                                        <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
+                                                                            <Border  Width="80"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                Background="{StaticResource MainAlert}"
+                                                                                
+                                                                                BorderThickness="1,0,1,1"
+                                                                                CornerRadius="0,0,9,9"> 
+                                                                                <Button Theme="{StaticResource CustomBtn}" Background="Transparent" VerticalAlignment="Top"
+                                                                                    Command="{Binding ToggleViewMoreDetailsCommand}">
+                                                                                    <StackPanel Orientation="Horizontal">
+                                                                                        <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
+                                                                                        <TextBlock Text="Details" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                                                    </StackPanel>
+                                                                                </Button>
+                                                                            </Border>
+                                                                            
+                                                                                    <!--error type-->
+                                                                            <Border Grid.Column="1" Width="80" Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                    Background="{StaticResource SLightGrey}"
+
+                                                                                    BorderThickness="1,0,1,1"
+                                                                                    CornerRadius="0,0,9,9">
+                                                                                <Button Theme="{StaticResource CustomBtn}" Background="Transparent"
+                                                                                        VerticalAlignment="Top"
+                                                                                        Command="{Binding ToggleErrorTypeCommand}">
+                                                                                    <StackPanel Orientation="Horizontal">
+                                                                                        <PathIcon Width="11" Data="{StaticResource FlagIcon}"
+                                                                                                  Foreground="{StaticResource LightGrey}"
+                                                                                                  Margin="0,0,10,0" />
+                                                                                        <TextBlock Text="Error"
+                                                                                                   Foreground="{StaticResource TextMain}"
+                                                                                                   FontSize="11" FontFamily="{StaticResource Roboto}">
+                                                                                        </TextBlock>
+                                                                                    </StackPanel>
+                                                                                </Button>
+                                                                            </Border>
+                                                                    
+                                                                            <Border Grid.Column="2" Width="80"  Height="30" BorderBrush="{StaticResource LightGrey}"
+                                                                                Background="{StaticResource MainRed}"
+                                                                                
+                                                                                BorderThickness="1,0,1,1"
+                                                                                CornerRadius="0,0,9,9"> 
+                                                                                <Button Theme="{StaticResource CustomBtn}" Background="Transparent" VerticalAlignment="Top"
+                                                                                    Command="{Binding ToggleViewConsoleDetailsCommand}">
+                                                                                    <StackPanel Orientation="Horizontal">
+                                                                                        <PathIcon Width="11" Data="{StaticResource FlagIcon}" Foreground="{StaticResource LightGrey}" Margin="0,0,10,0" />
+                                                                                        <TextBlock Text="console" Foreground="{StaticResource LightGrey}" FontSize="11" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                                                                    </StackPanel>
+                                                                                </Button>
+                                                                            </Border>
+                                                                        </Grid>
+                                                        </Grid>
+                                                    </Border>
+                                                   
+                                                    <Border Grid.Row="1" CornerRadius="0,0,5,5" Background="{Binding Color}"></Border>
+                                                </Grid>
+                                            </Border>
+                                               </StackPanel>
+                                           </Border>
+                                           
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+     </Border>
+     
+     <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="1">
+         <ContentControl Content="{Binding SelectedTask}">
+             <ContentControl.ContentTemplate>
+                 <DataTemplate DataType="{x:Type ui:TaskInfoUiModel}">
+                     <StackPanel >
+                         <Grid ColumnDefinitions="*,*,*"
+                               RowDefinitions="*,*,*">
+                             <Border Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Name: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding Name   }" />
+                                 </StackPanel>
+                               
+                             </Border>
+                             <Border Grid.Row="0" Grid.Column="1" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Group: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding AssignedGroup  }" />
+                                 </StackPanel>
+                               
+                             </Border>
+                             <Border Grid.Row="0" Grid.Column="2" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Start At: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding StartTime   }" />
+                                 </StackPanel>
+                               
+                             </Border>
+                             <Border Grid.Row="1" Grid.Column="0" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Finish At: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding FinishedTime   }" />
+                                 </StackPanel>
+                               
+                             </Border>
+                             <Border Grid.Row="1" Grid.Column="1" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Count: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding AssignedEmails.Count   }" />
+                                 </StackPanel>
+                               
+                             </Border>
+                             <Border Grid.Row="1" Grid.Column="2" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Name: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding Name   }" />
+                                 </StackPanel>
+                               
+                             </Border> 
+                             <Border Grid.Row="2" Grid.Column="0" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Success: " FontWeight="Bold" VerticalAlignment="Center" />
+                                     <TextBlock VerticalAlignment="Center" Text="{Binding ItemSuccesMessasges.Count}"
+                                                Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                FontWeight="SemiBold" Foreground="{StaticResource MainGreen}"
+                                                HorizontalAlignment="Center"
+                                     />
+                                 </StackPanel>
+                               
+                             </Border>     
+                             <Border Grid.Row="2" Grid.Column="1" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Failed: " FontWeight="Bold"  VerticalAlignment="Center" />
+                                     <TextBlock Text="{Binding ItemFailedMessasges.Count}"
+                                                Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}" 
+                                                FontWeight="SemiBold" Foreground="{StaticResource MainAlert}"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                     />
+                                 </StackPanel>
+                               
+                             </Border>
+                             <Border Grid.Row="1" Grid.Column="2" Padding="20" Margin="5" CornerRadius="20" Background="White">
+                                 <StackPanel Orientation="Horizontal">
+                                     <TextBlock Text="Interval: " FontWeight="Bold" />
+                                     <TextBlock FontFamily="{StaticResource Roboto}" Text="{Binding Interval   }" />
+                                 </StackPanel>
+                               
+                             </Border> 
+                         </Grid>
+                         <components:ErrorTypePopup IsVisible="{Binding IsErrorTypeNeeded}" />
+                         <components:TaskDetailPopup IsVisible="{Binding IsMoreDetailNeeded}" />
+                         <components:ConsoleLog IsVisible="{Binding IsConsoleNeeded}" />
+                     </StackPanel>
+                 </DataTemplate>
+             </ContentControl.ContentTemplate>
+         </ContentControl>
+     </Border>
+
+ </Grid>
+</UserControl>

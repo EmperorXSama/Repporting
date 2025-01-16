@@ -175,6 +175,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
 
         TasksCount = _taskInfoManager.GetTasksCount();
+        ProxyListManager.UploadReservedProxyFile();
+        
 
     }
 
@@ -570,7 +572,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                     TaskCategory.Invincible,
                     batchSize: _configEstimator.RecommendedBatchSize
                 );
-                await CreateAnActiveTask(TaskCategory.Invincible, TakInfoType.Batch, currentBatchId, "profile Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
+                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible,TakInfoType.Batch, currentBatchId, "profile Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
                 await _taskManager.WaitForTaskCompletion(currentBatchId);
             }
             
@@ -584,7 +586,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                     batchSize: _configEstimator.RecommendedBatchSize
                     
                 );  
-                await CreateAnActiveTask(TaskCategory.Invincible, TakInfoType.Batch, currentTaskId4, "MetaData Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
+                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible, TakInfoType.Batch, currentTaskId4, "MetaData Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
                 await _taskManager.WaitForTaskCompletion(currentTaskId4);
             }
             
@@ -634,7 +636,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                     await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.GetAddEmails, chunkPayload);
                 });
 
-                await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Single, apiCreateEmails, 
+                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible, TakInfoType.Single, apiCreateEmails, 
                     "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor, null);
 
                 await _taskManager.WaitForTaskCompletion(apiCreateEmails);
@@ -747,12 +749,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         RemainingOpenTasks = $"{RecommendedMaxDegreeOfParallelismDisplay - _taskInfoManager.GetTasks(TaskCategory.Active).Count} Open";
     }
     
-    public async Task  CreateAnActiveTask(TaskCategory category, TakInfoType type, Guid taskId, string name, string color, string softColor,ObservableCollection<EmailAccount>? assignedGroupEmails)
+    public async Task  CreateAnActiveTask(TaskCategory startcategory, TaskCategory moveToCategory, TakInfoType type, Guid taskId, string name, string color, string softColor,ObservableCollection<EmailAccount>? assignedGroupEmails)
     {
         await DispatcherHelper.ExecuteOnUIThreadAsync(async () =>
         {
-            var taskInfo = new TaskInfoUiModel(type)
+            var taskInfo = new TaskInfoUiModel(type,startcategory,moveToCategory)
             {
+                StartTime = DateTime.UtcNow.ToString("t"),
                 TaskId = taskId,
                 Name = name,
                 Color = color,
@@ -762,12 +765,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                 CancelCommand = new RelayCommand(() =>
                 {
                     CancelTask(taskId);
-                    _taskInfoManager.CompleteTask(taskId,category);
+                    _taskInfoManager.CompleteTask(taskId,startcategory,moveToCategory);
                     TasksCount = _taskInfoManager.GetTasksCount();
                 })
             };
-
-            _taskInfoManager.AddTask(category, taskInfo);
+            var assignedGroup = taskInfo.CheckCommonGroupName(assignedGroupEmails);
+            taskInfo.AssignedGroup = assignedGroup;
+            _taskInfoManager.AddTask(startcategory, taskInfo);
             TasksCount = _taskInfoManager.GetTasksCount();
         });
        
@@ -821,15 +825,19 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     } 
     private void OnTaskCompleted(object? sender, TaskCompletedEventArgs e)
     {
+        TaskInfoUiModel? taskInfo = _taskInfoManager.GetTaskById(e.TaskId);
         TaskMessages.Add($"Task {e.TaskId} completed successfully.");
-        _taskInfoManager.CompleteTask(e.TaskId);
+        _taskInfoManager.CompleteTask(e.TaskId,taskInfo.StarterCategory,taskInfo.MovetoCategory);
         TasksCount = _taskInfoManager.GetTasksCount();
     }
     
     private void OnTaskErrored(object? sender, TaskErrorEventArgs e)
     {
+
+        TaskInfoUiModel? taskInfo = _taskInfoManager.GetTaskById(e.TaskId);
+
         ErrorMessages.Add($"Task {e.TaskId} encountered an error: {e.Error.Message}");
-        _taskInfoManager.CompleteTask(e.TaskId);
+        _taskInfoManager.CompleteTask(e.TaskId,taskInfo.StarterCategory,taskInfo.MovetoCategory);
         ErrorIndicator = new ErrorIndicatorViewModel();
         ErrorIndicator.ShowErrorIndecator("Invalid File", e.Error.Message);
         TasksCount = _taskInfoManager.GetTasksCount();
@@ -879,7 +887,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                             });
                     });
                     
-                    await CreateAnActiveTask(TaskCategory.Active,TakInfoType.Single,apiCreateEmails,"update api ",Statics.ReportingColor,Statics.ReportingSoftColor,null);
+                    await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Invincible,TakInfoType.Single,apiCreateEmails,"update api ",Statics.ReportingColor,Statics.ReportingSoftColor,null);
                     TaskMessages.Add($"Email stats updated for {processedEmails.Count} emails in task {e.TaskId}.");
                 }
                 catch (Exception ex)
@@ -895,14 +903,17 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 {
     try
     {
-        TaskInfoUiModel? taskInfo = _taskInfoManager.GetTasks(e.TaskCategoryName)
-                .FirstOrDefault(t => t.TaskId == e.TaskId);
+        var taskCollectionsToSearch = new[]
+        {
+            _taskInfoManager.GetTasks(TaskCategory.Active),
+            _taskInfoManager.GetTasks(TaskCategory.Campaign),
+            _taskInfoManager.GetTasks(TaskCategory.Notification),
+        };
 
-            if (taskInfo == null)
-            {
-               taskInfo = _taskInfoManager.GetTasks(TaskCategory.Notification)
-                    .FirstOrDefault(t => t.TaskId == e.TaskId);
-            }
+        TaskInfoUiModel? taskInfo = taskCollectionsToSearch
+            .SelectMany(tasks => tasks)
+            .FirstOrDefault(t => t.TaskId == e.TaskId);
+
             if (e.Success)
             {
                 Dispatcher.UIThread.Post(() =>
@@ -1086,7 +1097,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                     return null;
                 }, batchSize: ReportingSettingsValuesDisplay.Thread);
 
-                await CreateAnActiveTask(TaskCategory.Active, TakInfoType.Batch, taskId, processName,
+                await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Saved, TakInfoType.Batch, taskId, processName,
                     Statics.ReportingColor, Statics.ReportingSoftColor, distributedBatches.ToObservableCollection());
                 await _taskManager.WaitForTaskCompletion(taskId); ;
         }
@@ -1244,7 +1255,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
         ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
         foreach (var processName in SelectedProcesses)
         {
-            var taskId = _taskManager.StartLoopingTaskBatch(emailsGroupToWork, async (emailAccount, cancellationToken) =>
+            var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches, async (emailAccount, cancellationToken) =>
             {
                 if (_processsMapping.TryGetValue(processName, out var processFunction))
                 {
@@ -1262,7 +1273,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                 return result.Message;
             }, ReportingSettingsValuesDisplay.Thread,ReportingSettingsValuesDisplay.Repetition,TaskCategory.Campaign,interval);
            
-            await CreateAnActiveTask(TaskCategory.Campaign,TakInfoType.Batch,taskId,processName,Statics.UploadFileColor,Statics.UploadFileSoftColor,EmailAccounts);
+            await CreateAnActiveTask(TaskCategory.Campaign,TaskCategory.Saved,TakInfoType.Batch,taskId,processName,Statics.UploadFileColor,Statics.UploadFileSoftColor,distributedBatches.ToObservableCollection());
             await _taskManager.WaitForTaskCompletion(taskId); ;
         }
         }
@@ -1298,6 +1309,8 @@ private async Task ReadAllEmailsInboxMessagesAsync()
     
     [ObservableProperty] private bool _isGridPopupOpen = false;
     [ObservableProperty] private bool _isGetContainSpam = false;
+    [ObservableProperty] private int _spamCountMin = 0;
+    [ObservableProperty] private int _spamCountMax = 20;
     [ObservableProperty] private ObservableCollection<Status> statuses;  
     [ObservableProperty] private ObservableCollection<ProxyStat> _byProxy;
     [ObservableProperty] private ObservableCollection<EmailAccount> _networkItems;
@@ -1339,17 +1352,31 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                     .Where(item => item.Stats != null && item.Stats.SpamCount > 0);
             }
 
+            // Filter by spam count range
+            filteredList = filteredList
+                .Where(item => item.Stats != null &&
+                               item.Stats.SpamCount >= SpamCountMin &&
+                               item.Stats.SpamCount <= SpamCountMax);
+
             // Filter by the selected email group
             if (SelectedEmailGroupFilter != null)
             {
-                filteredList = filteredList
-                    .Where(item => item.Group != null && item.Group.GroupId == SelectedEmailGroupFilter.GroupId);
+                bool isGroupEmpty = !NetworkItems.Any(item => 
+                    item.Group != null && 
+                    item.Group.GroupId == SelectedEmailGroupFilter.GroupId);
+
+                if (!isGroupEmpty)
+                {
+                    filteredList = filteredList
+                        .Where(item => item.Group != null && item.Group.GroupId == SelectedEmailGroupFilter.GroupId);
+                }
             }
 
             // Update the display table
             EmailDiaplysTable = new ObservableCollection<EmailAccount>(filteredList);
             CountFilter = EmailDiaplysTable.Count;
         }
+
 
         [RelayCommand]
         private void CheckBefore()

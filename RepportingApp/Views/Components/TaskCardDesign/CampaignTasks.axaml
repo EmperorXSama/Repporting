@@ -32,7 +32,7 @@
                         <Border Cursor="Hand" HorizontalAlignment="Center" CornerRadius="5,5,0,0"
                                 Background="{StaticResource LightGrey}" Padding="1" BoxShadow="0 0 0.5 1 LightGray"
                                 PointerPressed="OnTaskIdBorderPointerPressed">
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssignedEmailsDisplayInfo[0].Group.GroupName}"
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssignedEmails[0].Group.GroupName}"
                                        Margin="5" FontSize="12" FontFamily="{StaticResource Roboto}"
                                        FontWeight="SemiLight" Foreground="{StaticResource Primary}" />
                         </Border>

@@ -1,9 +1,6 @@
 
-using RepportingApp.CoreSystem.ApiSystem;
-using RepportingApp.IServices;
-using RepportingApp.Request_Connection_Core.Reporting;
 using RepportingApp.Services;
-using RepportingApp.ViewModels.ExtensionViewModel;
+using Avalonia.Diagnostics;
 using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
 
 namespace RepportingApp;
@@ -34,6 +31,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<ProxyManagementPageViewModel>();
         serviceCollection.AddSingleton<HomePageViewModel>();
         serviceCollection.AddSingleton<MainWindowViewModel>();
+        serviceCollection.AddSingleton<ProcessTrackerPageViewModel>();
         serviceCollection.AddSingleton<ReportingPageViewModel>();
         serviceCollection.AddSingleton<TaskInfoManager>();
 
@@ -52,7 +50,7 @@ public partial class App : Application
         {
             // Resolve MainWindowViewModel from the DI container
             var mainWindowViewModel = _ServiceProvider.GetService<MainWindowViewModel>();
-
+        
             desktop.MainWindow = new MainWindow
             {
                 DataContext = mainWindowViewModel // Inject the resolved ViewModel

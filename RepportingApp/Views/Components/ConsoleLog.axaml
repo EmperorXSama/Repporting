@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="1620" d:DesignHeight="900"
              x:Class="RepportingApp.Views.Components.ConsoleLog"
              xmlns:ui="clr-namespace:RepportingApp.Models.UI"
              x:DataType="ui:TaskInfoUiModel">
-    <Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15"   Width="1200"
-            Height="800">
+    <Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15"   
+            >
         <SplitView IsPaneOpen="True" DisplayMode="CompactInline" CompactPaneLength="270" OpenPaneLength="270"
                    Background="Transparent"
                    PaneBackground="Transparent">

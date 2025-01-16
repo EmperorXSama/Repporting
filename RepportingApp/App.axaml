@@ -27,6 +27,7 @@
          </ResourceDictionary>
          <FontFamily x:Key="Roboto">avares://RepportingApp/Assets/Font#Roboto</FontFamily>
          <helper:BooleanToWidthConverter x:Key="BooleanToWidthConverter"/>
+         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter"/>
          <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
          <helper:EnumToBooleanConverter x:Key="EnumToBooleanConverter "/>
          <helper:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter"/>
@@ -38,6 +39,8 @@
          <helper:GroupNameToColorConverter x:Key="GroupNameToColorConverter"/>
          <converters:ForegroundColorConverter x:Key="ForegroundColorConverter"/>
          <converters:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
+         <converters:BooleanToColorConverter x:Key="BooleanToColorConverter" />
+         
          <converters:WorkingStatusToColorConverter x:Key="WorkingStatusToColorConverter"/>
          
          
@@ -90,7 +93,19 @@
         <Setter Property="BorderBrush" Value="{StaticResource Primary}" />
         <Setter Property="Foreground" Value="{StaticResource Primary}" />
     </Style>
-
+    <Styles>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+    </Styles>
     <!-- Checked state -->
     <Style Selector="^:checked">
         <Setter Property="Background" Value="{StaticResource LightOrange}" />

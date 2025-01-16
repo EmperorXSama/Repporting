@@ -38,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
         new ListItemTemplate(typeof(AutomationPageViewModel),"AutomationIcon"),
         new ListItemTemplate(typeof(ProxyManagementPageViewModel),"ProxyIcon"),
         new ListItemTemplate(typeof(ReportingPageViewModel),"Reporting"),
+        new ListItemTemplate(typeof(ProcessTrackerPageViewModel),"Process"),
     };
 
     partial void OnCurrentPageChanged(ViewModelBase value)

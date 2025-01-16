@@ -76,6 +76,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/ProcessTrackerPageView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/ProxyManagementPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

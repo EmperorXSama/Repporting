@@ -6,7 +6,7 @@
              x:Class="RepportingApp.Views.Components.TaskDetailPopup"
              xmlns:ui="clr-namespace:RepportingApp.Models.UI"
              x:DataType="ui:TaskInfoUiModel">
-<Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15" Width="1200" Height="800">
+<Border BorderBrush="#CFC2CD" BorderThickness="1" Background="White" CornerRadius="15" >
     <SplitView IsPaneOpen="True" DisplayMode="CompactInline" CompactPaneLength="270" OpenPaneLength="270"
                Background="{StaticResource LightGrey}"
                PaneBackground="White">

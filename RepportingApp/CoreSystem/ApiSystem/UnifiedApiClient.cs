@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -144,19 +145,31 @@ public class UnifiedApiClient : IApiConnector
             content.Add(new StringContent(payload), "batchJson");
 
             HttpResponseMessage response = await client.PostAsync(endpoint, content);
-            /*var responseString = await response.Content.ReadAsStringAsync();
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                string badRequestContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"BadRequest: {badRequestContent}");
-            }*/
+           
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadAsStringAsync();
         }
+        catch (HttpRequestException e)
+        {
+            // Allow HttpRequestException to propagate for Polly to catch
+            throw;
+        }
+        catch (SocketException e)
+        {
+            // Allow SocketException to propagate for Polly to catch
+            throw;
+        }
         catch (Exception e)
         {
-            throw new Exception($"An error: {e.Message}");
+            if (e.Message.Contains("Proxy error"))
+            {
+                // Allow specific proxy-related errors to propagate for Polly to catch
+                throw;
+            }
+
+            // Handle other exceptions or rethrow if necessary
+            throw new Exception($"Unexpected error: {e.Message}", e);
         }
         finally
         {

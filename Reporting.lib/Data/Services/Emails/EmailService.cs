@@ -19,9 +19,9 @@ public class EmailService : IEmailService
             EmailAccount, Proxy, EmailGroup, EmailMetaData, EmailAccountStats, dynamic>(
             "[dbo].[GetAllEmails]",
             new { }, // Replace with your actual parameters
-            (email, proxy, group, emailMetaData, stats) =>
+            (email, ProxyModel, group, emailMetaData, stats) =>
             {
-                email.Proxy = proxy;
+                email.Proxy = ProxyModel;
                 email.Group = group;
                 email.MetaIds = emailMetaData;
                 email.Stats = stats;

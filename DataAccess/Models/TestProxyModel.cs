@@ -1,6 +1,6 @@
 ﻿namespace DataAccess.Models;
 
-public class ProxyModel
+public class TestProxyModel
 {
     public string Ip { get; set; }
     public string Port { get; set; }

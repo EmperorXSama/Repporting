@@ -17,6 +17,10 @@ public partial class TaskInfoUiModel : ObservableObject
     [ObservableProperty]
     private string color = "";  
     [ObservableProperty]
+    private string _assignedGroup = "";  
+    [ObservableProperty]
+    private bool isSelected;
+    [ObservableProperty]
     private string downloadValue = ""; 
     [ObservableProperty]
     private string softColor = ""; 
@@ -63,10 +67,13 @@ public partial class TaskInfoUiModel : ObservableObject
     private string taskMessage;
     
     public TakInfoType TakInfoType { get; set; }
-    public TaskInfoUiModel(TakInfoType takInfoType)
+    public TaskCategory StarterCategory { get; set; }
+    public TaskCategory MovetoCategory { get; set; }
+    public TaskInfoUiModel(TakInfoType takInfoType,TaskCategory starterCategory,TaskCategory movetoCategory)
     {
         TakInfoType = takInfoType;
-        startTime = DateTime.UtcNow.ToString("t");
+        StarterCategory = starterCategory;
+        MovetoCategory = movetoCategory;
     }
     #region RC
 
@@ -116,7 +123,7 @@ public partial class TaskInfoUiModel : ObservableObject
                     var proxyDetails = proxy != null
                         ? $"{proxy.ProxyIp};{proxy.Port};{proxy.Username};{proxy.Password}"
                         : "No Proxy";
-                    return $"{info.Email.EmailAddress};{info.Email.Password};;{proxyDetails} = {info.Message}";
+                    return $"{info.Email.EmailAddress};{info.Email.Password};;{proxyDetails};{info.Email.Group.GroupName};{info.Message}";
                 })
                 .ToList();
 
@@ -148,6 +155,30 @@ public partial class TaskInfoUiModel : ObservableObject
     }
 
     #endregion
+    
+    public  string? CheckCommonGroupName(ObservableCollection<EmailAccount>? assignedEmailsDisplayInfo)
+    {
+        if (assignedEmailsDisplayInfo == null || assignedEmailsDisplayInfo.Count == 0)
+            return null;
+
+        // Extract all group names from the collection
+        var groupNames = assignedEmailsDisplayInfo
+            .Where(email => email.Group != null)
+            .Select(email => email.Group.GroupName)
+            .Distinct()
+            .ToList();
+
+        // If there's only one unique group name, return it
+        if (groupNames.Count == 1)
+            return groupNames[0];
+
+        // If multiple group names exist, return "Custom"
+        if (groupNames.Count > 1)
+            return "Custom";
+
+        // If no groups are defined, return null
+        return null;
+    }
 }
 
 

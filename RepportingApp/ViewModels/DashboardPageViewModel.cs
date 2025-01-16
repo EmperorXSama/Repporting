@@ -268,7 +268,7 @@ public partial class DashboardPageViewModel : ViewModelBase,ILoadableViewModel
         }
     #endregion
 
-private List<RegionProxyInfo> GetRegionProxyInfo(List<ProxyModel> proxies)
+private List<RegionProxyInfo> GetRegionProxyInfo(List<TestProxyModel> proxies)
 {
     var totalProxies = proxies.Count;
     var regionCounts = proxies

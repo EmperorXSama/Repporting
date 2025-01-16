@@ -51,11 +51,26 @@ public class TaskInfoManager :INotifyPropertyChanged
             { TaskCategory.Active, new ObservableCollection<TaskInfoUiModel?>() },
             { TaskCategory.Invincible, new ObservableCollection<TaskInfoUiModel?>() },
             { TaskCategory.Notification, new ObservableCollection<TaskInfoUiModel?>() },
-            { TaskCategory.Campaign, new ObservableCollection<TaskInfoUiModel?>() }
+            { TaskCategory.Campaign, new ObservableCollection<TaskInfoUiModel?>() },
+            { TaskCategory.Saved, new ObservableCollection<TaskInfoUiModel?>() }
         };
     }
     
     public ObservableCollection<TaskInfoUiModel?> GetTasks(TaskCategory category) => _taskCollections[category];
+    public TaskInfoUiModel? GetTaskById(Guid TaskId )
+    {
+        var taskCollectionsToSearch = new[]
+        {
+            GetTasks(TaskCategory.Active),
+            GetTasks(TaskCategory.Campaign),
+            GetTasks(TaskCategory.Notification),
+            GetTasks(TaskCategory.Saved),
+        };
+
+        return taskCollectionsToSearch
+            .SelectMany(tasks => tasks)
+            .FirstOrDefault(t => t.TaskId ==TaskId);
+    }
     
     public void AddTask(TaskCategory category, TaskInfoUiModel TaskInfoUiModel)
     {
@@ -66,17 +81,18 @@ public class TaskInfoManager :INotifyPropertyChanged
         var taskInfoUiModel = _taskCollections[fromCategory].FirstOrDefault(t => t.TaskId == taskId);
         if (taskInfoUiModel != null)
         {
-            taskInfoUiModel.FinishedTime = DateTime.Now.ToString("g");
             Dispatcher.UIThread.Post(() =>
             {
                 _taskCollections[fromCategory].Remove(taskInfoUiModel);
                 _taskCollections[toCategory].Add(taskInfoUiModel);
+                _taskCollections[TaskCategory.Notification].Add(taskInfoUiModel);
             });
         }
     }
 
-    public async void CompleteTask(Guid taskId, TaskCategory category = TaskCategory.Active)
+    public async void CompleteTask(Guid taskId, TaskCategory category,TaskCategory toCategory)
     {
+        var  d = DateTime.UtcNow.ToString("t");
         TaskInfoUiModel? taskInfo =  GetTasks(category).FirstOrDefault(t => t.TaskId == taskId);
         if (taskInfo == null)
         {
@@ -89,7 +105,7 @@ public class TaskInfoManager :INotifyPropertyChanged
         {
             await DispatcherHelper.ExecuteOnUIThreadAsync( async () =>
             {
-                taskInfo.FinishedTime = DateTime.UtcNow.ToString("t");
+                taskInfo.FinishedTime = d;
                 SetIntervalWhenTaskFinished(taskInfo);
                 if (taskInfo.AssignedEmailsDisplayInfo != null && taskInfo.AssignedEmailsDisplayInfo.Any())
                 {
@@ -102,8 +118,8 @@ public class TaskInfoManager :INotifyPropertyChanged
                 }
               
             });
-
-            MoveTaskToCategory(taskId, category, TaskCategory.Notification);
+            
+            MoveTaskToCategory(taskId, category, toCategory);
         }
         
         
@@ -128,4 +144,5 @@ public enum TaskCategory
     Invincible,
     Notification,
     Campaign,
+    Saved
 }
