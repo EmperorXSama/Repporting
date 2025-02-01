@@ -203,7 +203,7 @@ public class UnifiedApiClient : IApiConnector
                 }
             }
 
-            ApplyHeaders(client, headers);
+            if (headers != null) ApplyHeaders(client, headers);
             HttpResponseMessage response = await client.GetAsync(endpoint);
             response.EnsureSuccessStatusCode();
 
@@ -222,6 +222,23 @@ public class UnifiedApiClient : IApiConnector
             if (proxyState != null)
             {
                 proxyState.Semaphore.Release();
+            }
+        }
+    }
+    public async Task DownloadFileAsync(string fileUrl, string savePath, Dictionary<string, string>? headers = null)
+    {
+        HttpClient client = _httpClient;
+
+        if (headers != null) ApplyHeaders(client, headers);
+
+        using (HttpResponseMessage response = await client.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead))
+        {
+            response.EnsureSuccessStatusCode();
+
+            using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
+                   fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await contentStream.CopyToAsync(fileStream);
             }
         }
     }

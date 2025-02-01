@@ -16,7 +16,7 @@ public class EmailService : IEmailService
     public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
     {
         var result = await _dbConnection.LoadDataWithMappingAsync<
-            EmailAccount, Proxy, EmailGroup, EmailMetaData, EmailAccountStats, dynamic>(
+            EmailAccount, Models.Core.Proxy, EmailGroup, EmailMetaData, EmailAccountStats, dynamic>(
             "[dbo].[GetAllEmails]",
             new { }, // Replace with your actual parameters
             (email, ProxyModel, group, emailMetaData, stats) =>
@@ -127,4 +127,28 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             parameters
         );
     }
+    public async Task UpdateEmailProxiesBatchAsync(IEnumerable<EmailProxyMappingDto> emailProxyMappings)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailAddress", typeof(string));
+        table.Columns.Add("ProxyIp", typeof(string));
+        table.Columns.Add("Port", typeof(int));
+
+        foreach (var mapping in emailProxyMappings)
+        {
+            table.Rows.Add(
+                mapping.EmailAddress,
+                mapping.ProxyIp,
+                mapping.Port
+            );
+        }
+
+        var parameters = new { EmailProxyMappings = table.AsTableValuedParameter("EmailProxyMappingType") };
+
+        await _dbConnection.SaveDataAsync(
+            "[dbo].[UpdateEmailProxyBatch]",
+            parameters
+        );
+    }
+
 }

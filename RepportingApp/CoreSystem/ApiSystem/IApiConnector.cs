@@ -9,4 +9,5 @@ public interface IApiConnector
     Task<T> PostDataObjectAsync<T>(string endpoint, object payload, Dictionary<string, string>? headers = null,Proxy? proxy = null);
     Task<bool> PutDataAsync(string endpoint, object payload, Dictionary<string, string>? headers = null,Proxy? proxy = null);
     Task<bool> DeleteDataAsync(string endpoint, Dictionary<string, string>? headers = null,Proxy? proxy = null);
+    Task DownloadFileAsync(string fileUrl, string savePath, Dictionary<string, string>? headers = null);
 }

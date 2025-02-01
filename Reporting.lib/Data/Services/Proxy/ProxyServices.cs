@@ -1,0 +1,47 @@
+﻿using System.Data;
+using Dapper;
+using Microsoft.Data.SqlClient;
+using Reporting.lib.Models.DTO;
+
+namespace Reporting.lib.Data.Services.Proxy;
+
+
+public class ProxyServices : IProxyServices
+{
+    private readonly IDataConnection _dbConnection;
+    public ProxyServices(IDataConnection dbConnection)
+    {
+        _dbConnection = dbConnection;
+    }
+    
+    public async  Task<IEnumerable<Models.Core.Proxy>> GetAllProxies()
+    {
+        return await _dbConnection.LoadDataAsync<Models.Core.Proxy, dynamic>("dbo.GetProxies",new {});
+    }
+    public async Task SaveProxiesBatchAsync(IEnumerable<ProxyDto> proxies)
+    {
+        var table = new DataTable();
+        table.Columns.Add("ProxyIp", typeof(string));
+        table.Columns.Add("Port", typeof(int));
+        table.Columns.Add("Username", typeof(string));
+        table.Columns.Add("Password", typeof(string));
+        table.Columns.Add("Availability", typeof(string));
+
+        foreach (var proxy in proxies)
+        {
+            table.Rows.Add(
+                proxy.ProxyIp,
+                proxy.Port,
+                proxy.Username,
+                proxy.Password,
+                proxy.Availability
+            );
+        }
+
+        var parameters = new { Proxies = table.AsTableValuedParameter("ProxyType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[AddNewProxies]", parameters);
+    }
+
+
+}

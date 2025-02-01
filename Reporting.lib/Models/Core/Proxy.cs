@@ -2,7 +2,7 @@
 
 namespace Reporting.lib.Models.Core;
 
-public class Proxy
+public partial class Proxy : ObservableObject
 {
     public int ProxyId { get; set; }
 
@@ -14,7 +14,14 @@ public class Proxy
     public string Username { get; set; }
 
     public string Password { get; set; }
+    
+    [ObservableProperty] private string _ms;
+    [ObservableProperty] private string _googleConnectivity;
+    [ObservableProperty] private string _yahooConnectivity;
+    [ObservableProperty] private string _region;
+    [ObservableProperty] private bool _availability;
 
     [JsonPropertyName("emailAccounts")]
     public ICollection<EmailAccount> EmailAccounts { get; set; } = new List<EmailAccount>();
+    
 }

@@ -1,6 +1,8 @@
 ﻿
 
 
+using System.Diagnostics;
+using Reporting.lib.Models.DTO;
 using RepportingApp.CoreSystem.ProxyService;
 
 namespace RepportingApp.ViewModels;
@@ -12,11 +14,14 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
     [ObservableProperty] private int _countFilter;
-    [ObservableProperty] public ObservableCollection<CentralProxy> centralProxyList;
-    [ObservableProperty] public ObservableCollection<CentralProxy> copyCentralProxyList;
-    [ObservableProperty] public ObservableCollection<CentralProxy> _selectedProxies;
-    
-    
+    [ObservableProperty] 
+    public ObservableCollection<Proxy> centralProxyList = new ObservableCollection<Proxy>();
+    [ObservableProperty] 
+    public ObservableCollection<Proxy> copyCentralProxyList = new ObservableCollection<Proxy>();
+    [ObservableProperty] public ObservableCollection<Proxy> _selectedProxies;
+    [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts;
+    private readonly IApiConnector _apiConnector;
+    private readonly IProxyApiService _proxyApiService;
     [ObservableProperty]
     private ObservableCollection<string> regions;
 
@@ -43,19 +48,13 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty]
     private bool isAllSelected;
     private UnifiedTaskManager _taskManager;
-    public ProxyManagementPageViewModel(IMessenger messenger  , TaskInfoManager taskInfoManager) : base(messenger)
+    public ProxyManagementPageViewModel(IMessenger messenger  , IApiConnector apiConnector, TaskInfoManager taskInfoManager,IProxyApiService proxyApiService) : base(messenger)
     {
+        _apiConnector = apiConnector;
         _taskInfoManager = taskInfoManager;
+        _proxyApiService = proxyApiService;
         if (App.Configuration != null) ReportingSettingsValuesDisplay = new ReportingSettingValues(App.Configuration);
-        CentralProxyList = new ObservableCollection<CentralProxy>
-        {
-            new CentralProxy(true, "206.41.179.47", "5723", "reda2816", "reda2816", null, null, null, null, true),
-            new CentralProxy(false, "206.41.179.105", "5781", "reda2816", "reda2816", null, null, null, null, false),
-            new CentralProxy(true, "192.168.1.3", "8082", "user3", "pass3", "25ms", "Connected", "Connected", "CA", true),
-            new CentralProxy(false, "192.168.1.4", "8083", "user4", "pass4", "30ms", "Not Connected", "Not Connected", "AU", false),
-            new CentralProxy(true, "192.168.1.5", "8084", "user5", "pass5", "35ms", "Connected", "Connected", "IN", true)
-        };
-        CopyCentralProxyList = new ObservableCollection<CentralProxy>(CentralProxyList);
+        
         Regions = new ObservableCollection<string> { "Select Region" }; // Placeholder item
         Subnets = new ObservableCollection<string> { "Select Subnet" }; // Placeholder item
         Availabilities = new ObservableCollection<string> { "availability", "used", "available" };
@@ -64,8 +63,9 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         SelectedSubnet = "Select Subnet";
         SelectedAvailability = "availability";
         SelectedConnectivity = "Connectivity";
-        CountFilter = CopyCentralProxyList.Count;
+       
         InitializeTaskManager();
+        
     }
     private void InitializeTaskManager()
     {
@@ -84,7 +84,12 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
 
     private async Task LoadDataAsync()
     {
-        // Your data loading logic here
+        var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails,ignoreCache:false);
+        var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies,ignoreCache:false);
+        EmailAccounts = emails.ToObservableCollection();
+        CentralProxyList = proxies.ToObservableCollection();
+        CopyCentralProxyList = new ObservableCollection<Proxy>(CentralProxyList);
+        CountFilter = CopyCentralProxyList.Count;
     }
     
     [RelayCommand]
@@ -113,6 +118,11 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [RelayCommand]
     private async Task StartTestProxies()
     {
+        if (SelectedProxies == null) return;
+        if (!SelectedProxies.Any())
+        {
+            return;
+        }
         var taskId = _taskManager.StartBatch(SelectedProxies, async (selectedProxy, cancellationToken) =>
         {
             
@@ -125,9 +135,9 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     }
     
     
-    public void PopulateFilters(IEnumerable<CentralProxy> proxies)
+    public void PopulateFilters(IEnumerable<Proxy> proxies)
     {
-        var centralProxies = proxies as CentralProxy[] ?? proxies.ToArray();
+        var centralProxies = proxies as Proxy[] ?? proxies.ToArray();
 
         // Populate regions
         ClearExceptFirst(Regions);
@@ -154,10 +164,10 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         }
     }
 
-    private IEnumerable<string> GetDistinctSubnets(IEnumerable<CentralProxy> proxies)
+    private IEnumerable<string> GetDistinctSubnets(IEnumerable<Proxy> proxies)
     {
         // Example logic to calculate subnets
-        return proxies.Select(p => p.Ip.Split('.').Take(3).Aggregate((a, b) => $"{a}.{b}")).Distinct();
+        return proxies.Select(p => p.ProxyIp.Split('.').Take(3).Aggregate((a, b) => $"{a}.{b}")).Distinct();
     }
     
     [RelayCommand]
@@ -171,7 +181,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
             filtered = filtered.Where(p => p.Region == SelectedRegion);
 
         if (!string.IsNullOrEmpty(SelectedSubnet) && SelectedSubnet != "Select Subnet")
-            filtered = filtered.Where(p => GetSubnet(p.Ip) == SelectedSubnet);
+            filtered = filtered.Where(p => GetSubnet(p.ProxyIp) == SelectedSubnet);
 
         if (!string.IsNullOrEmpty(SelectedAvailability) && SelectedAvailability != "availability")
             filtered = filtered.Where(p => SelectedAvailability == "used" ? p.Availability : !p.Availability);
@@ -180,7 +190,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
             filtered = filtered.Where(p => SelectedConnectivity == "Google" ? p.GoogleConnectivity == "Connected" : p.YahooConnectivity == "Connected");
 
         // Update filtered list
-        var centralProxies = filtered as CentralProxy[] ?? filtered.ToArray();
+        var centralProxies = filtered as Proxy[] ?? filtered.ToArray();
         CopyCentralProxyList.Clear();
         foreach (var proxy in centralProxies)
             CopyCentralProxyList.Add(proxy);
@@ -197,7 +207,137 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [RelayCommand]
     public void Reset()
     {
-        CopyCentralProxyList= new ObservableCollection<CentralProxy>(CentralProxyList);
+        CopyCentralProxyList= new ObservableCollection<Proxy>(CentralProxyList);
         CountFilter = CopyCentralProxyList.Count;
     }
+
+    [RelayCommand]
+    private async Task ImportProxyFromFile()
+    {
+        try
+        {
+            // Step 1: Upload proxies from the file into ReservedProxies
+            ProxyListManager.UploadReservedProxyFile();
+
+            // Step 2: Create a set of existing proxies from CopyCentralProxyList (based on IP and Port)
+            var existingProxies = new HashSet<string>(CopyCentralProxyList.Select(p => $"{p.ProxyIp}:{p.Port}"));
+
+            // Step 3: Filter the proxies from ReservedProxies that are not in the existing list
+            var newProxies = ProxyListManager.ReservedProxies
+                .Where(proxy =>
+                {
+                    var proxyKey = $"{proxy.ProxyIp}:{proxy.Port}";
+                    return !existingProxies.Contains(proxyKey);
+                })
+                .ToList();
+
+            // Debug: Log the new proxies
+            Console.WriteLine($"Found {newProxies.Count} new proxies.");
+            foreach (var proxy in newProxies)
+            {
+                Console.WriteLine($"New Proxy: {proxy.ProxyIp}:{proxy.Port}");
+            }
+
+            // Step 4: Add new proxies to CopyCentralProxyList
+            if (newProxies.Any())
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    foreach (var proxy in newProxies)
+                    {
+                        CopyCentralProxyList.Add(proxy);
+                    }
+
+                
+                    CountFilter = CopyCentralProxyList.Count;
+                });
+            }
+            var proxyDtos = newProxies.Select(p => new ProxyDto
+            {
+                ProxyIp = p.ProxyIp,
+                Port = p.Port,
+                Username = p.Username,
+                Password = p.Password,
+                Availability = "Available"
+            });
+            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostProxy,proxyDtos);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+        }
+      
+    }
+
+    [RelayCommand]
+    public async Task AssignProxies()
+    {
+        var newProxies = ProxyListManager.ReservedProxies.ToList();
+        var newProxySet = new HashSet<string>(newProxies.Select(p => p.ProxyIp));
+        var availableProxies = new Queue<Proxy>(newProxies);
+
+        var removedProxies = new List<Proxy>();
+        var removedProxySet = new HashSet<string>();
+        var updatedMappings = new List<EmailProxyMappingDto>(); // DTO list for updates
+
+        foreach (var email in EmailAccounts)
+        {
+            if (email.Proxy != null && !newProxySet.Contains(email.Proxy.ProxyIp))
+            {
+                if (removedProxySet.Add(email.Proxy.ProxyIp))
+                {
+                    removedProxies.Add(email.Proxy);
+                }
+
+                if (availableProxies.TryDequeue(out var newProxy))
+                {
+                    // Add the updated email-proxy mapping to the DTO list
+                    updatedMappings.Add(new EmailProxyMappingDto
+                    {
+                        EmailAddress = email.EmailAddress,
+                        ProxyIp = newProxy.ProxyIp,
+                        Port = newProxy.Port
+                    });
+
+                    // Replace the proxy in the email object
+                    email.Proxy = newProxy;
+                }
+                else
+                {
+                    Console.WriteLine($"No proxies available to assign for email: {email.EmailAddress}");
+                }
+            }
+        }
+
+        foreach (var proxy in removedProxies)
+        {
+            CentralProxyList.Remove(proxy);
+        }
+
+        foreach (var proxy in newProxies)
+        {
+            if (!CentralProxyList.Any(p => p.ProxyIp == proxy.ProxyIp))
+            {
+                CentralProxyList.Add(proxy);
+            }
+        }
+        
+        await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
+
+    }
+
+    [RelayCommand]
+    private async Task ReplaceProxies()
+    {
+        var result = await _proxyApiService.GetAllReplacedProxiesAsync();
+        var f =  result;
+    }
+
+    [RelayCommand]
+    private async Task GetAllProxiesFromApi()
+    {
+         await _proxyApiService.DownloadProxyListAsync(); 
+    }
+
+
 }

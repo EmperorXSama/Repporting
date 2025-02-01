@@ -16,7 +16,6 @@
 
     <ItemGroup>
       <Folder Include="Data\Services\Process\" />
-      <Folder Include="Data\Services\Proxy\" />
     </ItemGroup>
 
 </Project>

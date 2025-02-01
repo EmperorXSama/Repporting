@@ -17,7 +17,7 @@ public partial class ProxyManagementPageView : UserControl
         if (DataContext is ProxyManagementPageViewModel viewModel && sender is DataGrid dataGrid)
         {
             viewModel.SelectedProxies = dataGrid.SelectedItems
-                .OfType<CentralProxy>()
+                .OfType<Proxy>()
                 .ToObservableCollection();
             viewModel.IsAllSelected = viewModel.CopyCentralProxyList.Count > 0 &&
                                       viewModel.SelectedProxies.Count == viewModel.CopyCentralProxyList.Count;

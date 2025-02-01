@@ -1,6 +1,7 @@
 
 
 using Reporting.lib.Data.Services.Emails;
+using Reporting.lib.Data.Services.Proxy;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -17,6 +18,7 @@ builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSingleton<IDataConnection, DataConnection>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IProxyServices, ProxyServices>();
 
 
 builder.Services.AddControllers();

@@ -1,6 +1,7 @@
 
 using RepportingApp.Services;
 using Avalonia.Diagnostics;
+using RepportingApp.CoreSystem.ProxyService;
 using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
 
 namespace RepportingApp;
@@ -39,6 +40,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<IApiConnector, UnifiedApiClient>();
         serviceCollection.AddSingleton<ICacheService, CacheService>();
         serviceCollection.AddSingleton<IReportingRequests, ReportingRequests>();
+        serviceCollection.AddSingleton<IProxyApiService, ProxyApiService>();
         
         
         serviceCollection.AddSingleton<SystemConfigurationEstimator>();

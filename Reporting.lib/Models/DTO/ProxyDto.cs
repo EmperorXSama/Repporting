@@ -17,6 +17,8 @@ public class ProxyDto
     public string Username { get; set; }
 
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string Password { get; set; } 
+    [JsonPropertyName("availability")]
+    public string Availability { get; set; }
     
 }

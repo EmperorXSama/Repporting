@@ -48,14 +48,17 @@
                                 <Button Content="Get Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
+                                        Command="{Binding GetAllProxiesFromApiCommand}"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
                                 <Button Content="Replace Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
+                                        Command="{Binding ReplaceProxiesCommand}"
                                         Cursor="Hand"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>  
                                 <Button Content="Assign" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
+                                        Command="{Binding AssignProxiesCommand}"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
                             </StackPanel>
                         </Border>
@@ -246,7 +249,7 @@
                             </Border>
                           
                             <Border Background="White" CornerRadius="13">
-                                <Button Cursor="Hand">
+                                <Button Cursor="Hand" Command="{Binding ImportProxyFromFileCommand}">
                                     <Button.Styles>
                                         <Style Selector="Button">
                                             <Setter Property="Background" Value="Transparent" />
@@ -264,7 +267,7 @@
                                     <Border Padding="8">
                                         <StackPanel Orientation="Horizontal">
                                             <PathIcon   Data="{StaticResource Import}" Foreground="#303030"  />
-                                            <TextBlock Text="Export" FontFamily="{StaticResource Roboto}" Margin="13,0,0,0"></TextBlock>
+                                            <TextBlock Text="Import" FontFamily="{StaticResource Roboto}" Margin="13,0,0,0"></TextBlock>
                                         </StackPanel>
 
                                     </Border>
@@ -365,7 +368,7 @@
 
                                 <DataGrid.Columns>
                                     
-                                    <DataGridTextColumn Header="Ip" Binding="{Binding Ip}" Width="Auto"/>
+                                    <DataGridTextColumn Header="Ip" Binding="{Binding ProxyIp}" Width="Auto"/>
                                     <DataGridTextColumn Header="Port" Binding="{Binding Port}" Width="Auto"/>
                                     <DataGridTextColumn Header="Ms" Binding="{Binding Ms}" Width="Auto"/>
                                     <DataGridTextColumn Header="Connectivity Google" Binding="{Binding GoogleConnectivity}" Width="Auto"/>

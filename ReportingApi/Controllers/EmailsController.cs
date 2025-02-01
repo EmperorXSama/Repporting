@@ -51,5 +51,19 @@ namespace ReportingApi.Controllers
               return BadRequest(e.Message);
             }
         }
+        [HttpPost("UpdateProxies")]
+        public async Task<IActionResult> UpdateEmailProxies([FromBody] IEnumerable<EmailProxyMappingDto> emailProxyMappings)
+        {
+            try
+            {
+                await _emailService.UpdateEmailProxiesBatchAsync(emailProxyMappings);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
     }
 }

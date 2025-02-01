@@ -40,6 +40,7 @@ public static class ProxyListManager
 
     public static void UploadReservedProxyFile()
     {
+        ReservedProxies.Clear();
         // set path 
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         var path = Path.Combine(desktop,"YahooEmails","Repporting","Files", "Proxy_list.txt");
@@ -102,13 +103,13 @@ public static class ProxyListManager
         return parts.Length >= 3 ? $"{parts[0]}.{parts[1]}.{parts[2]}" : string.Empty;
     }
     
-    public static async Task TestProxiesAsync(CentralProxy proxy)
+    public static async Task TestProxiesAsync(Proxy proxy)
     {
         try
         {
             var httpClientHandler = new HttpClientHandler
             {
-                Proxy = new WebProxy($"{proxy.Ip}:{proxy.Port}")
+                Proxy = new WebProxy($"{proxy.ProxyIp}:{proxy.Port}")
                 {
                     Credentials = new NetworkCredential(proxy.Username, proxy.Password)
                 },
@@ -130,7 +131,7 @@ public static class ProxyListManager
             proxy.YahooConnectivity = await GetStatusCodeAsync(httpClient, YahooUrl);
 
             // Fetch region information
-            proxy.Region = await GetRegionAsync(proxy.Ip);
+            proxy.Region = await GetRegionAsync(proxy.ProxyIp);
         }
         catch
         {
