@@ -43,5 +43,31 @@ public class ProxyServices : IProxyServices
         await _dbConnection.SaveDataAsync("[dbo].[AddNewProxies]", parameters);
     }
 
+    public async Task UpdateReplacedProxiesBatchAsync(IEnumerable<ProxyUpdateDto> proxies)
+    {
+        var table = new DataTable();
+        table.Columns.Add("OldProxyIp", typeof(string));
+        table.Columns.Add("OldProxyPort", typeof(int));
+        table.Columns.Add("NewProxyIp", typeof(string));
+        table.Columns.Add("NewProxyPort", typeof(int));
+        table.Columns.Add("NewUsername", typeof(string));
+        table.Columns.Add("NewPassword", typeof(string));
+
+        foreach (var proxy in proxies)
+        {
+            table.Rows.Add(
+                proxy.OldProxyIp,
+                proxy.OldProxyPort,
+                proxy.NewProxyIp,
+                proxy.NewProxyPort,
+                proxy.NewUsername ?? (object)DBNull.Value,
+                proxy.NewPassword ?? (object)DBNull.Value
+            );
+        }
+
+        var parameters = new { Proxies = table.AsTableValuedParameter("ProxyReplacementTableType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[UpdateReplacedProxiesBatch]", parameters);
+    }
 
 }

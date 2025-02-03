@@ -4,11 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:components1="clr-namespace:RepportingApp.Views.Components"
+             xmlns:avalonia="clr-namespace:LoadingIndicators.Avalonia;assembly=LoadingIndicators.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1620" d:DesignHeight="900"
             x:DataType="viewModels:ProxyManagementPageViewModel"
              x:Class="RepportingApp.Views.ProxyManagementPageView">
      
-    <Border Padding="12">
+    <Grid>
+        <Border ZIndex="10000">
+            <components1:ErrorIndicatorView DataContext="{Binding ErrorIndicator}" />
+        </Border>
+        <Border  ZIndex="10000"   IsVisible="{Binding IsDataLoaded , Mode=TwoWay}">
+            <avalonia:LoadingIndicator VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" IsActive="{Binding IsDataLoaded , Mode=TwoWay}"  Mode="Arcs" SpeedRatio="1.2"/>
+        </Border>
+        <Border Padding="12">
+        
         <Border.Background>
             <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
                 <GradientStop Color="#E3E5E6" Offset="0.24" /> <!-- Light Yellow -->
@@ -16,7 +25,8 @@
             </LinearGradientBrush>
         </Border.Background>
 
-        <Grid 
+        <Grid
+            IsVisible="{Binding !IsDataLoaded , Mode=TwoWay}"
             RowDefinitions="100,60,Auto,*">
            
             <Border >
@@ -385,5 +395,7 @@
             </Border>
         </Grid>
     </Border>
+    </Grid>
+   
    
 </UserControl>

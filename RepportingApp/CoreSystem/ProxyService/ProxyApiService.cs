@@ -13,28 +13,43 @@ public class ProxyApiService : IProxyApiService
     {
         var headers = PopulateHeaders();
         List<ProxyApiModelResults> allProxies = new List<ProxyApiModelResults>();
-        string nextUrl = ApiEndPoints.GetReplacedProxies; 
+        string nextUrl = ApiEndPoints.GetReplacedProxies;
+
+        DateTime thresholdTime = DateTime.UtcNow.AddHours(-24); 
 
         while (!string.IsNullOrEmpty(nextUrl))
         {
             var result = await _apiConnector.GetDataAsync<PeroxyApiRootObject>(nextUrl, headers, ignoreCache: true);
 
-            if (result?.results != null)
-                allProxies.AddRange(result.results);
+            if (result?.results == null)
+                break;
 
-            nextUrl = result?.next; 
+            foreach (var proxy in result.results)
+            {
+                if (DateTime.TryParse(proxy.created_at, out DateTime createdDate))
+                {
+                    if (createdDate < thresholdTime)
+                    {
+                        return allProxies;
+                    }
+
+                    allProxies.Add(proxy);
+                }
+            }
+
+            nextUrl = result.next; 
         }
 
         return allProxies;
     }
+
     public async Task DownloadProxyListAsync()
     {
         var headers = PopulateHeaders();
         string fileUrl = "https://proxy.webshare.io/api/v2/proxy/list/download/suwxahurffmqwjqmjspgprielmhabzmxyueofqbr/-/any/username/direct/-/";
-        string savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "proxies.txt");
+        string savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"YahooEmails","Repporting","Files", "NewProxy_list.txt");
 
         await _apiConnector.DownloadFileAsync(fileUrl, savePath, headers);
-        Console.WriteLine($"Proxy list downloaded successfully to: {savePath}");
     }
 
     private Dictionary<string, string> PopulateHeaders()

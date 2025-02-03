@@ -7,6 +7,7 @@ public static class ProxyListManager
     private const string GoogleUrl = "https://www.google.com";
     private const string YahooUrl = "https://www.yahoo.com";
     public static ConcurrentBag<Proxy> ReservedProxies { get; set; } = new ConcurrentBag<Proxy>();
+    
     public static List<EmailAccount> DistributeEmailsBySubnetSingleList(List<EmailAccount> emailsGroupToWork)
     {
         // Group emails by subnet (first three octets)
@@ -80,7 +81,58 @@ public static class ProxyListManager
             }
         }
     }
+    public static async Task<List<Proxy>> UploadNewProxyFileAsync()
+    {
+        var newProxies = new ConcurrentBag<Proxy>();
+        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        var path = Path.Combine(desktop, "YahooEmails", "Repporting", "Files", "NewProxy_list.txt");
 
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException("The specified proxy file does not exist.", path);
+        }
+
+        await Task.Run(() =>
+        {
+            var lines = File.ReadLines(path).Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+            int batchSize = 1000;
+
+            Parallel.ForEach(Partitioner.Create(0, lines.Count, batchSize), range =>
+            {
+                var localList = new List<Proxy>();
+
+                for (int i = range.Item1; i < range.Item2; i++)
+                {
+                    var parts = lines[i].Split(':');
+                    if (parts.Length < 4) continue;
+
+                    try
+                    {
+                        var proxy = new Proxy
+                        {
+                            ProxyIp = parts[0],
+                            Port = int.Parse(parts[1]),
+                            Username = parts[2],
+                            Password = parts[3],
+                        };
+
+                        localList.Add(proxy);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error parsing line '{lines[i]}': {ex.Message}");
+                    }
+                }
+
+                foreach (var proxy in localList)
+                {
+                    newProxies.Add(proxy);
+                }
+            });
+        });
+        
+        return newProxies.ToList();
+    }
     public static Proxy GetRandomDifferentSubnetProxy(Proxy proxy)
     {
         var currentSubnet = GetSubnet(proxy.ProxyIp);

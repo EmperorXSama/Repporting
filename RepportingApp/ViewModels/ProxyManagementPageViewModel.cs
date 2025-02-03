@@ -9,7 +9,8 @@ namespace RepportingApp.ViewModels;
 
 public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewModel
 {
-    private bool _isDataLoaded = false;
+    
+    [ObservableProperty] private bool _isDataLoaded = false;
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
@@ -74,11 +75,23 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     }
     public async Task LoadDataIfFirstVisitAsync(bool ignorecache = false)
     {
-        if (!_isDataLoaded)
+        try
         {
-            _isDataLoaded = true;
-            // Load data here
-            await LoadDataAsync();
+            if (!IsDataLoaded)
+            {
+                IsDataLoaded = true;
+                // Load data here
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Loading Data Failed", e.Message);
+        }
+        finally
+        {
+            IsDataLoaded = false;
         }
     }
 
@@ -230,14 +243,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                     return !existingProxies.Contains(proxyKey);
                 })
                 .ToList();
-
-            // Debug: Log the new proxies
-            Console.WriteLine($"Found {newProxies.Count} new proxies.");
-            foreach (var proxy in newProxies)
-            {
-                Console.WriteLine($"New Proxy: {proxy.ProxyIp}:{proxy.Port}");
-            }
-
+            
             // Step 4: Add new proxies to CopyCentralProxyList
             if (newProxies.Any())
             {
@@ -272,72 +278,118 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [RelayCommand]
     public async Task AssignProxies()
     {
-        var newProxies = ProxyListManager.ReservedProxies.ToList();
-        var newProxySet = new HashSet<string>(newProxies.Select(p => p.ProxyIp));
-        var availableProxies = new Queue<Proxy>(newProxies);
-
-        var removedProxies = new List<Proxy>();
-        var removedProxySet = new HashSet<string>();
-        var updatedMappings = new List<EmailProxyMappingDto>(); // DTO list for updates
-
-        foreach (var email in EmailAccounts)
+        try
         {
-            if (email.Proxy != null && !newProxySet.Contains(email.Proxy.ProxyIp))
-            {
-                if (removedProxySet.Add(email.Proxy.ProxyIp))
-                {
-                    removedProxies.Add(email.Proxy);
-                }
+            var newProxies = ProxyListManager.ReservedProxies.ToList();
+            var newProxySet = new HashSet<string>(newProxies.Select(p => p.ProxyIp));
+            var availableProxies = new Queue<Proxy>(newProxies);
 
-                if (availableProxies.TryDequeue(out var newProxy))
+            var removedProxies = new List<Proxy>();
+            var removedProxySet = new HashSet<string>();
+            var updatedMappings = new List<EmailProxyMappingDto>(); // DTO list for updates
+
+            foreach (var email in EmailAccounts)
+            {
+                if (email.Proxy != null && !newProxySet.Contains(email.Proxy.ProxyIp))
                 {
-                    // Add the updated email-proxy mapping to the DTO list
-                    updatedMappings.Add(new EmailProxyMappingDto
+                    if (removedProxySet.Add(email.Proxy.ProxyIp))
                     {
-                        EmailAddress = email.EmailAddress,
-                        ProxyIp = newProxy.ProxyIp,
-                        Port = newProxy.Port
-                    });
+                        removedProxies.Add(email.Proxy);
+                    }
 
-                    // Replace the proxy in the email object
-                    email.Proxy = newProxy;
-                }
-                else
-                {
-                    Console.WriteLine($"No proxies available to assign for email: {email.EmailAddress}");
+                    if (availableProxies.TryDequeue(out var newProxy))
+                    {
+                        // Add the updated email-proxy mapping to the DTO list
+                        updatedMappings.Add(new EmailProxyMappingDto
+                        {
+                            EmailAddress = email.EmailAddress,
+                            ProxyIp = newProxy.ProxyIp,
+                            Port = newProxy.Port
+                        });
+
+                        // Replace the proxy in the email object
+                        email.Proxy = newProxy;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"No proxies available to assign for email: {email.EmailAddress}");
+                    }
                 }
             }
-        }
 
-        foreach (var proxy in removedProxies)
-        {
-            CentralProxyList.Remove(proxy);
-        }
-
-        foreach (var proxy in newProxies)
-        {
-            if (!CentralProxyList.Any(p => p.ProxyIp == proxy.ProxyIp))
+            foreach (var proxy in removedProxies)
             {
-                CentralProxyList.Add(proxy);
+                CentralProxyList.Remove(proxy);
             }
+
+            foreach (var proxy in newProxies)
+            {
+                if (!CentralProxyList.Any(p => p.ProxyIp == proxy.ProxyIp))
+                {
+                    CentralProxyList.Add(proxy);
+                }
+            }
+        
+            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
         }
         
-        await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
 
     }
 
     [RelayCommand]
     private async Task ReplaceProxies()
     {
-        var result = await _proxyApiService.GetAllReplacedProxiesAsync();
-        var f =  result;
+        try
+        {
+            var result = await _proxyApiService.GetAllReplacedProxiesAsync();
+            var proxyDtos = result.Select(proxy => new ProxyUpdateDto
+            {
+                OldProxyIp = proxy.proxy,
+                OldProxyPort = proxy.proxy_port,
+                NewProxyIp = proxy.replaced_with,
+                NewProxyPort = proxy.replaced_with_port
+            }).ToList();
+            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.ReplaceProxyProxy,proxyDtos);
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+        }
+      
     }
 
     [RelayCommand]
     private async Task GetAllProxiesFromApi()
     {
-         await _proxyApiService.DownloadProxyListAsync(); 
+        try
+        {
+            await _proxyApiService.DownloadProxyListAsync();
+            var uploadedFiles = await ProxyListManager.UploadNewProxyFileAsync();
+            var proxyDtos = uploadedFiles.Select(p => new ProxyDto
+            {
+                ProxyIp = p.ProxyIp,
+                Port = p.Port,
+                Username = p.Username,
+                Password = p.Password,
+                Availability = "Available"
+            });
+            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostProxy,proxyDtos);
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+        }
+      
+         
     }
 
 
 }
+

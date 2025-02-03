@@ -13,7 +13,12 @@ public class UnifiedApiClient : IApiConnector
     private readonly int _maxRequestsPerProxy = 3;
     private readonly ICacheService _cacheService;
     private static readonly SemaphoreSlim _semaphore = new(10);
-
+    private bool IsJson(string input)
+    {
+        input = input.Trim();
+        return (input.StartsWith("{") && input.EndsWith("}")) || 
+               (input.StartsWith("[") && input.EndsWith("]"));
+    }
     public UnifiedApiClient(ICacheService cacheService)
     {
         _httpClient = new HttpClient(new HttpClientHandler
@@ -95,6 +100,10 @@ public class UnifiedApiClient : IApiConnector
             response.EnsureSuccessStatusCode();
 
             string jsonResponse = await response.Content.ReadAsStringAsync();
+            if (!IsJson(jsonResponse))
+            {
+                jsonResponse = $"{{\"message\": {JsonConvert.SerializeObject(jsonResponse)}}}";
+            }
             return JsonConvert.DeserializeObject<T>(jsonResponse)!;
         }
         catch (HttpRequestException e)

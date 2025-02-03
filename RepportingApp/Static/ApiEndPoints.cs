@@ -8,6 +8,7 @@ public class ApiEndPoints
     public static string GetGroups => $"{BaseUrl}/Group";
     public static string PostGroup => $"{BaseUrl}/Group/AddGroup";
     public static string PostProxy => $"{BaseUrl}/Proxy/UploadProxies";
+    public static string ReplaceProxyProxy => $"{BaseUrl}/Proxy/ReplaceProxyProxy";
     public static string DeleteGroup => $"{BaseUrl}/Group/DeleteGroup";
     public static string GetEmails => $"{BaseUrl}/Emails/GetEmails";
     public static string PostEmailsProxiesUpdate => $"{BaseUrl}/Emails/UpdateProxies";
