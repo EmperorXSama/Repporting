@@ -2,17 +2,20 @@
 
 namespace RepportingApp.CoreSystem.ProxyService;
 using System.IO;
+
 public static class ProxyListManager
 {
     private const string GoogleUrl = "https://www.google.com";
     private const string YahooUrl = "https://www.yahoo.com";
     public static ConcurrentBag<Proxy> ReservedProxies { get; set; } = new ConcurrentBag<Proxy>();
-    
+    public static ConcurrentBag<Proxy> DbProxy { get; set; } = new ConcurrentBag<Proxy>();
+
     public static List<EmailAccount> DistributeEmailsBySubnetSingleList(List<EmailAccount> emailsGroupToWork)
     {
         // Group emails by subnet (first three octets)
         var groupedBySubnet = emailsGroupToWork
-            .GroupBy(email => string.Join(".", email.Proxy.ProxyIp.Split('.').Take(3))) // Subnet based on the first 3 octets
+            .GroupBy(email =>
+                string.Join(".", email.Proxy.ProxyIp.Split('.').Take(3))) // Subnet based on the first 3 octets
             .OrderByDescending(group => group.Count()) // Larger groups first
             .ToList();
 
@@ -44,7 +47,7 @@ public static class ProxyListManager
         ReservedProxies.Clear();
         // set path 
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        var path = Path.Combine(desktop,"YahooEmails","Repporting","Files", "Proxy_list.txt");
+        var path = Path.Combine(desktop, "YahooEmails", "Repporting", "Files", "Proxy_list.txt");
         if (!File.Exists(path))
         {
             throw new FileNotFoundException("The specified proxy file does not exist.", path);
@@ -60,7 +63,7 @@ public static class ProxyListManager
             try
             {
                 var parts = line.Split(':');
-                if (parts.Length <4)
+                if (parts.Length < 4)
                 {
                     continue;
                 }
@@ -73,7 +76,7 @@ public static class ProxyListManager
                     Password = parts[3],
                 };
                 ReservedProxies.Add(proxy);
-               
+
             }
             catch (Exception ex)
             {
@@ -81,11 +84,22 @@ public static class ProxyListManager
             }
         }
     }
-    public static async Task<List<Proxy>> UploadNewProxyFileAsync()
+
+    public static void GetDBProxies(IEnumerable<Proxy> proxies)
+    {
+        DbProxy = new ConcurrentBag<Proxy>(); // Clear existing data if necessary
+
+        foreach (var proxy in proxies)
+        {
+            DbProxy.Add(proxy);
+        }
+    }
+
+public static async Task<List<Proxy>> UploadNewProxyFileAsync()
     {
         var newProxies = new ConcurrentBag<Proxy>();
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        var path = Path.Combine(desktop, "YahooEmails", "Repporting", "Files", "NewProxy_list.txt");
+        var path = Path.Combine(desktop, "YahooEmails", "Repporting", "Files", "WebShareProxy_list.txt");
 
         if (!File.Exists(path))
         {
@@ -139,6 +153,22 @@ public static class ProxyListManager
         
         var random = new Random();
         var shuffledProxies = ReservedProxies.OrderBy(_ => random.Next()).ToList();
+
+        foreach (var proxysh in shuffledProxies)
+        {
+            if (GetSubnet(proxysh.ProxyIp) != currentSubnet)
+            {
+                return proxysh;
+            }
+        }
+        throw new InvalidOperationException("No proxy with a different subnet is available.");
+    }
+    public static Proxy GetRandomDifferentSubnetProxyDb(Proxy proxy)
+    {
+        var currentSubnet = GetSubnet(proxy.ProxyIp);
+        
+        var random = new Random();
+        var shuffledProxies = DbProxy.OrderBy(_ => random.Next()).ToList();
 
         foreach (var proxysh in shuffledProxies)
         {

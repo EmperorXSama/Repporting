@@ -100,11 +100,12 @@ public class UnifiedApiClient : IApiConnector
             response.EnsureSuccessStatusCode();
 
             string jsonResponse = await response.Content.ReadAsStringAsync();
-            if (!IsJson(jsonResponse))
+            if (!typeof(T).IsPrimitive && !typeof(T).IsValueType && typeof(T) != typeof(string))
             {
-                jsonResponse = $"{{\"message\": {JsonConvert.SerializeObject(jsonResponse)}}}";
+                return JsonConvert.DeserializeObject<T>(jsonResponse)!;
             }
-            return JsonConvert.DeserializeObject<T>(jsonResponse)!;
+            
+            return (T)Convert.ChangeType(jsonResponse, typeof(T))!;
         }
         catch (HttpRequestException e)
         {
@@ -203,14 +204,14 @@ public class UnifiedApiClient : IApiConnector
         {
             HttpClient client = proxyState?.Client ?? _httpClient;
 
-            if (!ignoreCache)
+            /*if (!ignoreCache)
             {
                 var cachedData = _cacheService.Get<T>(endpoint);
                 if (cachedData != null)
                 {
                     return cachedData;
                 }
-            }
+            }*/
 
             if (headers != null) ApplyHeaders(client, headers);
             HttpResponseMessage response = await client.GetAsync(endpoint);

@@ -64,6 +64,19 @@ namespace ReportingApi.Controllers
                 return BadRequest(e.Message);
             }
         }
+        [HttpPost("DeleteEmails")]
+        public async Task<IActionResult> DeleteEmailsCall([FromBody] string emails)
+        {
+            try
+            {
+                await _emailService.DeleteEmailsAsync(emails);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
     }
 }

@@ -63,7 +63,6 @@ public partial class ReportingPageView : UserControl
             AllowMultiple = false,
             Filters = new List<FileDialogFilter>
             {
-                new FileDialogFilter { Name = "Excel Files", Extensions = { "xls", "xlsx" } },
                 new FileDialogFilter { Name = "text Files", Extensions = { "txt" } },
             }
         };
@@ -160,7 +159,7 @@ public partial class ReportingPageView : UserControl
 // Method to validate file extensions
     private bool IsValidFile(string filePath)
     {
-        var validExtensions = new[] { ".xlsx", ".xls", ".txt" };
+        var validExtensions = new[] { ".txt" };
         var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
 
         return validExtensions.Contains(fileExtension);
@@ -184,5 +183,16 @@ public partial class ReportingPageView : UserControl
         }
     }
 
- 
+    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ListBox listBox && DataContext is ReportingPageViewModel viewModel)
+        {
+            var selected = listBox.SelectedItems
+                .OfType<KeyValuePair<string, string>>() // Ensure correct type
+                .ToList();
+
+            viewModel.SelectedFolders = new ObservableCollection<KeyValuePair<string, string>>(selected);
+        }
+    }
+
 }

@@ -47,7 +47,7 @@ public class ProxyApiService : IProxyApiService
     {
         var headers = PopulateHeaders();
         string fileUrl = "https://proxy.webshare.io/api/v2/proxy/list/download/suwxahurffmqwjqmjspgprielmhabzmxyueofqbr/-/any/username/direct/-/";
-        string savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"YahooEmails","Repporting","Files", "NewProxy_list.txt");
+        string savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"YahooEmails","Repporting","Files", "WebShareProxy_list.txt");
 
         await _apiConnector.DownloadFileAsync(fileUrl, savePath, headers);
     }

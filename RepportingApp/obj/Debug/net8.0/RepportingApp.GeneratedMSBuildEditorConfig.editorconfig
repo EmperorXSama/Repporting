@@ -70,6 +70,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/DashboardPageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/EmailManagementPageView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/HomePageView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

@@ -27,12 +27,13 @@
 
         <Grid
             IsVisible="{Binding !IsDataLoaded , Mode=TwoWay}"
-            RowDefinitions="100,60,Auto,*">
+            RowDefinitions="120,60,Auto,*">
            
             <Border >
                 
                 <Grid Margin="10" 
-                      ColumnDefinitions="Auto,*,Auto">
+                      ColumnDefinitions="Auto,*,Auto"
+                      RowDefinitions="*,Auto">
                    <Border CornerRadius="12" Padding="12">
                        <TextBlock 
                                   FontSize="20"
@@ -47,29 +48,44 @@
                   
 
                     
-                    <Border Grid.Column="2" Background="#70ffffff" CornerRadius="12">
+                    <Border Grid.Row="0" Grid.Column="2" Background="#70ffffff" CornerRadius="12">
                         <Border Padding="12,7">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="20">
                                 <Button Content="Test Quality" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         Command="{Binding StartTestProxiesCommand}"
                                         CornerRadius="12"
                                         Cursor="Hand"
+                                        IsEnabled="{Binding !IsProcessWorking}"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
                                 <Button Content="Get Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
+                                        
+                                        IsEnabled="False"
                                         Command="{Binding GetAllProxiesFromApiCommand}"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
-                                <Button Content="Replace Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
+                             
+                              
+                                <!--<Button Content="Replace Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
+                                        IsEnabled="{Binding !IsProcessWorking}"
                                         Command="{Binding ReplaceProxiesCommand}"
                                         Cursor="Hand"
-                                        FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>  
+                                        FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>  -->
                                 <Button Content="Assign" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
+                                        IsEnabled="{Binding !IsProcessWorking}"
                                         Command="{Binding AssignProxiesCommand}"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="2" Background="#70ffffff" CornerRadius="12">
+                        <Border Padding="2">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="20">
+                                <TextBox Text="{Binding IntervalMinutes, Mode=TwoWay}" Width="100"/>
+                                <Button Command="{Binding UpdateCycleIntervalCommand}" Content="Update Interval"/>
                             </StackPanel>
                         </Border>
                     </Border>
@@ -231,7 +247,7 @@
                     <Border Grid.Row="0" Grid.Column="1" Background="Transparent" CornerRadius="0,0,0,25">
                         <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" Margin="13,0,13,0">
                             <Border Background="White" CornerRadius="13">
-                                <Button Cursor="Hand">
+                                <Button IsEnabled="{Binding !IsProcessWorking}" Cursor="Hand">
                                     <Button.Styles>
                                         <Style Selector="Button">
                                             <Setter Property="Background" Value="Transparent" />
@@ -259,7 +275,7 @@
                             </Border>
                           
                             <Border Background="White" CornerRadius="13">
-                                <Button Cursor="Hand" Command="{Binding ImportProxyFromFileCommand}">
+                                <Button IsEnabled="{Binding !IsProcessWorking}" Cursor="Hand" Command="{Binding ImportProxyFromFileCommand}">
                                     <Button.Styles>
                                         <Style Selector="Button">
                                             <Setter Property="Background" Value="Transparent" />

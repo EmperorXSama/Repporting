@@ -16,7 +16,21 @@ public class ReportingRequests : IReportingRequests
         _apiConnector = apiConnector;
        
     }
-public async Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount, string directoryId)
+    
+    public async Task<List<ReturnTypeObject>> ProcessGetMessagesFromDirs(EmailAccount emailAccount, IEnumerable<string> directoryIds)
+    {
+        var results = new List<ReturnTypeObject>();
+
+        foreach (var directoryId in directoryIds)
+        {
+            var result = await ProcessGetMessagesFromDir(emailAccount, directoryId);
+            results.Add(result);
+        }
+
+        return results;
+    }
+
+public async   Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount, string directoryId)
 {
     var retryPolicy = Policy
         .Handle<SocketException>()
@@ -68,47 +82,58 @@ public async Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount email
         return new ReturnTypeObject
         {
             ReturnedValue = messages,
-            Message = $"Number of retrieved messages in {folderName}: {messages.Count}\nTotal number of messages: {count}"
+            Message =
+                $"Number of retrieved messages in {folderName}: {messages.Count}\nTotal number of messages: {count}"
         };
     });
 }
 
-public async Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount, MarkMessagesAsReadConfig config, string directoryId = "1")
+public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(EmailAccount emailAccount, MarkMessagesAsReadConfig config, List<string> directoryIds)
 {
-    var retryPolicy = Policy
-        .Handle<SocketException>()
-        .Or<HttpRequestException>()
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error"))
-        .WaitAndRetryAsync(
-            retryCount: 1,
-            retryAttempt => TimeSpan.FromSeconds(1),
-            (exception, timeSpan, retryCount, context) =>
-            {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
-                emailAccount.Proxy = reservedProxyInUse;
-            }
-        );
+    var results = new List<ReturnTypeObject>();
 
-    return await retryPolicy.ExecuteAsync(async () =>
+    foreach (var directoryId in directoryIds)
     {
-        CheckEmailMetaData(emailAccount);
-        var messages = await GetMessagesFromFolder(emailAccount, directoryId);
+        var retryPolicy = Policy
+            .Handle<SocketException>()
+            .Or<HttpRequestException>()
+            .Or<Exception>(ex => ex.Message.Contains("Proxy error"))
+            .WaitAndRetryAsync(
+                retryCount: 1,
+                retryAttempt => TimeSpan.FromSeconds(1),
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
+                    emailAccount.Proxy = reservedProxyInUse;
+                }
+            );
 
-        var result = await MarkMessagesAsRead(
-            emailAccount,
-            messages,
-            config.BulkThreshold,
-            config.BulkChunkSize,
-            config.SingleThreshold,
-            config.PreReportingSettings.MinMessagesToRead,
-            config.PreReportingSettings.MaxMessagesToRead
-        );
+        var result = await retryPolicy.ExecuteAsync(async () =>
+        {
+            CheckEmailMetaData(emailAccount);
+            var messages = await GetMessagesFromFolder(emailAccount, directoryId);
 
-        return new ReturnTypeObject { Message = result };
-    });
+            var messageResult = await MarkMessagesAsRead(
+                emailAccount,
+                messages,
+                config.BulkThreshold,
+                config.BulkChunkSize,
+                config.SingleThreshold,
+                config.PreReportingSettings.MinMessagesToRead,
+                config.PreReportingSettings.MaxMessagesToRead
+            );
+
+            return new ReturnTypeObject { Message = messageResult };
+        });
+
+        results.Add(result);
+    }
+
+    return results;
 }
 
-public async Task<ReturnTypeObject> ProcessArchiveMessages(EmailAccount emailAccount, MarkMessagesAsReadConfig config, string directoryId = Statics.ArchiveDir)
+
+public async Task<List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount emailAccount, MarkMessagesAsReadConfig config, string directoryId = Statics.ArchiveDir)
 {
     var retryPolicy = Policy
         .Handle<SocketException>()
@@ -139,11 +164,11 @@ public async Task<ReturnTypeObject> ProcessArchiveMessages(EmailAccount emailAcc
             config.PreReportingSettings.MaxMessagesToArchive
         );
 
-        return new ReturnTypeObject { Message = result };
+        return new  List<ReturnTypeObject> {new ReturnTypeObject(){ Message = result }};
     });
 }
 
-public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount, MarkMessagesAsReadConfig config)
+public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount, MarkMessagesAsReadConfig config)
 {
     var headers = PopulateHeaders(emailAccount);
     var retryPolicy = Policy
@@ -167,7 +192,10 @@ public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount em
         var messages = await GetMessagesFromFolder(emailAccount, Statics.SpamDir);
         if (!messages.Any())
         {
-            return new ReturnTypeObject { Message = "Spam empty" };
+             return new  List<ReturnTypeObject>
+            {
+                new ReturnTypeObject { Message = "Spam empty" }
+                };
         }
 
         int totalMessages = 0;
@@ -175,7 +203,7 @@ public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount em
 
         if (config.PreReportingSettings.IsPreReporting)
         {
-            await ProcessMarkMessagesAsReadFromDir(emailAccount, config);
+            await ProcessMarkMessagesAsReadFromDirs(emailAccount, config,new List<string>(){Statics.InboxDir});
             await ProcessArchiveMessages(emailAccount, config);
         }
 
@@ -208,9 +236,13 @@ public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount em
             emailAccount.Stats = new EmailAccountStats();
 
         emailAccount.Stats.LastNotSpamCount = processedMessages;
-        return new ReturnTypeObject
+        return new  List<ReturnTypeObject>
         {
-            Message = $"Marked messages: {processedMessages} out of {totalMessages}"
+            new ReturnTypeObject()
+            {
+                Message = $"Marked messages: {processedMessages} out of {totalMessages}"
+                
+            }
         };
     });
 }
@@ -231,7 +263,7 @@ public async Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount em
                 retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
                 (exception, timeSpan, retryCount, context) =>
                 {
-                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
+                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                     emailAccount.Proxy = reservedProxyInUse;
                 }
             );

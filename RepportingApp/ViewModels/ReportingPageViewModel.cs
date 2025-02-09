@@ -1,21 +1,7 @@
-﻿
-using System.Diagnostics;
-using ClosedXML.Excel;
-using DataAccess.Enums;
-using Microsoft.VisualBasic;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Dto;
-using MsBox.Avalonia.Enums;
-using MsBox.Avalonia.Models;
-using Reporting.lib.Data.Services.Emails;
+﻿using DataAccess.Enums;
 using Reporting.lib.Models.DTO;
-using RepportingApp.CoreSystem.ApiSystem;
 using RepportingApp.CoreSystem.FileSystem;
 using RepportingApp.CoreSystem.ProxyService;
-using RepportingApp.Services;
-using RepportingApp.ViewModels.BaseServices;
 
 namespace RepportingApp.ViewModels;
 
@@ -45,9 +31,9 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #region UI
 
-    [ObservableProperty] private bool _isMenuOpen = false;
-    [ObservableProperty] private bool _isPopupOpen = false;
-    [ObservableProperty] private bool _isNotificationOpen = false;
+    [ObservableProperty] private bool _isMenuOpen;
+    [ObservableProperty] private bool _isPopupOpen;
+    [ObservableProperty] private bool _isNotificationOpen;
     
 
     [ObservableProperty] private bool _isFixed;
@@ -81,7 +67,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private ProxySittings _selectedProxySetting;
     [ObservableProperty] private ReportingSettings _selectedReportSetting;
     [ObservableProperty] private ReportingSittingsProcesses _selectedProcessesUi = new ReportingSittingsProcesses();
-    private Dictionary<string, Func<EmailAccount, Task<ReturnTypeObject>>> _processsMapping;
+    private Dictionary<string, Func<EmailAccount, Task<List<ReturnTypeObject>>>> _processsMapping;
     public List<string> SelectedProcesses { get; set; } = new();
     
     #endregion
@@ -113,7 +99,8 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     #endregion
     #region Collect Directories Messages Variabless
 
-        [ObservableProperty] private string _folderId = Statics.InboxDir;
+        [ObservableProperty] 
+        private List<string> _folderIds = new() { Statics.InboxDir };
         [ObservableProperty] private string _pathToSaveCountFile =  Statics.GetDesktopFilePath();
         [ObservableProperty] private string _subjectFileName = "SubjectsCollector";
         [ObservableProperty] private string _pathToSaveSubjectFile = Statics.GetDesktopFilePath();
@@ -132,12 +119,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             };
         
         [ObservableProperty]
-        private KeyValuePair<string, string> _selectedFolder;
-        
-        partial void OnSelectedFolderChanged(KeyValuePair<string, string> value)
+        private ObservableCollection<KeyValuePair<string, string>> _selectedFolders = new();
+
+        partial void OnSelectedFoldersChanged(ObservableCollection<KeyValuePair<string, string>> value)
         {
-            FolderId = value.Value; 
+            FolderIds = value.Select(folder => folder.Value).ToList(); 
         }
+
     #endregion
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private int _tasksCount;
@@ -175,7 +163,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
 
         TasksCount = _taskInfoManager.GetTasksCount();
-        ProxyListManager.UploadReservedProxyFile();
+        //ProxyListManager.UploadReservedProxyFile();
         
 
     }
@@ -206,26 +194,26 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     }
     private void InitializeProcessMappings()
     {
-        _processsMapping = new Dictionary<string, Func<EmailAccount, Task<ReturnTypeObject>>>
+        _processsMapping = new Dictionary<string, Func<EmailAccount, Task<List<ReturnTypeObject>>>>
         {
             {"IsReportingSelected", async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    ReturnTypeObject result = await _reportingRequests.ProcessMarkMessagesAsNotSpam(emailAcc,MarkMessagesAsNotSpamConfig);
+                    List<ReturnTypeObject> result = await _reportingRequests.ProcessMarkMessagesAsNotSpam(emailAcc,MarkMessagesAsNotSpamConfig);
                     return result; 
                 }
             },
             {"MarkMessagesAsReadFromInbox",async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    return await _reportingRequests.ProcessMarkMessagesAsReadFromDir(emailAcc,MarkMessagesAsReadConfig,FolderId);
+                    return await _reportingRequests.ProcessMarkMessagesAsReadFromDirs(emailAcc,MarkMessagesAsReadConfig,FolderIds);
                 }
             },
             {"CollectMessagesCount",async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    return await _reportingRequests.ProcessGetMessagesFromDir(emailAcc,
-                        FolderId);
+                    return await _reportingRequests.ProcessGetMessagesFromDirs(emailAcc,
+                        FolderIds);
                 }
             },
             {"ArchiveMessages",async (emailAcc) =>
@@ -263,6 +251,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     {
         var groups = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache:ignoreCache);
         var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails,ignoreCache:ignoreCache);
+        Task.Run(async () =>
+        {
+            var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: false);
+            ProxyListManager.GetDBProxies(proxies);
+        });
+
+      
         //FileManager.WriteEmailAccountsToFileAsync("emails.txt",emails);
         Groups = groups.ToObservableCollection();
         
@@ -641,7 +636,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
                 await _taskManager.WaitForTaskCompletion(apiCreateEmails);
             }
-            ReconnectToApi();
+            await ReconnectToApi();
         }
         catch (Exception e)
         {
@@ -696,31 +691,53 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         string line,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var data = line.Split(',');
-        if (data.Length !=  4)
+        try 
         {
-            // Handle incorrect data format, e.g., skip the line or log an error
+            cancellationToken.ThrowIfCancellationRequested();
+        
+            if (string.IsNullOrEmpty(line))
+            {
+                Console.WriteLine("Line is null or empty");
+                return "";
+            }
+
+            var data = line.Split(',');
+            if (data.Length != 4)
+            {
+                Console.WriteLine($"Invalid data length: {data.Length}");
+                return "";
+            }
+
+            var email = data[0];
+            var cookiePath = Path.Combine(FileManager.GetProfileCookieFolder(email + ".txt"));
+        
+            Console.WriteLine($"Attempting to read cookie file: {cookiePath}");
+        
+            var cookie = await File.ReadAllTextAsync(cookiePath, cancellationToken);
+        
+            var emailAccount = new EmailMetadataDto
+            {
+                MailId = data[1],
+                YmreqId = data[2],
+                Wssid = data[3],
+                Cookie = cookie
+            };
+
+            var added = _metadataDictionary.TryAdd(email, emailAccount);
+            Console.WriteLine($"Added to dictionary: {added}");
+
             return "";
         }
-        var email = data[0];
-        var emailAccount = new EmailMetadataDto
+        catch (Exception ex)
         {
-            MailId = data[1],
-            YmreqId = data[2],
-            Wssid = data[3],
-            Cookie = await File.ReadAllTextAsync(Path.Combine(FileManager.GetProfileCookieFolder(email + ".txt")), cancellationToken)
-        };
-        
-       
-
-        _metadataDictionary.TryAdd(email, emailAccount);
-    // Update and report progress
-        return "";
+            Console.WriteLine($"Error in ProcessMetaData: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
     private bool ValidateFile(string filePath)
     {
-        var validExtensions = new[] { ".xlsx", ".xls", ".txt" };
+        var validExtensions = new[] { ".txt" };
         var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
         return validExtensions.Contains(fileExtension);
     }
@@ -829,6 +846,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         TaskMessages.Add($"Task {e.TaskId} completed successfully.");
         _taskInfoManager.CompleteTask(e.TaskId,taskInfo.StarterCategory,taskInfo.MovetoCategory);
         TasksCount = _taskInfoManager.GetTasksCount();
+        
     }
     
     private void OnTaskErrored(object? sender, TaskErrorEventArgs e)
@@ -879,12 +897,12 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                             ApiEndPoints.UpdateStatsEmails, 
                             processedEmailsDto 
                         );
-                        await Dispatcher.UIThread.InvokeAsync(
+                        /*await Dispatcher.UIThread.InvokeAsync(
                             () =>
                             {
                                 EmailDiaplysTable = NetworkItems;
                 
-                            });
+                            });*/
                     });
                     
                     await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Invincible,TakInfoType.Single,apiCreateEmails,"update api ",Statics.ReportingColor,Statics.ReportingSoftColor,null);
@@ -1049,6 +1067,7 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     private void ReadAllEmailsInboxMessages()
     {
         _ = Task.Run(ReadAllEmailsInboxMessagesAsync);
+        
     }
 
 private async Task ReadAllEmailsInboxMessagesAsync()
@@ -1085,13 +1104,19 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                 {
                     if (_processsMapping.TryGetValue(processName, out var processFunction))
                     {
-                        var result = await processFunction(emailAccount);
-                        if (processName == "CollectMessagesCount")
+                        var results = await processFunction(emailAccount);
+                        foreach (var result in results)
                         {
-                            await PostCollectMessages(emailAccount.EmailAddress,
-                                (ObservableCollection<FolderMessages>)result.ReturnedValue);
+                            if (processName == "CollectMessagesCount")
+                            {
+                                await PostCollectMessages(
+                                    emailAccount.EmailAddress,
+                                    (ObservableCollection<FolderMessages>)result.ReturnedValue
+                                );
+                            }
                         }
-                        return result.Message;
+                        return string.Join("\n", results.Select(r => r.Message));
+
                     }
 
                     return null;
@@ -1099,9 +1124,11 @@ private async Task ReadAllEmailsInboxMessagesAsync()
 
                 await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Saved, TakInfoType.Batch, taskId, processName,
                     Statics.ReportingColor, Statics.ReportingSoftColor, distributedBatches.ToObservableCollection());
-                await _taskManager.WaitForTaskCompletion(taskId); ;
+                await _taskManager.WaitForTaskCompletion(taskId);
+                
         }
         await SaveMessagesToTextFile();
+        await LoadDataAsync(true);
     }
     catch (Exception e)
     {
@@ -1226,56 +1253,60 @@ private async Task ReadAllEmailsInboxMessagesAsync()
     {
         try
         {
-        TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.RepetitionDelay);
-        if (!SelectedProcesses.Any())
-        {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
-            return;
-        }
-        var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
-        //emailsGroupToWork.WriteListLine();
-        var distributedBatches = ProxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
-        //distributedBatches.WriteListLine("EmailBatches2");
-        if (!distributedBatches.Any())
-        {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
-            return;
-        }
-
-
-        if (SelectedProcesses[0] == null)
-        {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
-            return;
-        }
-
-        ReturnTypeObject result = new ReturnTypeObject(){Message = "Nothing inside"};
-        foreach (var processName in SelectedProcesses)
-        {
-            var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches, async (emailAccount, cancellationToken) =>
+            TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.RepetitionDelay);
+            if (!SelectedProcesses.Any())
             {
-                if (_processsMapping.TryGetValue(processName, out var processFunction))
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
+                return;
+            }
+            var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
+            //emailsGroupToWork.WriteListLine();
+            var distributedBatches = ProxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
+            //distributedBatches.WriteListLine("EmailBatches2");
+            if (!distributedBatches.Any())
+            {
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+                return;
+            }
+
+
+            if (SelectedProcesses[0] == null)
+            {
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
+                return;
+            }
+
+            var results = new List<ReturnTypeObject>(){new ReturnTypeObject(){ Message = "Nothing inside"}};
+            foreach (var processName in SelectedProcesses)
+            {
+                var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches, async (emailAccount, cancellationToken) =>
                 {
-                    result=  await processFunction(emailAccount);
-                    switch (processName)
+                    if (_processsMapping.TryGetValue(processName, out var processFunction))
                     {
-                        case "CollectMessagesCount":
-                            await PostCollectMessages(emailAccount.EmailAddress,(ObservableCollection<FolderMessages>)result.ReturnedValue);
-                            break;
-                        default:
-                            break;
+                        results=  await processFunction(emailAccount);
+                        foreach (var result in results)
+                        {
+                            if (processName == "CollectMessagesCount")
+                            {
+                                await PostCollectMessages(
+                                    emailAccount.EmailAddress,
+                                    (ObservableCollection<FolderMessages>)result.ReturnedValue
+                                );
+                            }
+                        }
+                        return string.Join("\n", results.Select(r => r.Message));
                     }
-                }
                 
-                return result.Message;
-            }, ReportingSettingsValuesDisplay.Thread,ReportingSettingsValuesDisplay.Repetition,TaskCategory.Campaign,interval);
+                    return string.Join("\n", results.Select(r => r.Message));
+                }, ReportingSettingsValuesDisplay.Thread,ReportingSettingsValuesDisplay.Repetition,TaskCategory.Campaign,interval);
            
-            await CreateAnActiveTask(TaskCategory.Campaign,TaskCategory.Saved,TakInfoType.Batch,taskId,processName,Statics.UploadFileColor,Statics.UploadFileSoftColor,distributedBatches.ToObservableCollection());
-            await _taskManager.WaitForTaskCompletion(taskId); ;
-        }
+                await CreateAnActiveTask(TaskCategory.Campaign,TaskCategory.Saved,TakInfoType.Batch,taskId,processName,Statics.UploadFileColor,Statics.UploadFileSoftColor,distributedBatches.ToObservableCollection());
+                await _taskManager.WaitForTaskCompletion(taskId); ;
+            }
+            await LoadDataAsync(true);
         }
         catch (Exception e)
         {

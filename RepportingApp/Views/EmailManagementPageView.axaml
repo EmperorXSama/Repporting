@@ -1,0 +1,18 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewmodel="clr-namespace:RepportingApp.ViewModels"
+             x:DataType="viewmodel:EmailManagementPageViewModel"
+             mc:Ignorable="d"  d:DesignWidth="1620" d:DesignHeight="900"
+             x:Class="RepportingApp.Views.EmailManagementPageView">
+   <Grid>
+       <StackPanel Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="300">
+           <TextBlock Margin="0 15 0 5">Notes:</TextBlock>
+           <TextBox Height="600" Width="300" AcceptsReturn="True" TextWrapping="Wrap"
+                    Text="{Binding EmailInput, Mode=TwoWay}" />
+           <Button Content="Delete Emails" Command="{Binding DeleteEmailsCommand}" />
+           <TextBlock Margin="0 15 0 5" Foreground="Crimson"></TextBlock>
+       </StackPanel>
+   </Grid>
+</UserControl>

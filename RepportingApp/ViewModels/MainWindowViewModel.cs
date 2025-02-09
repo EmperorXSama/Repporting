@@ -39,6 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
         new ListItemTemplate(typeof(ProxyManagementPageViewModel),"ProxyIcon"),
         new ListItemTemplate(typeof(ReportingPageViewModel),"Reporting"),
         new ListItemTemplate(typeof(ProcessTrackerPageViewModel),"Process"),
+        new ListItemTemplate(typeof(EmailManagementPageViewModel),"ManageEmail"),
     };
 
     partial void OnCurrentPageChanged(ViewModelBase value)

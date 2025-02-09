@@ -21,10 +21,15 @@ public static class RandomGenerator
         return result.ToString();
     }
     
-    public static int GetRandomBetween2Numbers( int one, int two)
+    public static int GetRandomBetween2Numbers(int one, int two)
     {
+        if (one > two) 
+        {
+            (one, two) = (two, one);
+        }
+
         var rnd = new Random();
-        int num = rnd.Next(one, two);
-        return num;
+        return rnd.Next(one, two);
     }
+
 }

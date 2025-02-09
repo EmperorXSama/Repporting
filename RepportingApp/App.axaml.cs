@@ -30,6 +30,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<DashboardPageViewModel>();
         serviceCollection.AddSingleton<AutomationPageViewModel>();
         serviceCollection.AddSingleton<ProxyManagementPageViewModel>();
+        serviceCollection.AddSingleton<EmailManagementPageViewModel>();
         serviceCollection.AddSingleton<HomePageViewModel>();
         serviceCollection.AddSingleton<MainWindowViewModel>();
         serviceCollection.AddSingleton<ProcessTrackerPageViewModel>();
@@ -41,6 +42,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<ICacheService, CacheService>();
         serviceCollection.AddSingleton<IReportingRequests, ReportingRequests>();
         serviceCollection.AddSingleton<IProxyApiService, ProxyApiService>();
+        
         
         
         serviceCollection.AddSingleton<SystemConfigurationEstimator>();

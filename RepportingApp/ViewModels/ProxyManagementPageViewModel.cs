@@ -9,8 +9,22 @@ namespace RepportingApp.ViewModels;
 
 public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewModel
 {
+
+
+    #region Timer
+
+    private readonly DispatcherTimer _timer;
+    private TimeSpan _interval = TimeSpan.FromMinutes(60);
+
+    [ObservableProperty]
+    private int _intervalMinutes = 60; 
+
+
+    #endregion
+    
     
     [ObservableProperty] private bool _isDataLoaded = false;
+    [ObservableProperty] private bool _isProcessWorking = false;
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
@@ -20,7 +34,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty] 
     public ObservableCollection<Proxy> copyCentralProxyList = new ObservableCollection<Proxy>();
     [ObservableProperty] public ObservableCollection<Proxy> _selectedProxies;
-    [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts;
+    [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new ObservableCollection<EmailAccount>();
     private readonly IApiConnector _apiConnector;
     private readonly IProxyApiService _proxyApiService;
     [ObservableProperty]
@@ -46,6 +60,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty]
     private string selectedConnectivity; 
     
+    
     [ObservableProperty]
     private bool isAllSelected;
     private UnifiedTaskManager _taskManager;
@@ -66,8 +81,35 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         SelectedConnectivity = "Connectivity";
        
         InitializeTaskManager();
+        _timer = new DispatcherTimer();
+        _timer.Tick += async (s, e) => await GetAllProxiesFromApi();
+        
+        StartTimer();
+        
         
     }
+
+    #region Timer
+
+    private void StartTimer()
+    {
+        if (_timer.IsEnabled)
+        {
+            _timer.Stop();
+        }
+
+        _interval = TimeSpan.FromMinutes(IntervalMinutes);
+        _timer.Interval = _interval;
+        _timer.Start();
+    }
+    [RelayCommand]
+    private void UpdateCycleInterval()
+    {
+        StartTimer();
+    }
+
+    #endregion
+   
     private void InitializeTaskManager()
     {
         var systemEstimator = new SystemConfigurationEstimator();
@@ -109,7 +151,6 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     private async Task ProcessAStart()
     {
         _messenger.Send(new ProcessStartMessage("Success","Process B ",new ProcessModel()));
-        await ShowIndicator("name", "something to show");
     }
     
     public async Task ShowIndicator(string title,string message)
@@ -131,40 +172,58 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [RelayCommand]
     private async Task StartTestProxies()
     {
-        if (SelectedProxies == null) return;
-        if (!SelectedProxies.Any())
+        try
         {
-            return;
-        }
-        var taskId = _taskManager.StartBatch(SelectedProxies, async (selectedProxy, cancellationToken) =>
-        {
+            if (SelectedProxies == null) return;
+            if (!SelectedProxies.Any())
+            {
+                return;
+            }
+            var taskId = _taskManager.StartBatch(SelectedProxies, async (selectedProxy, cancellationToken) =>
+            {
             
-            await ProxyListManager.TestProxiesAsync(selectedProxy);
-            return null;
-        }, batchSize:200,taskCategory: TaskCategory.Invincible);
+                await ProxyListManager.TestProxiesAsync(selectedProxy);
+                return null;
+            }, batchSize:200,taskCategory: TaskCategory.Invincible);
 
-        await _taskManager.WaitForTaskCompletion(taskId);
-        if(SelectedProxies.Count == CentralProxyList.Count)PopulateFilters(CopyCentralProxyList);
+            await _taskManager.WaitForTaskCompletion(taskId);
+            await PopulateFilters(CopyCentralProxyList);
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+        }
+      
     }
     
     
-    public void PopulateFilters(IEnumerable<Proxy> proxies)
+    public async Task PopulateFilters(IEnumerable<Proxy> proxies)
     {
-        var centralProxies = proxies as Proxy[] ?? proxies.ToArray();
-
-        // Populate regions
-        ClearExceptFirst(Regions);
-        foreach (var region in centralProxies.Select(p => p.Region).Distinct())
+        try
         {
-            Regions.Add(region);
-        }
+            var centralProxies = proxies as Proxy[] ?? proxies.ToArray();
 
-        // Populate subnets
-        ClearExceptFirst(Subnets);
-        foreach (var subnet in GetDistinctSubnets(centralProxies))
-        {
-            Subnets.Add(subnet);
+            // Populate regions
+            ClearExceptFirst(Regions);
+            foreach (var region in centralProxies.Select(p => p.Region).Distinct())
+            {
+                Regions.Add(region);
+            }
+
+            // Populate subnets
+            ClearExceptFirst(Subnets);
+            foreach (var subnet in GetDistinctSubnets(centralProxies))
+            {
+                Subnets.Add(subnet);
+            }
         }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+        }
+      
     }
 
     private void ClearExceptFirst(ObservableCollection<string> collection)
@@ -184,32 +243,41 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     }
     
     [RelayCommand]
-    public void ApplyFilter()
+    public async Task ApplyFilter()
     {
-        // Start with the original unfiltered list
-        var filtered = CentralProxyList.AsEnumerable();
+        try
+        {
+            // Start with the original unfiltered list
+            var filtered = CentralProxyList.AsEnumerable();
 
-        // Filter based on selected values
-        if (!string.IsNullOrEmpty(SelectedRegion) && SelectedRegion != "Select Region")
-            filtered = filtered.Where(p => p.Region == SelectedRegion);
+            // Filter based on selected values
+            if (!string.IsNullOrEmpty(SelectedRegion) && SelectedRegion != "Select Region")
+                filtered = filtered.Where(p => p.Region == SelectedRegion);
 
-        if (!string.IsNullOrEmpty(SelectedSubnet) && SelectedSubnet != "Select Subnet")
-            filtered = filtered.Where(p => GetSubnet(p.ProxyIp) == SelectedSubnet);
+            if (!string.IsNullOrEmpty(SelectedSubnet) && SelectedSubnet != "Select Subnet")
+                filtered = filtered.Where(p => GetSubnet(p.ProxyIp) == SelectedSubnet);
 
-        if (!string.IsNullOrEmpty(SelectedAvailability) && SelectedAvailability != "availability")
-            filtered = filtered.Where(p => SelectedAvailability == "used" ? p.Availability : !p.Availability);
+            if (!string.IsNullOrEmpty(SelectedAvailability) && SelectedAvailability != "availability")
+                filtered = filtered.Where(p => SelectedAvailability == "used" ? p.Availability : !p.Availability);
 
-        if (!string.IsNullOrEmpty(SelectedConnectivity) && SelectedConnectivity != "Connectivity")
-            filtered = filtered.Where(p => SelectedConnectivity == "Google" ? p.GoogleConnectivity == "Connected" : p.YahooConnectivity == "Connected");
+            if (!string.IsNullOrEmpty(SelectedConnectivity) && SelectedConnectivity != "Connectivity")
+                filtered = filtered.Where(p => SelectedConnectivity == "Google" ? p.GoogleConnectivity == "Connected" : p.YahooConnectivity == "Connected");
 
-        // Update filtered list
-        var centralProxies = filtered as Proxy[] ?? filtered.ToArray();
-        CopyCentralProxyList.Clear();
-        foreach (var proxy in centralProxies)
-            CopyCentralProxyList.Add(proxy);
+            // Update filtered list
+            var centralProxies = filtered as Proxy[] ?? filtered.ToArray();
+            CopyCentralProxyList.Clear();
+            foreach (var proxy in centralProxies)
+                CopyCentralProxyList.Add(proxy);
 
-        // Update count of filtered results
-        CountFilter = CopyCentralProxyList.Count;
+            // Update count of filtered results
+            CountFilter = CopyCentralProxyList.Count;
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+        }
+      
     }
 
     private string GetSubnet(string ip)
@@ -229,13 +297,13 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
-            // Step 1: Upload proxies from the file into ReservedProxies
+            
             ProxyListManager.UploadReservedProxyFile();
 
-            // Step 2: Create a set of existing proxies from CopyCentralProxyList (based on IP and Port)
+          
             var existingProxies = new HashSet<string>(CopyCentralProxyList.Select(p => $"{p.ProxyIp}:{p.Port}"));
 
-            // Step 3: Filter the proxies from ReservedProxies that are not in the existing list
+            
             var newProxies = ProxyListManager.ReservedProxies
                 .Where(proxy =>
                 {
@@ -244,7 +312,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                 })
                 .ToList();
             
-            // Step 4: Add new proxies to CopyCentralProxyList
+          
             if (newProxies.Any())
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -270,7 +338,8 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         }
         catch (Exception e)
         {
-            Debug.WriteLine(e.Message);
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
         }
       
     }
@@ -280,7 +349,11 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
-            var newProxies = ProxyListManager.ReservedProxies.ToList();
+            IsProcessWorking = true;
+            var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: false);
+            var newProxies = proxies.Where(e => e.Availability);
+            if (!newProxies.Any())throw new Exception("available proxies File is empty please import ");
+            if (!EmailAccounts.Any())throw new Exception("there is no emails account");
             var newProxySet = new HashSet<string>(newProxies.Select(p => p.ProxyIp));
             var availableProxies = new Queue<Proxy>(newProxies);
 
@@ -299,7 +372,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
 
                     if (availableProxies.TryDequeue(out var newProxy))
                     {
-                        // Add the updated email-proxy mapping to the DTO list
+                        
                         updatedMappings.Add(new EmailProxyMappingDto
                         {
                             EmailAddress = email.EmailAddress,
@@ -312,7 +385,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                     }
                     else
                     {
-                        Console.WriteLine($"No proxies available to assign for email: {email.EmailAddress}");
+
                     }
                 }
             }
@@ -329,13 +402,17 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                     CentralProxyList.Add(proxy);
                 }
             }
-        
+
             await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
         }
         catch (Exception e)
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
             await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+        }
+        finally
+        {
+            IsProcessWorking = false;
         }
         
 
@@ -346,6 +423,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
+            IsProcessWorking = true;
             var result = await _proxyApiService.GetAllReplacedProxiesAsync();
             var proxyDtos = result.Select(proxy => new ProxyUpdateDto
             {
@@ -354,12 +432,16 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                 NewProxyIp = proxy.replaced_with,
                 NewProxyPort = proxy.replaced_with_port
             }).ToList();
-            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.ReplaceProxyProxy,proxyDtos);
+            await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.ReplaceProxyProxy, proxyDtos);
         }
         catch (Exception e)
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+            await ErrorIndicator.ShowErrorIndecator("ReplaceProxies Fail", e.Message);
+        }
+        finally
+        {
+            IsProcessWorking = false;
         }
       
     }
@@ -369,6 +451,8 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
+            await ReplaceProxies();
+            IsProcessWorking = true;
             await _proxyApiService.DownloadProxyListAsync();
             var uploadedFiles = await ProxyListManager.UploadNewProxyFileAsync();
             var proxyDtos = uploadedFiles.Select(p => new ProxyDto
@@ -379,12 +463,17 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                 Password = p.Password,
                 Availability = "Available"
             });
-            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostProxy,proxyDtos);
+            await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.PostProxy, proxyDtos);
+            await LoadDataAsync();
         }
         catch (Exception e)
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+            await ErrorIndicator.ShowErrorIndecator("GetAllProxiesFromApi Fail", e.Message);
+        }
+        finally
+        {
+            IsProcessWorking = false;
         }
       
          

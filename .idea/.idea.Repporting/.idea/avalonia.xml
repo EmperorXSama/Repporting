@@ -22,6 +22,7 @@
         <entry key="RepportingApp/Views/Components/TaskDetailPopup.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/ToastNotificationView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/DashboardPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/EmailManagementPageView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/HomePageView.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/MainWindow.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/ProcessTrackerPageView.axaml" value="RepportingApp/RepportingApp.csproj" />

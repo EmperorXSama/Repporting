@@ -150,5 +150,35 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             parameters
         );
     }
+    public async Task DeleteEmailsAsync(string emailText)
+    {
+        if (string.IsNullOrWhiteSpace(emailText))
+            throw new Exception("Email text cannot be empty");
+
+        // Convert the multi-line TextBox input into a list of email addresses
+        var emailList = emailText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(email => new { EmailAddress = email.Trim() })
+            .ToList();
+
+        if (!emailList.Any())
+            throw new Exception("Email text cannot be empty");
+
+        // Create a DataTable for the table-valued parameter
+        var table = new DataTable();
+        table.Columns.Add("EmailAddress", typeof(string));
+    
+        foreach (var email in emailList)
+        {
+            table.Rows.Add(email.EmailAddress);
+        }
+
+        var parameters = new { EmailList = table.AsTableValuedParameter("EmailListType") };
+
+        await _dbConnection.SaveDataAsync(
+            "[dbo].[DeleteEmailAccountsBatch]",
+            parameters
+        );
+    }
+
 
 }

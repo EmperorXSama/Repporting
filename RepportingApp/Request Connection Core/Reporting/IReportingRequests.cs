@@ -3,12 +3,16 @@
 public interface IReportingRequests
 {
 
-    Task<ReturnTypeObject> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount,
+    Task< List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount,
         MarkMessagesAsReadConfig config);
     Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount emailAccount, string directoryId);
 
-    Task<ReturnTypeObject> ProcessMarkMessagesAsReadFromDir(EmailAccount emailAccount, MarkMessagesAsReadConfig config,string directoryId = "1");
+    Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(EmailAccount emailAccount,
+        MarkMessagesAsReadConfig config, List<string> directoryIds);
 
-    Task<ReturnTypeObject> ProcessArchiveMessages(EmailAccount emailAccount,
+    Task< List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount emailAccount,
         MarkMessagesAsReadConfig config, string directoryId = "1");
+
+    Task<List<ReturnTypeObject>>
+        ProcessGetMessagesFromDirs(EmailAccount emailAccount, IEnumerable<string> directoryIds);
 }

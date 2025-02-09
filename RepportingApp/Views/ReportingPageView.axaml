@@ -1497,15 +1497,14 @@
                                         </DockPanel>
                                      
                                         <StackPanel Grid.Row="1" Spacing="10">
-                                            <ComboBox Grid.Row="1" ItemsSource="{Binding Folders}"
-                                                      Cursor="Hand"
-                                                      FontFamily="{StaticResource Roboto}"
-                                                      HorizontalAlignment="Stretch"
-                                                      HorizontalContentAlignment="Center"
-                                                      BorderBrush="{StaticResource CollectData}"
-                                                      BorderThickness="1"
-                                                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
-                                                      PlaceholderText="Select Folder"/>
+                                            <ListBox Grid.Row="1"
+                                                     ItemsSource="{Binding Folders}"
+                                                     Cursor="Hand"
+                                                     FontFamily="{StaticResource Roboto}"
+                                                     SelectionMode="Multiple"
+                                                     BorderBrush="{StaticResource CollectData}"
+                                                     BorderThickness="1"
+                                                     SelectionChanged="OnSelectionChanged"/>
                                             <StackPanel Spacing="4">
                                                 <CheckBox Content="Generate Subject Collector"    FontFamily="{StaticResource Roboto}" IsChecked="{Binding IsGenerateCsvSubjectTableRequested}" />
                                                 <StackPanel Spacing="3" IsVisible="{Binding IsGenerateCsvSubjectTableRequested}">
@@ -1590,7 +1589,7 @@
                                                               HorizontalContentAlignment="Center"
                                                               BorderBrush="{StaticResource Read}"
                                                               BorderThickness="1"
-                                                              SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                                                              SelectedItem="{Binding SelectedFolders, Mode=TwoWay}"
                                                               PlaceholderText="Select Folder"/>
                                                     <StackPanel Spacing="4">
                                                         <!--contain -->
