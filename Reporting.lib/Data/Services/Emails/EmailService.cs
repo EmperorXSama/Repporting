@@ -94,6 +94,15 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         });
 
         return results;
+    }  
+    public async Task<IEnumerable<RetrieveFailedEmailDto>> GetFailedEmailsByGroupAsync(int groupId)
+    {
+        var results = await _dbConnection.LoadDataAsync<RetrieveFailedEmailDto, dynamic>("[dbo].[GetFailedEmailsByGroup]", new
+        {
+            GroupId = groupId
+        });
+
+        return results;
     }
 
     public async Task UpdateEmailStatsBatchAsync(IEnumerable<EmailStatsUpdateDto> emailAccounts)
@@ -127,6 +136,35 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             parameters
         );
     }
+    public async Task UpdateEmailMetadataBatchAsync(IEnumerable<EmailMetadata> metadataList)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailAccountId", typeof(int));
+        table.Columns.Add("MailId", typeof(string));
+        table.Columns.Add("YmreqId", typeof(string));
+        table.Columns.Add("Wssid", typeof(string));
+        table.Columns.Add("Cookie", typeof(string));
+
+        foreach (var metadata in metadataList)
+        {
+            table.Rows.Add(
+                metadata.EmailAccountId,
+                metadata.MailId,
+                metadata.YmreqId,
+                metadata.Wssid,
+                metadata.Cookie
+            );
+        }
+
+        var parameters = new { EmailMetadataList = table.AsTableValuedParameter("EmailMetadataType") };
+
+        await _dbConnection.SaveDataAsync(
+            "[dbo].[UpdateEmailMetadata]",
+            parameters
+        );
+    }
+
+
     public async Task UpdateEmailProxiesBatchAsync(IEnumerable<EmailProxyMappingDto> emailProxyMappings)
     {
         var table = new DataTable();
@@ -150,6 +188,23 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             parameters
         );
     }
+    
+    public async Task AddFailedEmailsBatchAsync(IEnumerable<FailedEmailDto> failedEmails)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailId", typeof(int));
+        table.Columns.Add("FailureReason", typeof(string));
+
+        foreach (var email in failedEmails)
+        {
+            table.Rows.Add(email.EmailId, email.FailureReason);
+        }
+
+        var parameters = new { FailedEmails = table.AsTableValuedParameter("FailedEmailTableType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[AddFailedEmailsBatch]", parameters);
+    }
+
     public async Task DeleteEmailsAsync(string emailText)
     {
         if (string.IsNullOrWhiteSpace(emailText))

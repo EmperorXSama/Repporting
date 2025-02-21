@@ -41,7 +41,7 @@ public async   Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount ema
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
+                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                 emailAccount.Proxy = reservedProxyInUse;
             }
         );
@@ -103,7 +103,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(Emai
                 retryAttempt => TimeSpan.FromSeconds(1),
                 (exception, timeSpan, retryCount, context) =>
                 {
-                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
+                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                     emailAccount.Proxy = reservedProxyInUse;
                 }
             );
@@ -144,7 +144,7 @@ public async Task<List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount em
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
+                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                 emailAccount.Proxy = reservedProxyInUse;
             }
         );
@@ -180,7 +180,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxy(emailAccount.Proxy);
+                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                 emailAccount.Proxy = reservedProxyInUse;
             }
         );

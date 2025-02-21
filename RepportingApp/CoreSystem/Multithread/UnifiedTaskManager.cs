@@ -181,48 +181,19 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Process a looping batch of tasks with specified interval
-        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval, int repitition ,TaskCategory category,CancellationToken cancellationToken)
+        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval ,TaskCategory category,CancellationToken cancellationToken)
         {
             try
             {
-                var tour = 0;
+              
                 var taskInfo = await WaitForTaskInfo(taskId, TaskCategory.Campaign, TimeSpan.FromSeconds(5));
                 if (taskInfo == null)
                 {
                     // Handle the case where the task is not added within the timeout
                     throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
                 }
-                while (!cancellationToken.IsCancellationRequested && tour < repitition)
-                {
-                        DateTime nextRunTime = DateTime.UtcNow + interval;
-                        
-                        UpdateUiThreadValues(()=>
-                        {
-                            if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Waiting;
-                        });
-                        // Update remaining time every second
-                        while (DateTime.UtcNow < nextRunTime)
-                        {
-                            var remainingTime = nextRunTime - DateTime.UtcNow;
-                
-                            // Use Dispatcher to update the UI-bound TaskInfo object
-                            UpdateUiThreadValues(() =>
-                            {
-                                if (taskInfo != null)
-                                {
-                                    taskInfo.TimeUntilNextRun = remainingTime;
-                                }
-                            });
-                       
-                            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken); // Update every second
-                        }
-                        
-
+            
                     
-                        UpdateUiThreadValues(()=>
-                        {
-                            if (taskInfo != null) taskInfo.WorkingStatus = TaskStatus.Running;
-                        });
                     // Process the batch of items in chunks
                     var itemBatches = items.Batch(batchSize);
                     foreach (var batch in itemBatches)
@@ -247,10 +218,6 @@ namespace RepportingApp.CoreSystem.Multithread
                         BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, null));
                     }
                     
-                    // Delay for the specified interval, unless cancellation is requested
-                    await Task.Delay(5, cancellationToken);
-                    tour++;
-                }
             }
             catch (OperationCanceledException)
             {
@@ -279,13 +246,13 @@ namespace RepportingApp.CoreSystem.Multithread
             return taskId;
         }
         // New StartLoopingTaskBatch method
-        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize,int repitition,TaskCategory taskCategory, TimeSpan interval)
+        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize,TaskCategory taskCategory, TimeSpan interval)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
             _cancellationTokens[taskId] = cts;
 
-            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval, repitition,taskCategory ,cts.Token));
+            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval,taskCategory ,cts.Token));
             TryDequeueTask();
 
             return taskId;

@@ -22,9 +22,9 @@ namespace ReportingApi.Controllers
             return await _groupService.GetAllGroups();
         }
         [HttpPost("AddGroup")]
-        public async Task<int> Post([FromBody] string newGroupName)
+        public async Task<int> Post([FromBody] EmailGroup newGroup)
         {
-            return await _groupService.AddGroup(newGroupName);
+            return await _groupService.AddGroup(newGroup.GroupName,newGroup.RdpIp);
         }
         [HttpPost("DeleteGroup")]
         public async Task<bool> Post([FromBody] int groupId)

@@ -37,6 +37,25 @@ namespace ReportingApi.Controllers
             {
               return BadRequest(e.Message);
             }
+        } 
+        [HttpPost("FailEmails")]
+        public async Task<IActionResult> AddEmailsToFailTable([FromBody] IEnumerable<FailedEmailDto> failedEmails)
+        {
+            try
+            {
+                await _emailService.AddFailedEmailsBatchAsync(failedEmails);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+              return BadRequest(e.Message);
+            }
+        }
+        [HttpGet("GetFailEmails")]
+        public async Task<IEnumerable<RetrieveFailedEmailDto>> GetEmailsFromFailedTable( int group)
+        {
+            return await _emailService.GetFailedEmailsByGroupAsync(group);
+           
         }
         [HttpPost("UpdateStats")]
         public async Task<IActionResult> UpdateEmailsStats([FromBody] IEnumerable<EmailStatsUpdateDto> emails)
@@ -51,6 +70,23 @@ namespace ReportingApi.Controllers
               return BadRequest(e.Message);
             }
         }
+        [HttpPost("UpdateEmailMetadata")]
+        public async Task<IActionResult> UpdateEmailsMetadata([FromBody] IEnumerable<EmailMetadata> emails)
+        {
+            if (emails == null || !emails.Any())
+                return BadRequest("Email metadata list cannot be empty.");
+
+            try
+            {
+                await _emailService.UpdateEmailMetadataBatchAsync(emails);
+                return Ok(new { Message = "Email metadata updated successfully!" });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpPost("UpdateProxies")]
         public async Task<IActionResult> UpdateEmailProxies([FromBody] IEnumerable<EmailProxyMappingDto> emailProxyMappings)
         {

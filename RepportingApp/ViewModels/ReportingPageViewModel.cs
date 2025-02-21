@@ -247,13 +247,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     }
 
-    private async Task LoadDataAsync(bool ignoreCache)
+    /*private async Task LoadDataAsync(bool ignoreCache)
     {
         var groups = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache:ignoreCache);
         var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails,ignoreCache:ignoreCache);
         Task.Run(async () =>
         {
-            var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: false);
+            var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: ignoreCache);
             ProxyListManager.GetDBProxies(proxies);
         });
 
@@ -264,6 +264,28 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         NetworkItems = emails.ToObservableCollection();
         EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
         EmailAccounts =  emails.ToObservableCollection();
+        CountFilter = EmailDiaplysTable.Count;
+    }*/
+    private async Task LoadDataAsync(bool ignoreCache)
+    {
+        // Fetch API data in parallel, awaiting them properly
+        var fetchGroupsTask = _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache:ignoreCache);
+        var fetchEmailsTask = _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache:ignoreCache);
+        var fetchProxiesTask = _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache:ignoreCache);
+
+        // Await tasks separately
+        var groups = await fetchGroupsTask;
+        var emails = await fetchEmailsTask;
+        var proxies = await fetchProxiesTask;
+
+        
+        Task.Run(() => ProxyListManager.GetDBProxies(proxies));
+
+        // Efficiently update observable collections
+        Groups = groups.ToObservableCollection();
+        NetworkItems = emails.ToObservableCollection();
+        EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
+        EmailAccounts = emails.ToObservableCollection();
         CountFilter = EmailDiaplysTable.Count;
     }
 
@@ -421,6 +443,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private ObservableCollection<EmailGroup> _groups= new ObservableCollection<EmailGroup>();
 
     [ObservableProperty] private string _newGroupName;
+    [ObservableProperty] private string _rdpIp;
     [ObservableProperty] private EmailGroup? _selectedEmailGroup = new EmailGroup(); 
     [ObservableProperty] private ObservableCollection<EmailGroup> _selectedEmailGroupForTask = new (); 
     
@@ -450,27 +473,45 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [RelayCommand]
     private async Task CreateNewGroup()
     {
-        IsEnabled = false;
-        if (!string.IsNullOrWhiteSpace(NewGroupName))
+        try
         {
-            
-            var id = await _apiConnector.PostDataObjectAsync<int>(ApiEndPoints.PostGroup,NewGroupName);
-            EmailGroup newGroup = new EmailGroup()
+            IsEnabled = false;
+            if (!string.IsNullOrWhiteSpace(NewGroupName) || string.IsNullOrWhiteSpace(RdpIp))
             {
-                GroupId = id,
-                GroupName = NewGroupName
-            };
-            Groups.Add(newGroup);
-            IsEnabled = true;
-            SelectedEmailGroup = newGroup;
-            
-            NewGroupName = string.Empty;
-           
+                throw new Exception("You must enter a valid RDP IP address and group name  for new group");
+            }
+
+            var chunkPayload = new EmailGroup()
+                {
+                    GroupName = NewGroupName,
+                    RdpIp = RdpIp,
+                };
+                var id = await _apiConnector.PostDataObjectAsync<int>(ApiEndPoints.PostGroup, chunkPayload);
+                EmailGroup newGroup = new EmailGroup()
+                {
+                    GroupId = id,
+                    GroupName = NewGroupName
+                };
+                Groups.Add(newGroup);
+                IsEnabled = true;
+                SelectedEmailGroup = newGroup;
+
+                NewGroupName = string.Empty;
+                RdpIp = string.Empty;
+
+     
         }
-        else
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Group Creation Failed",
+                e.Message);
+        }
+        finally
         {
             IsEnabled = true;
         }
+       
     }
     [RelayCommand]
     private async Task DeleteGroup()
@@ -896,7 +937,12 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                         await _apiConnector.PostDataObjectAsync<object>(
                             ApiEndPoints.UpdateStatsEmails, 
                             processedEmailsDto 
+                        );  
+                        await _apiConnector.PostDataObjectAsync<object>(
+                            ApiEndPoints.AddEmailsToFail, 
+                            failedEmailsIds 
                         );
+                        failedEmailsIds.Clear();
                         /*await Dispatcher.UIThread.InvokeAsync(
                             () =>
                             {
@@ -916,7 +962,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         }
     }
 
-
+private ConcurrentBag<FailedEmailDto> failedEmailsIds = new ConcurrentBag<FailedEmailDto>();
 private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 {
     try
@@ -976,6 +1022,15 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                             Title = e.Error?.Message.GetValueBetweenBrackets() ,
                             Message = $"Email failed in task {e.TaskId}: {e.Error?.Message}"
                         });
+                        if (e.Error != null && !e.Error.Message.Contains("proxy"))
+                        {
+                            failedEmailsIds.Add(new FailedEmailDto()
+                            {
+                                EmailId = emailProcessed.Id,
+                                FailureReason = $"{e.Error?.Message}"
+                            });
+                        }
+                       
                         ErrorMessages.Add($"Email failed in task {e.TaskId}: {e.Error?.Message}");
                         // Check if the error already exists
                         Dispatcher.UIThread.Post(() =>
@@ -1248,11 +1303,22 @@ private async Task ReadAllEmailsInboxMessagesAsync()
         
        
     }
+    [ObservableProperty]
+    private TimeSpan _timeUntilNextRun; 
+    [ObservableProperty]
+    private string _state; 
+    [ObservableProperty]
+    private int _tour;   
+    [ObservableProperty]
+    private int _Totalrepitition;  
+    [ObservableProperty]
+    private bool isRunning;
 
     private async Task AddSingleCampaignTaskAsync()
     {
         try
         {
+            Totalrepitition = ReportingSettingsValuesDisplay.Repetition;
             TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.RepetitionDelay);
             if (!SelectedProcesses.Any())
             {
@@ -1260,6 +1326,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                 await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
                 return;
             }
+
             var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
             //emailsGroupToWork.WriteListLine();
             var distributedBatches = ProxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
@@ -1275,43 +1342,74 @@ private async Task ReadAllEmailsInboxMessagesAsync()
             if (SelectedProcesses[0] == null)
             {
                 ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("Process Selection Issue", "The process Selected have no correspondent Logic.");
+                await ErrorIndicator.ShowErrorIndecator("Process Selection Issue",
+                    "The process Selected have no correspondent Logic.");
                 return;
             }
 
-            var results = new List<ReturnTypeObject>(){new ReturnTypeObject(){ Message = "Nothing inside"}};
-            foreach (var processName in SelectedProcesses)
+            var results = new List<ReturnTypeObject>() { new ReturnTypeObject() { Message = "Nothing inside" } };
+            Tour = 0;
+            while (Tour < ReportingSettingsValuesDisplay.Repetition)
             {
-                var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches, async (emailAccount, cancellationToken) =>
+                IsRunning = true;
+                State = "Running";
+                foreach (var processName in SelectedProcesses)
                 {
-                    if (_processsMapping.TryGetValue(processName, out var processFunction))
-                    {
-                        results=  await processFunction(emailAccount);
-                        foreach (var result in results)
+                    var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches,
+                        async (emailAccount, cancellationToken) =>
                         {
-                            if (processName == "CollectMessagesCount")
+                            if (_processsMapping.TryGetValue(processName, out var processFunction))
                             {
-                                await PostCollectMessages(
-                                    emailAccount.EmailAddress,
-                                    (ObservableCollection<FolderMessages>)result.ReturnedValue
-                                );
+                                results = await processFunction(emailAccount);
+                                foreach (var result in results)
+                                {
+                                    if (processName == "CollectMessagesCount")
+                                    {
+                                        await PostCollectMessages(
+                                            emailAccount.EmailAddress,
+                                            (ObservableCollection<FolderMessages>)result.ReturnedValue
+                                        );
+                                    }
+                                }
+
+                                return string.Join("\n", results.Select(r => r.Message));
                             }
-                        }
-                        return string.Join("\n", results.Select(r => r.Message));
-                    }
-                
-                    return string.Join("\n", results.Select(r => r.Message));
-                }, ReportingSettingsValuesDisplay.Thread,ReportingSettingsValuesDisplay.Repetition,TaskCategory.Campaign,interval);
-           
-                await CreateAnActiveTask(TaskCategory.Campaign,TaskCategory.Saved,TakInfoType.Batch,taskId,processName,Statics.UploadFileColor,Statics.UploadFileSoftColor,distributedBatches.ToObservableCollection());
-                await _taskManager.WaitForTaskCompletion(taskId); ;
+
+                            return string.Join("\n", results.Select(r => r.Message));
+                        }, ReportingSettingsValuesDisplay.Thread, TaskCategory.Campaign, interval);
+
+                    await CreateAnActiveTask(TaskCategory.Campaign, TaskCategory.Saved, TakInfoType.Batch, taskId,
+                        processName, Statics.UploadFileColor, Statics.UploadFileSoftColor,
+                        distributedBatches.ToObservableCollection());
+                    await _taskManager.WaitForTaskCompletion(taskId);
+                }
+            
+                Tour++;
+                State = "Waiting";
+                DateTime nextRunTime = DateTime.UtcNow + interval;
+
+                while (DateTime.UtcNow < nextRunTime)
+                {
+                    var remainingTime = nextRunTime - DateTime.UtcNow;
+
+                    TimeUntilNextRun = remainingTime;
+
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+
             }
+
             await LoadDataAsync(true);
         }
         catch (Exception e)
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
             await ErrorIndicator.ShowErrorIndecator("Campaign Issue", e.Message);
+        }
+        finally
+        {
+            Tour = 0;
+            IsRunning = false;
         }
        
         

@@ -59,9 +59,7 @@ public class ProxyServices : IProxyServices
                 proxy.OldProxyIp,
                 proxy.OldProxyPort,
                 proxy.NewProxyIp,
-                proxy.NewProxyPort,
-                proxy.NewUsername ?? (object)DBNull.Value,
-                proxy.NewPassword ?? (object)DBNull.Value
+                proxy.NewProxyPort
             );
         }
 

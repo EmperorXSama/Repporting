@@ -11,6 +11,7 @@ public class ApiEndPoints
     public static string ReplaceProxyProxy => $"{BaseUrl}/Proxy/ReplaceProxyProxy";
     public static string DeleteGroup => $"{BaseUrl}/Group/DeleteGroup";
     public static string GetEmails => $"{BaseUrl}/Emails/GetEmails";
+    public static string AddEmailsToFail => $"{BaseUrl}/Emails/FailEmails";
     public static string DeleteEmails => $"{BaseUrl}/Emails/DeleteEmails";
     public static string PostEmailsProxiesUpdate => $"{BaseUrl}/Emails/UpdateProxies";
     public static string GetAllProxies => $"{BaseUrl}/Proxy/GetProxies";

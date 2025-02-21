@@ -14,10 +14,10 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     #region Timer
 
     private readonly DispatcherTimer _timer;
-    private TimeSpan _interval = TimeSpan.FromMinutes(60);
+    private TimeSpan _interval = TimeSpan.FromMinutes(30);
 
     [ObservableProperty]
-    private int _intervalMinutes = 60; 
+    private int _intervalMinutes = 30; 
 
 
     #endregion
@@ -258,7 +258,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                 filtered = filtered.Where(p => GetSubnet(p.ProxyIp) == SelectedSubnet);
 
             if (!string.IsNullOrEmpty(SelectedAvailability) && SelectedAvailability != "availability")
-                filtered = filtered.Where(p => SelectedAvailability == "used" ? p.Availability : !p.Availability);
+                filtered = filtered.Where(p => SelectedAvailability == "used" ? !p.Availability : p.Availability);
 
             if (!string.IsNullOrEmpty(SelectedConnectivity) && SelectedConnectivity != "Connectivity")
                 filtered = filtered.Where(p => SelectedConnectivity == "Google" ? p.GoogleConnectivity == "Connected" : p.YahooConnectivity == "Connected");
@@ -431,6 +431,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                 OldProxyPort = proxy.proxy_port,
                 NewProxyIp = proxy.replaced_with,
                 NewProxyPort = proxy.replaced_with_port
+                
             }).ToList();
             await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.ReplaceProxyProxy, proxyDtos);
         }

@@ -3,16 +3,42 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewmodel="clr-namespace:RepportingApp.ViewModels"
+             xmlns:avalonia="clr-namespace:LoadingIndicators.Avalonia;assembly=LoadingIndicators.Avalonia"
              x:DataType="viewmodel:EmailManagementPageViewModel"
              mc:Ignorable="d"  d:DesignWidth="1620" d:DesignHeight="900"
              x:Class="RepportingApp.Views.EmailManagementPageView">
-   <Grid>
-       <StackPanel Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="300">
+   <Grid ColumnDefinitions="Auto,30,Auto" HorizontalAlignment="Center">
+       <Border  ZIndex="10000"   IsVisible="{Binding IsLoading , Mode=TwoWay}">
+           <avalonia:LoadingIndicator VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" IsActive="{Binding IsLoading , Mode=TwoWay}"  Mode="Arcs" SpeedRatio="1.2"/>
+       </Border>
+       <StackPanel Grid.Column="0" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="300">
            <TextBlock Margin="0 15 0 5">Notes:</TextBlock>
            <TextBox Height="600" Width="300" AcceptsReturn="True" TextWrapping="Wrap"
                     Text="{Binding EmailInput, Mode=TwoWay}" />
            <Button Content="Delete Emails" Command="{Binding DeleteEmailsCommand}" />
-           <TextBlock Margin="0 15 0 5" Foreground="Crimson"></TextBlock>
+           <TextBox  IsReadOnly="True"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     TextWrapping="Wrap"  Margin="0 15 0 5" Foreground="Crimson" Text="{Binding ErrorMessage}"></TextBox>
+       </StackPanel> 
+       <StackPanel Grid.Column="2" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="100">
+           <TextBlock Margin="0 15 0 5">group Name:</TextBlock>
+           <Border Grid.Row="1" >
+               <ComboBox   HorizontalAlignment="Stretch"
+                           VerticalAlignment="Center" 
+                           PlaceholderText="Group"
+                           Background="{StaticResource MainWhite}"
+                           Foreground="{StaticResource Primary}"
+                           ItemsSource="{Binding Groups}"
+                           SelectedItem="{Binding SelectedEmailGroupFilter}">
+                                                                                    
+               </ComboBox>
+           </Border>
+           <Button Cursor="Hand" Content="Download Emails" Command="{Binding DownloadEmailsCommand}" />
+           <TextBox  IsReadOnly="True"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     TextWrapping="Wrap" Margin="0 15 0 5" Foreground="Blue" Text="{Binding SuccessMessage}"></TextBox>
        </StackPanel>
    </Grid>
 </UserControl>

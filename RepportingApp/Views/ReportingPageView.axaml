@@ -446,7 +446,20 @@
 
                                           
                                             <TabItem Header="Campaign" FontSize="14" >
-                                                <taskCardDesign:CampaignTasks />
+                                                <StackPanel >
+                                                    <Grid IsVisible="{Binding IsRunning}">
+                                                        <TextBlock  HorizontalAlignment="Left">
+                                                            <TextBlock Text="{Binding Tour}"></TextBlock>
+                                                            <TextBlock>/</TextBlock>
+                                                            <TextBlock Text="{Binding ReportingSettingsValuesDisplay.Repetition}"></TextBlock>
+                                                        </TextBlock>
+                                                        <TextBlock Text="{Binding State}" HorizontalAlignment="Center"></TextBlock>
+                                                        <TextBlock Foreground="Olive" FontFamily="{StaticResource Roboto}" FontWeight="Black" Text="{Binding TimeUntilNextRun, Converter={StaticResource TimeSpanToStringConverter}}" HorizontalAlignment="Right" />
+                                                    </Grid>
+                                                    
+                                                    <taskCardDesign:CampaignTasks />
+                                                </StackPanel>
+                                               
                                             </TabItem>
                                         </TabControl>
 
@@ -1100,7 +1113,17 @@
                                                  Watermark="Enter new group name"
                                                  FontFamily="{StaticResource Roboto}"
                                                  
-                                                 Text="{Binding NewGroupName, Mode=TwoWay}" />
+                                                 Text="{Binding NewGroupName, Mode=TwoWay}" />  
+                                        <TextBox 
+                                                 Padding="9"
+                                                 BorderBrush="{StaticResource LightGrey}"
+                                                 CornerRadius="9"
+                                                 UseFloatingWatermark="False"
+                                            
+                                                 Watermark="Enter RDP IP"
+                                                 FontFamily="{StaticResource Roboto}"
+                                                 
+                                                 Text="{Binding RdpIp, Mode=TwoWay}" />
                                         <Border   Width="140"
                                                   BorderBrush="{StaticResource LightGrey}"
                                                   BorderThickness="0"

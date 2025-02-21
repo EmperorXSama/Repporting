@@ -18,9 +18,9 @@ public class GroupService : IGroupService
     }
     
 
-    public async Task<int> AddGroup(string group)
+    public async Task<int> AddGroup(string group,string rdpIp)
     {
-        return await _dataConnection.SaveDataAsync("[dbo].[AddGroup]", new {Name  = group});
+        return await _dataConnection.SaveDataAsync("[dbo].[AddGroup]", new {Name  = group, RdpIp = rdpIp});
     }
 
     public async Task<bool> DeleteGroup(int groupId)

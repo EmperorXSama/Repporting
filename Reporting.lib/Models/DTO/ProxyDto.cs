@@ -28,6 +28,4 @@ public class ProxyUpdateDto
     public int OldProxyPort { get; set; }
     public string NewProxyIp { get; set; }
     public int NewProxyPort { get; set; }
-    public string? NewUsername { get; set; }
-    public string? NewPassword { get; set; }
 }
