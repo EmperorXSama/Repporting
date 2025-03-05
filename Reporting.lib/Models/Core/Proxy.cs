@@ -20,8 +20,6 @@ public partial class Proxy : ObservableObject
     [ObservableProperty] private string _yahooConnectivity;
     [ObservableProperty] private string _region;
     [ObservableProperty] private bool _availability;
-
-    [JsonPropertyName("emailAccounts")]
-    public ICollection<EmailAccount> EmailAccounts { get; set; } = new List<EmailAccount>();
+    
     
 }

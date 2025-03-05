@@ -57,6 +57,20 @@ namespace ReportingApi.Controllers
             return await _emailService.GetFailedEmailsByGroupAsync(group);
            
         }
+        [HttpPost("DeleteBannedEmails")]
+        public async Task<IActionResult> DeleteBannedEmails([FromBody] IEnumerable<string> bannedEmails)
+        {
+            try
+            {
+                await _emailService.DeleteBannedEmailsAsync(bannedEmails);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         [HttpPost("UpdateStats")]
         public async Task<IActionResult> UpdateEmailsStats([FromBody] IEnumerable<EmailStatsUpdateDto> emails)
         {
@@ -105,14 +119,15 @@ namespace ReportingApi.Controllers
         {
             try
             {
-                await _emailService.DeleteEmailsAsync(emails);
-                return Ok();
+                int deletedCount = await _emailService.DeleteEmailsAsync(emails);
+                return Ok(new { DeletedEmails = deletedCount });
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
         }
+
 
     }
 }

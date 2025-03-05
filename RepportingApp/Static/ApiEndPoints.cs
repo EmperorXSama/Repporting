@@ -4,6 +4,7 @@ public class ApiEndPoints
 {
     // private API 
     /*private static readonly string BaseUrl = "http://65.109.62.85:2030/api";*/
+    /*private static readonly string BaseUrl = "http://95.217.183.87:2030/api";*/
     private static readonly string BaseUrl = "http://localhost:5164/api";
     public static string GetGroups => $"{BaseUrl}/Group";
     public static string PostGroup => $"{BaseUrl}/Group/AddGroup";

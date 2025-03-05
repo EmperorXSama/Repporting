@@ -19,71 +19,121 @@ public partial class EmailManagementPageViewModel: ViewModelBase , ILoadableView
         _apiConnector = apiConnector;
     }
     
-    [RelayCommand]
-    private async Task DeleteEmailsAsync()
+  [RelayCommand]
+private async Task DeleteEmailsAsync()
+{
+    try
     {
-        try
-        {
-            ErrorMessage = $"";
-            SuccessMessage = $"";
-            ErrorMessage = String.Empty;
-            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.DeleteEmails,EmailInput);
-            EmailInput = string.Empty;
-        }
-        catch (Exception e)
-        {
-          ErrorMessage = $"Error: {e.Message}";
-        }
-      
-    }
-    [RelayCommand]
-    private async Task DownloadEmailsAsync()
-    {
-        try
-        {
-            ErrorMessage = $"";
-            SuccessMessage = $"";
-            if (string.IsNullOrWhiteSpace(SelectedEmailGroupFilter.GroupName)) // Ensure group name is selected
-            {
-                ErrorMessage = "Please select a group.";
-                return;
-            }
+        ErrorMessage = string.Empty;
+        SuccessMessage = string.Empty;
 
-           
-            var emailsInGroup = _networkItems
-                .Where(email => email.Group?.GroupName == SelectedEmailGroupFilter.GroupName)
+        var response = await _apiConnector.PostDataObjectAsync<dynamic>(ApiEndPoints.DeleteEmails, EmailInput);
+        
+        if (response != null && response.deletedEmails  != null)
+        {
+            int deletedCount = response.deletedEmails;
+            SuccessMessage = $"{deletedCount} emails have been deleted successfully.";
+        }
+        else
+        {
+            SuccessMessage = "No emails were deleted.";
+        }
+
+        EmailInput = string.Empty;
+    }
+    catch (Exception e)
+    {
+        ErrorMessage = $"Error: {e.Message}";
+    }
+}
+
+[ObservableProperty] private bool _downloadAllGroups = false;
+[ObservableProperty] private bool _overwriteDownloadFile = false;
+
+[RelayCommand]
+private async Task DownloadEmailsAsync()
+{
+    try
+    {
+        ErrorMessage = "";
+        SuccessMessage = "";
+
+        if (!DownloadAllGroups && (SelectedEmailGroupFilter == null || string.IsNullOrWhiteSpace(SelectedEmailGroupFilter.GroupName)))
+        {
+            ErrorMessage = "Please select a group or enable 'Download All Groups'.";
+            return;
+        }
+
+        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string outputFolder = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data");
+        Directory.CreateDirectory(outputFolder); // Ensure directory exists
+
+        StringBuilder sb = new();
+
+        if (DownloadAllGroups)
+        {
+            // Download all groups
+            foreach (var group in Groups)
+            {
+                var emailsInGroup = _networkItems.Where(email => email.Group?.GroupName == group.GroupName).ToList();
+
+                if (emailsInGroup.Any())
+                {
+                    sb.AppendLine($"# Group: {group.GroupName}"); // Add a separator for each group
+                    foreach (var email in emailsInGroup)
+                    {
+                        sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}");
+                    }
+                    sb.AppendLine(); // Extra line for readability
+                }
+            }
+        }
+        else
+        {
+            // Download only the selected group
+            var emailsInGroup = NetworkItems.Where(email => email.Group?.GroupName == SelectedEmailGroupFilter.GroupName)
                 .ToList();
 
-            if (emailsInGroup.Count == 0)
+            if (!emailsInGroup.Any())
             {
                 ErrorMessage = "No emails found in the selected group.";
                 return;
             }
-
-            // Prepare file content
-            var sb = new StringBuilder();
+            
             foreach (var email in emailsInGroup)
             {
                 sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}");
             }
-
-            // Define file path
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string timestamp = DateTime.Now.ToString("HH-mm");
-            string fileName = $"{SelectedGroupName}_{timestamp}.txt";
-            string filePath = Path.Combine(desktopPath, fileName);
-
-            // Write to file
-            await File.WriteAllTextAsync(filePath, sb.ToString());
-
-            SuccessMessage = $"File saved to: {filePath}";
         }
-        catch (Exception e)
+
+        string filePath;
+
+        if (OverwriteDownloadFile)
         {
-            ErrorMessage = $"Error: {e.Message}";
+            filePath = Path.Combine(outputFolder, "Profiles.txt");
         }
-    }
+        else if (DownloadAllGroups)
+        {
+            filePath = Path.Combine(outputFolder, "AllGroups.txt");
+        }
+        else
+        {
+            filePath = Path.Combine(outputFolder, $"{SelectedEmailGroupFilter.GroupName}.txt");
+        }
 
+        // Write to file
+        await File.WriteAllTextAsync(filePath, sb.ToString());
+
+        SuccessMessage = $"File saved to: {filePath}";
+    }
+    catch (Exception e)
+    {
+        ErrorMessage = $"Error: {e.Message}";
+    }
+}
+
+[ObservableProperty] private int _availableProxies = 0;
+[ObservableProperty] private int _usedProxies = 0;
     [ObservableProperty] private bool _isLoading;
     public async Task LoadDataIfFirstVisitAsync(bool ignorecache = false)
     {
@@ -107,17 +157,147 @@ public partial class EmailManagementPageViewModel: ViewModelBase , ILoadableView
 
     }
     [ObservableProperty] private ObservableCollection<EmailGroup> _groups= new ObservableCollection<EmailGroup>();
+    [ObservableProperty] public ObservableCollection<Proxy> centralProxyList = new ObservableCollection<Proxy>();
     [ObservableProperty] private EmailGroup? _selectedEmailGroupFilter = null;
     private async Task LoadDataAsync(bool ignoreCache)
     {
         var fetchEmailsTask = _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache:ignoreCache);
         var fetchGroupsTask = _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache:ignoreCache);
-
+        var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies,ignoreCache:false);
+        var enumerable = proxies as Proxy[] ?? proxies.ToArray();
+        CentralProxyList = enumerable.ToObservableCollection();
         // Await tasks separately
         var groups = await fetchGroupsTask;
         var emails = await fetchEmailsTask;
         Groups = groups.ToObservableCollection();
         NetworkItems = emails.ToObservableCollection();
-
+        AvailableProxies = enumerable.Count(p => p.Availability);
+        UsedProxies = enumerable.Count(p => p.Availability == false);
     }
+    
+    
+    [ObservableProperty] private string _emailInputAssign;
+    [RelayCommand]
+    private async Task AssignProxiesAndSaveToFileAsync()
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(EmailInputAssign))
+        {
+            ErrorMessage = "Please enter emails in the format: email;password";
+            return;
+        }
+
+        // Parse input into email accounts
+        var emailAccounts = EmailInputAssign.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Split(';'))
+            .Where(parts => parts.Length >= 2)
+            .Select(parts => new EmailAccount
+            {
+                EmailAddress = parts[0].Trim(),
+                Password = parts[1].Trim()
+            })
+            .ToList();
+
+        if (emailAccounts.Count == 0)
+        {
+            ErrorMessage = "No valid emails found!";
+            return;
+        }
+
+        // Get available proxies
+        var availableProxies = CentralProxyList.Where(p => p.Availability).ToList();
+        var allProxies = CentralProxyList.ToList();
+
+        // Step 1: Assign available proxies first
+        int proxyIndex = 0;
+        foreach (var email in emailAccounts)
+        {
+            if (proxyIndex < availableProxies.Count)
+            {
+                email.Proxy = availableProxies[proxyIndex];
+                proxyIndex++;
+            }
+            else
+            {
+                break; // No more available proxies
+            }
+        }
+
+        // Step 2: If emails remain without a proxy, redistribute all proxies
+        if (emailAccounts.Any(e => e.Proxy == null))
+        {
+            var remainingEmails = emailAccounts.Where(e => e.Proxy == null).ToList();
+            
+            // Rearrange proxies to spread subnets apart
+            var shuffledProxies = RearrangeProxiesBySubnet(allProxies);
+
+            int shuffledIndex = 0;
+            foreach (var email in remainingEmails)
+            {
+                email.Proxy = shuffledProxies[shuffledIndex % shuffledProxies.Count];
+                shuffledIndex++;
+            }
+        }
+
+        // Step 3: Save the processed email list to "assignedFinish.txt"
+        await SaveEmailsToFileAsync(emailAccounts);
+        SuccessMessage = "Proxies assigned and file saved successfully!";
+    }
+    catch (Exception ex)
+    {
+        ErrorMessage = $"Error: {ex.Message}";
+    }
+}
+
+    /// <summary>
+    /// Saves the list of emails with assigned proxies to "assignedFinish.txt".
+    /// </summary>
+    private async Task SaveEmailsToFileAsync(List<EmailAccount> emailAccounts)
+    {
+        try
+        {
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string filePath = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "assignedFinish.txt");
+
+            var sb = new StringBuilder();
+            foreach (var email in emailAccounts)
+            {
+                sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}");
+            }
+
+            await File.WriteAllTextAsync(filePath, sb.ToString());
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error saving file: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Rearranges proxies to distribute proxies with the same subnet as evenly as possible.
+    /// </summary>
+    private List<Proxy> RearrangeProxiesBySubnet(List<Proxy> proxies)
+    {
+        var groupedBySubnet = proxies
+            .GroupBy(proxy => proxy.ProxyIp.Substring(0, proxy.ProxyIp.LastIndexOf('.')))
+            .OrderBy(g => g.Count()) // Sort by subnet size (smallest first)
+            .Select(g => g.ToList()) // Convert groupings to lists for modification
+            .ToList();
+
+        var result = new List<Proxy>();
+        while (groupedBySubnet.Any(g => g.Any()))
+        {
+            foreach (var group in groupedBySubnet.Where(g => g.Any()).ToList()) // Only iterate over non-empty groups
+            {
+                result.Add(group.First());
+                group.RemoveAt(0); // Remove assigned proxy from the group
+            }
+        }
+
+        return result;
+    }
+
+
+
 }

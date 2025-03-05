@@ -14,10 +14,10 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     #region Timer
 
     private readonly DispatcherTimer _timer;
-    private TimeSpan _interval = TimeSpan.FromMinutes(30);
+    private TimeSpan _interval = TimeSpan.FromMinutes(1);
 
     [ObservableProperty]
-    private int _intervalMinutes = 30; 
+    private int _intervalMinutes = 1; 
 
 
     #endregion

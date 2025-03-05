@@ -7,38 +7,91 @@
              x:DataType="viewmodel:EmailManagementPageViewModel"
              mc:Ignorable="d"  d:DesignWidth="1620" d:DesignHeight="900"
              x:Class="RepportingApp.Views.EmailManagementPageView">
-   <Grid ColumnDefinitions="Auto,30,Auto" HorizontalAlignment="Center">
+   <Grid ColumnDefinitions="Auto,30,Auto,30,Auto,30,*" HorizontalAlignment="Stretch" 
+         RowDefinitions="*,30">
        <Border  ZIndex="10000"   IsVisible="{Binding IsLoading , Mode=TwoWay}">
            <avalonia:LoadingIndicator VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" IsActive="{Binding IsLoading , Mode=TwoWay}"  Mode="Arcs" SpeedRatio="1.2"/>
        </Border>
-       <StackPanel Grid.Column="0" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="300">
-           <TextBlock Margin="0 15 0 5">Notes:</TextBlock>
+       <Border Grid.Row="0" Grid.Column="0" Height="45" VerticalAlignment="Top" Margin="10" IsVisible="{Binding !IsLoading , Mode=TwoWay}">
+           <StackPanel Orientation="Horizontal" Spacing="10">
+               <Border Background="#303030" Padding="12" CornerRadius="12">
+                   <StackPanel Orientation="Horizontal">
+                       <TextBlock Foreground="White" Text="{Binding UsedProxies} " FontFamily="{StaticResource Roboto}"></TextBlock>
+                       <TextBlock Foreground="White"  Text=" Used" FontFamily="{StaticResource Roboto}"></TextBlock>
+                   </StackPanel>
+               </Border>
+               <Border Background="#FFD85F" Padding="12" CornerRadius="12">
+                   <StackPanel Orientation="Horizontal">
+                       <TextBlock Foreground="White" Text="{Binding AvailableProxies} " FontFamily="{StaticResource Roboto}"></TextBlock>
+                       <TextBlock Foreground="White" Text=" Available" FontFamily="{StaticResource Roboto}"></TextBlock>
+                   </StackPanel>
+               </Border> 
+               <Border Background="#30ffffff" Padding="12" CornerRadius="12">
+                   <StackPanel Orientation="Horizontal">
+                       <TextBlock  Text="{Binding CentralProxyList.Count} " FontFamily="{StaticResource Roboto}"></TextBlock>
+                       <TextBlock  Text=" proxy " FontFamily="{StaticResource Roboto}"></TextBlock>
+                   </StackPanel>
+                  
+               </Border>
+           </StackPanel>
+       </Border>
+       <StackPanel Grid.Column="2" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="300">
+           <TextBlock Margin="0 15 0 5">Delete:</TextBlock>
            <TextBox Height="600" Width="300" AcceptsReturn="True" TextWrapping="Wrap"
                     Text="{Binding EmailInput, Mode=TwoWay}" />
-           <Button Content="Delete Emails" Command="{Binding DeleteEmailsCommand}" />
-           <TextBox  IsReadOnly="True"
-                     Background="Transparent"
-                     BorderThickness="0"
-                     TextWrapping="Wrap"  Margin="0 15 0 5" Foreground="Crimson" Text="{Binding ErrorMessage}"></TextBox>
+    
        </StackPanel> 
-       <StackPanel Grid.Column="2" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="100">
-           <TextBlock Margin="0 15 0 5">group Name:</TextBlock>
-           <Border Grid.Row="1" >
-               <ComboBox   HorizontalAlignment="Stretch"
-                           VerticalAlignment="Center" 
-                           PlaceholderText="Group"
-                           Background="{StaticResource MainWhite}"
-                           Foreground="{StaticResource Primary}"
-                           ItemsSource="{Binding Groups}"
-                           SelectedItem="{Binding SelectedEmailGroupFilter}">
+       <StackPanel Grid.Column="4" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Width="300">
+           <TextBlock Margin="0 15 0 5">Assign Emails:</TextBlock>
+           <TextBox Height="600" Width="300" AcceptsReturn="True" TextWrapping="Wrap"
+                    Text="{Binding EmailInputAssign, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}"  />
+          
+       </StackPanel> 
+       <StackPanel Grid.Column="6" IsVisible="{Binding !IsLoading , Mode=TwoWay}" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Top" Height="600" Background="#CBD4C2">
+           <TextBlock HorizontalAlignment="Center" Margin="0 15 0 5">group Name:</TextBlock>
+           <Border Grid.Row="1" Padding="10">
+               
+               <StackPanel  Spacing="3">
+                   <ComboBox   HorizontalAlignment="Stretch"
+                               VerticalAlignment="Center" 
+                               PlaceholderText="Group"
+                               Background="{StaticResource MainWhite}"
+                               Foreground="{StaticResource Primary}"
+                               ItemsSource="{Binding Groups}"
+                               SelectedItem="{Binding SelectedEmailGroupFilter}">
                                                                                     
-               </ComboBox>
+                   </ComboBox>
+                   <StackPanel Orientation="Vertical">
+                       <CheckBox Content="Download All Groups" 
+                                 IsChecked="{Binding DownloadAllGroups}" 
+                                 Margin="1" />
+
+                       <CheckBox Content="Overwrite Profiles.txt" 
+                                 IsChecked="{Binding OverwriteDownloadFile}" 
+                                 Margin="1" />
+                   </StackPanel>
+                   <Button HorizontalAlignment="Center" Background="#2274A5" Foreground="White" FontWeight="Bold" Cursor="Hand" Content="Download Emails" Command="{Binding DownloadEmailsCommand}" />
+                   <Button HorizontalAlignment="Center" Background="#2274A5" Foreground="White" FontWeight="Bold" Content="Assign Proxies"
+                           Command="{Binding AssignProxiesAndSaveToFileCommand}" />
+                   <Button HorizontalAlignment="Center" Background="#2274A5" Foreground="White" FontWeight="Bold" Content="Delete Emails" Command="{Binding DeleteEmailsCommand}" />
+               </StackPanel>
+               
            </Border>
-           <Button Cursor="Hand" Content="Download Emails" Command="{Binding DownloadEmailsCommand}" />
+          
+           
+       </StackPanel>
+       <Grid
+           Grid.Row="1" Grid.Column="0" ColumnSpan="7" ColumnDefinitions="*,*" Background="LightGray">
            <TextBox  IsReadOnly="True"
                      Background="Transparent"
                      BorderThickness="0"
-                     TextWrapping="Wrap" Margin="0 15 0 5" Foreground="Blue" Text="{Binding SuccessMessage}"></TextBox>
-       </StackPanel>
+                     TextWrapping="Wrap" Foreground="ForestGreen" Text="{Binding SuccessMessage}"></TextBox>
+                 
+           <TextBox Grid.Column="0" IsReadOnly="True"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    TextWrapping="Wrap"   Foreground="Crimson" Text="{Binding ErrorMessage}"></TextBox>
+       </Grid>
+     
    </Grid>
 </UserControl>

@@ -476,7 +476,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         try
         {
             IsEnabled = false;
-            if (!string.IsNullOrWhiteSpace(NewGroupName) || string.IsNullOrWhiteSpace(RdpIp))
+            if (string.IsNullOrWhiteSpace(NewGroupName) || string.IsNullOrWhiteSpace(RdpIp))
             {
                 throw new Exception("You must enter a valid RDP IP address and group name  for new group");
             }
@@ -938,11 +938,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                             ApiEndPoints.UpdateStatsEmails, 
                             processedEmailsDto 
                         );  
-                        await _apiConnector.PostDataObjectAsync<object>(
-                            ApiEndPoints.AddEmailsToFail, 
-                            failedEmailsIds 
-                        );
-                        failedEmailsIds.Clear();
+                      
                         /*await Dispatcher.UIThread.InvokeAsync(
                             () =>
                             {
@@ -958,6 +954,21 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
                 {
                     ErrorMessages.Add($"Failed to update email stats for task {e.TaskId}: {ex.Message}");
                 }
+            }
+
+            try
+            {
+                if (failedEmailsIds.Any())
+                {
+                    await _apiConnector.PostDataObjectAsync<object>(
+                        ApiEndPoints.AddEmailsToFail, 
+                        failedEmailsIds 
+                    );
+                    failedEmailsIds.Clear();
+                }
+            }
+            catch (Exception exception)
+            {
             }
         }
     }
@@ -1125,10 +1136,19 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
         
     }
 
+    private async Task LoadEmailsFromDb()
+    {
+        var fetchEmailsTask = _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache:true);
+        var emails = await fetchEmailsTask;
+        NetworkItems = emails.ToObservableCollection();
+        EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
+        EmailAccounts = emails.ToObservableCollection();
+    }
 private async Task ReadAllEmailsInboxMessagesAsync()
 {
     try
     {
+        await LoadEmailsFromDb();
         if (!SelectedProcesses.Any())
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
@@ -1180,7 +1200,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                 await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Saved, TakInfoType.Batch, taskId, processName,
                     Statics.ReportingColor, Statics.ReportingSoftColor, distributedBatches.ToObservableCollection());
                 await _taskManager.WaitForTaskCompletion(taskId);
-                
+                await LoadEmailsFromDb();
         }
         await SaveMessagesToTextFile();
         await LoadDataAsync(true);
@@ -1318,6 +1338,8 @@ private async Task ReadAllEmailsInboxMessagesAsync()
     {
         try
         {
+            await LoadEmailsFromDb();
+
             Totalrepitition = ReportingSettingsValuesDisplay.Repetition;
             TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.RepetitionDelay);
             if (!SelectedProcesses.Any())
@@ -1382,6 +1404,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
                         processName, Statics.UploadFileColor, Statics.UploadFileSoftColor,
                         distributedBatches.ToObservableCollection());
                     await _taskManager.WaitForTaskCompletion(taskId);
+                    await LoadEmailsFromDb();
                 }
             
                 Tour++;

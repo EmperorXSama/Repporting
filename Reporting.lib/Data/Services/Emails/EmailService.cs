@@ -104,6 +104,20 @@ public async Task AddEmailsToGroupWithMetadataAsync(
 
         return results;
     }
+    public async Task DeleteBannedEmailsAsync(IEnumerable<string> bannedEmails)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailAddress", typeof(string));
+
+        foreach (var email in bannedEmails)
+        {
+            table.Rows.Add(email);
+        }
+
+        var parameters = new { BannedEmails = table.AsTableValuedParameter("BannedEmailType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[DeleteBannedEmails]", parameters);
+    }
 
     public async Task UpdateEmailStatsBatchAsync(IEnumerable<EmailStatsUpdateDto> emailAccounts)
     {
@@ -205,7 +219,7 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         await _dbConnection.SaveDataAsync("[dbo].[AddFailedEmailsBatch]", parameters);
     }
 
-    public async Task DeleteEmailsAsync(string emailText)
+    public async Task<int> DeleteEmailsAsync(string emailText)
     {
         if (string.IsNullOrWhiteSpace(emailText))
             throw new Exception("Email text cannot be empty");
@@ -221,7 +235,7 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         // Create a DataTable for the table-valued parameter
         var table = new DataTable();
         table.Columns.Add("EmailAddress", typeof(string));
-    
+
         foreach (var email in emailList)
         {
             table.Rows.Add(email.EmailAddress);
@@ -229,11 +243,12 @@ public async Task AddEmailsToGroupWithMetadataAsync(
 
         var parameters = new { EmailList = table.AsTableValuedParameter("EmailListType") };
 
-        await _dbConnection.SaveDataAsync(
-            "[dbo].[DeleteEmailAccountsBatch]",
-            parameters
-        );
+        // Call SaveDataAsync and retrieve the deleted count
+        int deletedCount = await _dbConnection.SaveDataAsync("[dbo].[DeleteEmailAccountsBatch]", parameters);
+
+        return deletedCount; // Return the number of deleted emails
     }
+
 
 
 }
