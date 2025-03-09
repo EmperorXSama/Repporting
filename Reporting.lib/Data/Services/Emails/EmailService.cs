@@ -16,21 +16,24 @@ public class EmailService : IEmailService
     public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
     {
         var result = await _dbConnection.LoadDataWithMappingAsync<
-            EmailAccount, Models.Core.Proxy, EmailGroup, EmailMetaData, EmailAccountStats, dynamic>(
+            EmailAccount, Models.Core.Proxy, EmailGroup, EmailMetaData, EmailAccountStats, string, dynamic>(
             "[dbo].[GetAllEmails]",
-            new { }, // Replace with your actual parameters
-            (email, ProxyModel, group, emailMetaData, stats) =>
+            new { }, // No parameters needed
+            (email, proxy, group, metaData, stats, userAgent) =>
             {
-                email.Proxy = ProxyModel;
+                email.Proxy = proxy;
                 email.Group = group;
-                email.MetaIds = emailMetaData;
+                email.MetaIds = metaData;
                 email.Stats = stats;
+                email.UserAgent = userAgent; // ✅ Assign UserAgent
                 return email;
             },
-            "ProxyId,GroupId,MetaDataId,InboxCount"
+            "ProxyId,GroupId,MetaDataId,InboxCount,UserAgent" // ✅ Correct order
         ); 
         return result;
     }
+
+
 
 public async Task AddEmailsToGroupWithMetadataAsync(
     IEnumerable<CreateEmailAccountDto> emails,

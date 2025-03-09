@@ -48,7 +48,7 @@ private async Task DeleteEmailsAsync()
 }
 
 [ObservableProperty] private bool _downloadAllGroups = false;
-[ObservableProperty] private bool _overwriteDownloadFile = false;
+[ObservableProperty] private bool _overwriteDownloadFile = true;
 
 [RelayCommand]
 private async Task DownloadEmailsAsync()
@@ -75,7 +75,7 @@ private async Task DownloadEmailsAsync()
             // Download all groups
             foreach (var group in Groups)
             {
-                var emailsInGroup = _networkItems.Where(email => email.Group?.GroupName == group.GroupName).ToList();
+                var emailsInGroup = NetworkItems.Where(email => email.Group?.GroupName == group.GroupName).ToList();
 
                 if (emailsInGroup.Any())
                 {
@@ -179,91 +179,116 @@ private async Task DownloadEmailsAsync()
     [ObservableProperty] private string _emailInputAssign;
     [RelayCommand]
     private async Task AssignProxiesAndSaveToFileAsync()
-{
-    try
     {
-        if (string.IsNullOrWhiteSpace(EmailInputAssign))
+        try
         {
-            ErrorMessage = "Please enter emails in the format: email;password";
-            return;
-        }
-
-        // Parse input into email accounts
-        var emailAccounts = EmailInputAssign.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(line => line.Split(';'))
-            .Where(parts => parts.Length >= 2)
-            .Select(parts => new EmailAccount
+            bool isOverwriting = false;
+            if (string.IsNullOrWhiteSpace(EmailInputAssign))
             {
-                EmailAddress = parts[0].Trim(),
-                Password = parts[1].Trim()
-            })
-            .ToList();
+                isOverwriting = true;
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string filePath = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "Profiles.txt");
 
-        if (emailAccounts.Count == 0)
-        {
-            ErrorMessage = "No valid emails found!";
-            return;
-        }
+                if (!File.Exists(filePath))
+                {
+                    ErrorMessage = "Profiles.txt not found!";
+                    return;
+                }
 
-        // Get available proxies
-        var availableProxies = CentralProxyList.Where(p => p.Availability).ToList();
-        var allProxies = CentralProxyList.ToList();
-
-        // Step 1: Assign available proxies first
-        int proxyIndex = 0;
-        foreach (var email in emailAccounts)
-        {
-            if (proxyIndex < availableProxies.Count)
-            {
-                email.Proxy = availableProxies[proxyIndex];
-                proxyIndex++;
+                EmailInputAssign = await File.ReadAllTextAsync(filePath);
             }
-            else
-            {
-                break; // No more available proxies
-            }
-        }
 
-        // Step 2: If emails remain without a proxy, redistribute all proxies
-        if (emailAccounts.Any(e => e.Proxy == null))
+            // Parse input into email accounts
+            var emailAccounts = EmailInputAssign.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Split(';'))
+                .Where(parts => parts.Length >= 2)
+                .Select(parts => new EmailAccount
+                {
+                    EmailAddress = parts[0].Trim(),
+                    Password = parts[1].Trim()
+                })
+                .ToList();
+
+            if (emailAccounts.Count == 0)
+            {
+                ErrorMessage = "No valid emails found!";
+                return;
+            }
+
+            // Get available proxies
+            var availableProxies = CentralProxyList.Where(p => p.Availability).ToList();
+            var allProxies = CentralProxyList.ToList();
+
+            // Step 1: Assign available proxies first
+            int proxyIndex = 0;
+            foreach (var email in emailAccounts)
+            {
+                if (proxyIndex < availableProxies.Count)
+                {
+                    email.Proxy = availableProxies[proxyIndex];
+                    proxyIndex++;
+                }
+                else
+                {
+                    break; // No more available proxies
+                }
+            }
+
+            // Step 2: If emails remain without a proxy, redistribute all proxies
+            if (emailAccounts.Any(e => e.Proxy == null))
+            {
+                var remainingEmails = emailAccounts.Where(e => e.Proxy == null).ToList();
+                
+                // Rearrange proxies to spread subnets apart
+                var shuffledProxies = RearrangeProxiesBySubnet(allProxies);
+
+                int shuffledIndex = 0;
+                foreach (var email in remainingEmails)
+                {
+                    email.Proxy = shuffledProxies[shuffledIndex % shuffledProxies.Count];
+                    shuffledIndex++;
+                }
+            }
+
+           
+            if (isOverwriting)
+            {
+                // Step 3: Save the processed email list to "assignedFinish.txt"
+                await SaveEmailsToFileAsync(emailAccounts,isOverwriting);
+                
+                SuccessMessage = "Proxies assigned and file saved successfully!";
+            }
+            EmailInputAssign = string.Join(Environment.NewLine, emailAccounts.Select(e => $"{e.EmailAddress};{e.Password};;{e.Proxy.ProxyIp};{e.Proxy.Port};{e.Proxy.Username};{e.Proxy.Password}"));
+
+         
+        }
+        catch (Exception ex)
         {
-            var remainingEmails = emailAccounts.Where(e => e.Proxy == null).ToList();
-            
-            // Rearrange proxies to spread subnets apart
-            var shuffledProxies = RearrangeProxiesBySubnet(allProxies);
-
-            int shuffledIndex = 0;
-            foreach (var email in remainingEmails)
-            {
-                email.Proxy = shuffledProxies[shuffledIndex % shuffledProxies.Count];
-                shuffledIndex++;
-            }
+            ErrorMessage = $"Error: {ex.Message}";
         }
-
-        // Step 3: Save the processed email list to "assignedFinish.txt"
-        await SaveEmailsToFileAsync(emailAccounts);
-        SuccessMessage = "Proxies assigned and file saved successfully!";
     }
-    catch (Exception ex)
-    {
-        ErrorMessage = $"Error: {ex.Message}";
-    }
-}
 
     /// <summary>
     /// Saves the list of emails with assigned proxies to "assignedFinish.txt".
     /// </summary>
-    private async Task SaveEmailsToFileAsync(List<EmailAccount> emailAccounts)
+    private async Task SaveEmailsToFileAsync(List<EmailAccount> emailAccounts,bool isOverwriting)
     {
         try
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string filePath = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "assignedFinish.txt");
+            string filePath = isOverwriting  ? Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "Profiles.txt") 
+                : Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "assignedFinish.txt") ;
+            
+           
 
             var sb = new StringBuilder();
             foreach (var email in emailAccounts)
             {
-                sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}");
+                string proxyData = email.Proxy != null
+                    ? $"{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}"
+                    : "NoProxy";
+
+                sb.AppendLine($"{email.EmailAddress};{email.Password};;{proxyData}");
             }
 
             await File.WriteAllTextAsync(filePath, sb.ToString());

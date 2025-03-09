@@ -7,4 +7,5 @@ public interface IProxyServices
     Task<IEnumerable<Models.Core.Proxy>> GetAllProxies();
     Task SaveProxiesBatchAsync(IEnumerable<ProxyDto> proxies);
     Task UpdateReplacedProxiesBatchAsync(IEnumerable<ProxyUpdateDto> proxies);
+    Task UpdateProxiesBatchAsync(IEnumerable<ProxyUpdateRegion> proxies);
 }

@@ -8,13 +8,14 @@ namespace RepportingApp.Request_Connection_Core.Reporting;
 public class ReportingRequests : IReportingRequests
 {
     private readonly IApiConnector _apiConnector;
+    private readonly ProxyListManager proxyListManager;
     
     
     
     public ReportingRequests(IApiConnector apiConnector)
     {
         _apiConnector = apiConnector;
-       
+       proxyListManager = new ProxyListManager();
     }
     
     public async Task<List<ReturnTypeObject>> ProcessGetMessagesFromDirs(EmailAccount emailAccount, IEnumerable<string> directoryIds)
@@ -41,7 +42,7 @@ public async   Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount ema
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                 emailAccount.Proxy = reservedProxyInUse;
             }
         );
@@ -103,7 +104,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(Emai
                 retryAttempt => TimeSpan.FromSeconds(1),
                 (exception, timeSpan, retryCount, context) =>
                 {
-                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                    var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                     emailAccount.Proxy = reservedProxyInUse;
                 }
             );
@@ -135,6 +136,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(Emai
 
 public async Task<List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount emailAccount, MarkMessagesAsReadConfig config, string directoryId = Statics.ArchiveDir)
 {
+    if (config.PreReportingSettings.MaxMessagesToRead <= 0) return new List<ReturnTypeObject>();
     var retryPolicy = Policy
         .Handle<SocketException>()
         .Or<HttpRequestException>()
@@ -144,7 +146,7 @@ public async Task<List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount em
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                 emailAccount.Proxy = reservedProxyInUse;
             }
         );
@@ -180,7 +182,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
-                var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                 emailAccount.Proxy = reservedProxyInUse;
             }
         );
@@ -263,7 +265,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
                 retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
                 (exception, timeSpan, retryCount, context) =>
                 {
-                    var reservedProxyInUse = ProxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                    var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
                     emailAccount.Proxy = reservedProxyInUse;
                 }
             );
@@ -625,7 +627,6 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
             { "pragma", "no-cache" },
             { "priority", "u=1, i" },
             { "referer", "https://mail.yahoo.com/" },
-            { "sec-ch-ua", "\"Chromium\";v=\"130\", \"Google Chrome\";v=\"130\", \"Not?A_Brand\";v=\"99\"" },
             { "sec-ch-ua-mobile", "?0" },
             { "sec-ch-ua-platform", "\"Windows\"" },
             { "sec-fetch-dest", "empty" },

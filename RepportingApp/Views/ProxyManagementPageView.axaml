@@ -100,11 +100,12 @@
                     <Border Background="#303030" Padding="12" CornerRadius="12">
                         <TextBlock Foreground="White" Text="244 available" FontFamily="{StaticResource Roboto}"></TextBlock>
                     </Border>
-                    <Border Background="#FFD85F" Padding="12" CornerRadius="12">
-                        <TextBlock Text="24 deference Subnet " FontFamily="{StaticResource Roboto}"></TextBlock>
-                    </Border> 
                     <Border Background="#30ffffff" Padding="12" CornerRadius="12">
-                        <TextBlock Text="1200 proxy " FontFamily="{StaticResource Roboto}"></TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding CentralProxyList.Count}" FontFamily="{StaticResource Roboto}"></TextBlock>
+                            <TextBlock Text=" proxy" FontFamily="{StaticResource Roboto}"></TextBlock>
+                        </StackPanel>
+                       
                     </Border>
                 </StackPanel>
             </Border>
@@ -126,17 +127,6 @@
                                 CornerRadius="13"
                                 Padding="12"
                                 ItemsSource="{Binding Regions}" />
-                            <ComboBox Margin="4,0"
-                                      Background="White"
-                                BorderThickness="0"
-                                Grid.Column="1" SelectedIndex="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="13" Padding="12">
-                                <ComboBox.Items>
-                                    <ComboBoxItem Content="ms" Foreground="Gray" IsEnabled="False"/>
-                                    <ComboBoxItem Content="slow"/>
-                                    <ComboBoxItem Content="mid"/>
-                                    <ComboBoxItem Content="fast"/>
-                                </ComboBox.Items>
-                            </ComboBox>
                             <ComboBox
                                 Margin="4,0"
                                 Background="White"
@@ -175,6 +165,7 @@
                                 CornerRadius="13"
                                 Padding="12"
                                 ItemsSource="{Binding Connectivities}" />
+
                             <Border Grid.Column="5" Background="#FFD85F" CornerRadius="13" >
                                         <Button Cursor="Hand" Command="{Binding ApplyFilterCommand}">
                                             <Button.Styles>
@@ -230,13 +221,13 @@
                             <Border Grid.Column="7" Padding="40,0">
                                 <Border Grid.Row="1" >
                                     <TextBox 
-                                             Background="White"
-                                             Foreground="#303030"
-                                             BorderThickness="0"
-                                             Watermark="IP Address..."
-                                             VerticalContentAlignment="Center"
-                                             Padding="23,0,13,0"
-                                             Text=""></TextBox>
+                                        Background="White"
+                                        Foreground="#303030"
+                                        BorderThickness="0"
+                                        Watermark="IP Address..."
+                                        VerticalContentAlignment="Center"
+                                        Padding="23,0,13,0"
+                                        Text="{Binding FilterIpAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Border>
                             </Border>
                                                        
@@ -247,7 +238,7 @@
                     <Border Grid.Row="0" Grid.Column="1" Background="Transparent" CornerRadius="0,0,0,25">
                         <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" Margin="13,0,13,0">
                             <Border Background="White" CornerRadius="13">
-                                <Button IsEnabled="{Binding !IsProcessWorking}" Cursor="Hand">
+                                <Button Command="{Binding ExportFilteredDataCommand}" IsEnabled="{Binding !IsProcessWorking}" Cursor="Hand">
                                     <Button.Styles>
                                         <Style Selector="Button">
                                             <Setter Property="Background" Value="Transparent" />
@@ -396,11 +387,17 @@
                                     
                                     <DataGridTextColumn Header="Ip" Binding="{Binding ProxyIp}" Width="Auto"/>
                                     <DataGridTextColumn Header="Port" Binding="{Binding Port}" Width="Auto"/>
-                                    <DataGridTextColumn Header="Ms" Binding="{Binding Ms}" Width="Auto"/>
-                                    <DataGridTextColumn Header="Connectivity Google" Binding="{Binding GoogleConnectivity}" Width="Auto"/>
+                                    <DataGridTextColumn Header="Usage Count" Binding="{Binding ProxyUsageCount}" Width="Auto"/>
                                     <DataGridTextColumn Header="Connectivity Yahoo" Binding="{Binding YahooConnectivity}" Width="*"/>
                                     <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="*"/>
-                                    <DataGridTextColumn Header="Availability" Binding="{Binding Availability}" Width="Auto"/>
+                                    <DataGridTemplateColumn Header="Availability" Width="Auto">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Availability, Converter={StaticResource BooleanToTextConverter}}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
                                 </DataGrid.Columns>
                                 </DataGrid>
                               </Border>

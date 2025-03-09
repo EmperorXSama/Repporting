@@ -37,6 +37,20 @@ namespace ReportingApi.Controllers
                 return BadRequest($"Failed to upload proxies: {e.Message}");
             }
         }
+        [HttpPost("UpdateProxiesRC")]
+        public async Task<IActionResult> UpdateProxies([FromBody] IEnumerable<ProxyUpdateRegion> proxies)
+        {
+            try
+            {
+                await _proxyServices.UpdateProxiesBatchAsync(proxies);
+                return Ok("Proxies updated successfully.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Failed to update proxies: {e.Message}");
+            }
+        }
+
         [HttpPost("ReplaceProxyProxy")]
         public async Task<IActionResult> ReplaceProxies([FromBody] IEnumerable<ProxyUpdateDto> proxies)
         {

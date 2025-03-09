@@ -128,6 +128,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #endregion
     private readonly TaskInfoManager _taskInfoManager;
+    private readonly ProxyListManager proxyListManager;
     [ObservableProperty] private int _tasksCount;
     public ObservableCollection<TaskInfoUiModel?> ActiveTasks => _taskInfoManager.GetTasks(TaskCategory.Active);
 
@@ -150,6 +151,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         IApiConnector apiConnector,
         IReportingRequests reportingRequests) : base(messenger)
     {
+        proxyListManager = new ProxyListManager();
         _apiConnector = apiConnector;
         _reportingRequests = reportingRequests;
         _emailAccountServices = emailAccountServices;
@@ -163,7 +165,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
 
         TasksCount = _taskInfoManager.GetTasksCount();
-        //ProxyListManager.UploadReservedProxyFile();
+        //proxyListManager.UploadReservedProxyFile();
         
 
     }
@@ -254,7 +256,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         Task.Run(async () =>
         {
             var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: ignoreCache);
-            ProxyListManager.GetDBProxies(proxies);
+            proxyListManager.GetDBProxies(proxies);
         });
 
       
@@ -279,7 +281,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         var proxies = await fetchProxiesTask;
 
         
-        Task.Run(() => ProxyListManager.GetDBProxies(proxies));
+        Task.Run(() => proxyListManager.GetDBProxies(proxies));
 
         // Efficiently update observable collections
         Groups = groups.ToObservableCollection();
@@ -1157,7 +1159,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
         }
 
         var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
-        var distributedBatches = ProxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
+        var distributedBatches = proxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
 
         if (!distributedBatches.Any())
         {
@@ -1351,7 +1353,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
 
             var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
             //emailsGroupToWork.WriteListLine();
-            var distributedBatches = ProxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
+            var distributedBatches = proxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
             //distributedBatches.WriteListLine("EmailBatches2");
             if (!distributedBatches.Any())
             {

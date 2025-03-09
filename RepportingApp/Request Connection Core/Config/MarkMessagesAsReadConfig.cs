@@ -12,9 +12,9 @@ public partial class MarkMessagesAsReadConfig : ObservableObject
 
 public partial class PreReportingSettings : ObservableObject
 {
-    [ObservableProperty] private bool _isPreReporting = false;
+    [ObservableProperty] private bool _isPreReporting = true;
     [ObservableProperty] public int _minMessagesToRead= 3;
     [ObservableProperty] public int _maxMessagesToRead = 11; 
-    [ObservableProperty] public int _minMessagesToArchive= 3;
-    [ObservableProperty] public int _maxMessagesToArchive = 11;
+    [ObservableProperty] public int _minMessagesToArchive= 0;
+    [ObservableProperty] public int _maxMessagesToArchive = 0;
 }

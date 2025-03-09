@@ -100,6 +100,10 @@ public class UnifiedApiClient : IApiConnector
             response.EnsureSuccessStatusCode();
 
             string jsonResponse = await response.Content.ReadAsStringAsync();
+            if (typeof(T) == typeof(string))
+            {
+                return (T)(object)jsonResponse; // Directly return the string response
+            }
             if (!typeof(T).IsPrimitive && !typeof(T).IsValueType && typeof(T) != typeof(string))
             {
                 return JsonConvert.DeserializeObject<T>(jsonResponse)!;

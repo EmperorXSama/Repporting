@@ -344,13 +344,13 @@
 
 
                      </StackPanel>
-                    <Border Grid.Row="1" Padding="5">
+                    <!--<Border Grid.Row="1" Padding="5">
                         <Button Content="Start" Background="{StaticResource Primary}" Foreground="{StaticResource MainWhite}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
                                 Cursor="Hand" Command="{Binding ReadAllEmailsInboxMessagesCommand }">
                             
                         </Button>
-                    </Border>
+                    </Border>-->
                 </Grid>
                
                 
@@ -374,51 +374,11 @@
                 <!--side progress area-->
                 <Border  Grid.Row="0" Grid.Column="2"
                          Grid.RowSpan="2"
+                         
                         Margin="7,0,0,0"
                         >
-                    <Grid RowDefinitions="170,*">
-                         <Grid ColumnDefinitions="*,10,*,10,*">
-                             <Border Background="#ffe9e1" CornerRadius="0,0,55,55"
-                                     Padding="9">
-                                 <Grid RowDefinitions="30,*">
-                                     <TextBlock Text="Logical Processors" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
-                                                FontSize="11" HorizontalAlignment="Center"/>
-                                     <TextBlock Grid.Row="1" Text="{Binding LogicalProcessorCountDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
-
-                                 </Grid>
-
-                             </Border>
-                             <Border Grid.Column="2" Background="#eaefe8" CornerRadius="0,0,55,55"
-                                     Padding="9">
-                                 <Grid RowDefinitions="30,*">
-                                     <TextBlock FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
-                                                FontSize="11" HorizontalAlignment="Center">
-                                         <TextBlock Text="Recommended " /> <LineBreak /> <TextBlock Text="Batch Size" HorizontalAlignment="Center" />
-                                     </TextBlock>
-                                     <TextBlock Grid.Row="1" Text="{Binding RecommendedBatchSizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
-
-                                 </Grid>
-
-                             </Border>
-                             <Border Grid.Column="4" Background="#f0d7ed" CornerRadius="0,0,55,55"
-                                     Padding="9">
-                                 <Grid RowDefinitions="30,*">
-                                     <TextBlock FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
-                                                FontSize="11" HorizontalAlignment="Center">
-                                         <TextBlock Text="Recommended " /> <LineBreak /> <TextBlock Text="maxDegreeOfParallelism" />
-                                     </TextBlock>
-                                     <TextBlock Grid.Row="1" Text="{Binding RecommendedMaxDegreeOfParallelismDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                FontSize="40" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
-
-                                 </Grid>
-
-                             </Border>
-                             
-                        </Grid>
-                        
-                        <Border Grid.Row="1"
+                    <Grid RowDefinitions="300,*" >
+                        <Border Grid.Row="0"
                                 Margin="0,40,0,0"
                                Padding="10,0">
                             <Grid RowDefinitions="60,*">
@@ -469,6 +429,255 @@
                                 </Border>
                             </Grid>
                         </Border>
+                        <Border Grid.Row="1" Padding="10">
+                            <ScrollViewer>
+                                      <StackPanel Spacing="30">
+                                <TextBlock Text="settings"
+                                           FontFamily="{StaticResource Roboto}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextMain}"
+                                           FontWeight="Bold"></TextBlock>
+                                
+                             <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon
+                                        Margin="0,0,4,0"
+                                        FontFamily="{StaticResource Roboto}"
+                                        Width="14"
+                                        FontWeight="Light"
+                                        Data="{StaticResource HelpIcon}" Foreground="{StaticResource Secondary}">
+                                        <ToolTip.Tip>
+                                            <StackPanel>
+                                                <TextBlock FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                           FontFamily="{StaticResource Roboto}" >Interval</TextBlock>
+                                                <TextBlock FontSize="14" FontWeight="Light" HorizontalAlignment="Center" Foreground="{StaticResource Secondary}"
+                                                           FontFamily="{StaticResource Roboto}">سيتم استخدام هذا المربع لتحديد المجموعات التي ستعمل في هذه المهمة.
+                                                    يمكنك الضغط على CTRL + للاختيار المتعدد، وإذا لم يتم تحديد أي مجموعة، فسيتم اعتبار جميع المجموعات محددة.
+                                                    </TextBlock>
+                                            </StackPanel>
+                                        </ToolTip.Tip>
+                                    </PathIcon>
+                                    <TextBlock
+                                        FontFamily="{StaticResource Roboto}"
+                                        FontSize="14"
+                                        Foreground="{StaticResource Secondary}"
+                                        FontWeight="SemiLight"
+                                        Text="Group Selection"/>
+                                </StackPanel>
+                                <Border  Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1" >
+                                      <Grid       ColumnDefinitions="*"
+                                            Background="white">
+                                          <StackPanel>
+                                              <Button Name="DropdownButton1"
+                                                      HorizontalAlignment="Stretch"
+                                                      Theme="{StaticResource CustomBtn}"
+                                                      Background="{StaticResource Primary}"
+                                                      Content="Select Groups"
+                                                      Foreground="{StaticResource LightGrey}"
+                                                      Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
+
+                                              <Popup Name="DropdownPopup1"
+                                                     PlacementTarget="{Binding ElementName=DropdownButton1}"
+                                                     PlacementMode="Bottom"
+                                                     IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
+
+                                                  <Border BorderBrush="{StaticResource Primary}"
+                                                          BorderThickness="1"
+                                                          Background="White" >
+                                                      <ListBox HorizontalAlignment="Stretch"
+                                                          VerticalAlignment="Top"
+                                                          Padding="2"
+                                                          Background="White"
+                                                          Foreground="{StaticResource Primary}"
+                                                          ItemsSource="{Binding Groups}"
+                                                          SelectionMode="Multiple"
+                                                          SelectedItems="{Binding SelectedEmailGroupForTask}"
+                                                          />
+                                                  </Border>
+                                              </Popup>
+                                          </StackPanel>
+                                </Grid>
+                                </Border>
+                            </StackPanel>
+                                <!--collect data-->
+                                <Border Background="#35C695EF" Padding="7"
+                                        IsVisible="{ Binding IsCollectDataSelected}">
+                                    <Grid RowDefinitions="30,Auto">
+                                        <DockPanel>
+                                            <PathIcon Width="15" Height="15"    Foreground="{StaticResource CollectData}" Data="{StaticResource CollectSpamNumberIcon}" HorizontalAlignment="Left"></PathIcon>
+                                            <TextBlock Text="collect Data"
+                                                       FontFamily="{StaticResource Roboto}"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{StaticResource CollectData}"
+                                                       FontWeight="Bold"></TextBlock>
+                                        </DockPanel>
+                                     
+                                        <StackPanel Grid.Row="1" Spacing="10">
+                                            <ListBox Grid.Row="1"
+                                                     ItemsSource="{Binding Folders}"
+                                                     Cursor="Hand"
+                                                     FontFamily="{StaticResource Roboto}"
+                                                     SelectionMode="Multiple"
+                                                     BorderBrush="{StaticResource CollectData}"
+                                                     BorderThickness="1"
+                                                     SelectionChanged="OnSelectionChanged"/>
+                                            <StackPanel Spacing="4">
+                                                <CheckBox Content="Generate Subject Collector"    FontFamily="{StaticResource Roboto}" IsChecked="{Binding IsGenerateCsvSubjectTableRequested}" />
+                                                <StackPanel Spacing="3" IsVisible="{Binding IsGenerateCsvSubjectTableRequested}">
+                                                    <Border Background="White">
+                                                        <Grid ColumnDefinitions="*,30">
+                                                            <TextBox BorderThickness="0" VerticalAlignment="Center" Background="Transparent" Text="{Binding PathToSaveSubjectFile}"></TextBox>
+
+                                                            <Button Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="30" Height="30" 
+                                                                    Background="Transparent"
+                                                                    Cursor="Hand"
+                                                                    Click="SelectPathForSubjectFile">
+                                                                <PathIcon Data="{StaticResource FolderIcon}" Width="20"
+                                                                          
+                                                                          Height="20"
+                                                                          Foreground="{StaticResource MainAlert}"></PathIcon>
+                                                            </Button>
+                                                        </Grid>
+                                                    </Border>
+                                                  
+                                                    
+                                                    <TextBox Text="{Binding SubjectFileName}"
+                                                             Watermark="file name"
+                                                             BorderThickness="0" VerticalAlignment="Center" Background="White"
+                                                             
+                                                    ></TextBox>
+                                                </StackPanel>
+                                              
+                                            </StackPanel>    
+                                            <StackPanel Spacing="4">
+                                                <CheckBox Content="Create Count File"    FontFamily="{StaticResource Roboto}"  IsChecked="{Binding IsGenerateNumberCollectionRequested}"/>
+                                                <StackPanel Spacing="3" IsVisible="{Binding IsGenerateNumberCollectionRequested}">
+                                                    <Border Background="White">
+                                                        <Grid ColumnDefinitions="*,30">
+                                                            <TextBox BorderThickness="0" VerticalAlignment="Center" Background="Transparent" Text="{Binding PathToSaveCountFile}"></TextBox>
+
+                                                            <Button Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="30" Height="30" 
+                                                                    Background="Transparent"
+                                                                    Cursor="Hand"
+                                                                    Click="SelectPathForCountFile">
+                                                                <PathIcon Data="{StaticResource FolderIcon}" Width="20"
+                                                                          
+                                                                          Height="20"
+                                                                          Foreground="{StaticResource MainAlert}"></PathIcon>
+                                                            </Button>
+                                                        </Grid>
+                                                    </Border>
+                                                  
+                                                    
+                                                    <TextBox Text="{Binding CountFileName}"
+                                                             Watermark="file name"
+                                                             BorderThickness="0" VerticalAlignment="Center" Background="White"
+                                                             
+                                                    ></TextBox>
+                                                </StackPanel>
+                                                
+                                            </StackPanel>
+                                           
+                                           
+                                        </StackPanel>
+                                       
+                                    </Grid>
+                                    
+                                </Border>
+                                <!--mark as read -->
+                                <Border Background="#3542494C" Padding="7"
+                                        IsVisible="{ Binding IsMMRIChoiceSelected}">
+                                            <Grid RowDefinitions="30,Auto">
+                                                <DockPanel>
+                                                    <PathIcon Width="20" Height="20"    Foreground="{StaticResource Read}" Data="{StaticResource MarkReadIcon}" HorizontalAlignment="Left"></PathIcon>
+                                                    <TextBlock Text="Mark as read"
+                                                               FontFamily="{StaticResource Roboto}"
+                                                               HorizontalAlignment="Right"
+                                                               Foreground="{StaticResource Read}"
+                                                               FontWeight="Bold"></TextBlock>
+                                                </DockPanel>
+                                             
+                                                <StackPanel Grid.Row="1" Spacing="10">
+                                                    <ComboBox Grid.Row="1" ItemsSource="{Binding Folders}"
+                                                              Cursor="Hand"
+                                                              FontFamily="{StaticResource Roboto}"
+                                                              HorizontalAlignment="Stretch"
+                                                              HorizontalContentAlignment="Center"
+                                                              BorderBrush="{StaticResource Read}"
+                                                              BorderThickness="1"
+                                                              SelectedItem="{Binding SelectedFolders, Mode=TwoWay}"
+                                                              PlaceholderText="Select Folder"/>
+                                                    <StackPanel Spacing="4">
+                                                        <!--contain -->
+                                                        <components1:MMRIThreashold />
+                                                    </StackPanel>    
+                                                   
+                                                   
+                                                </StackPanel>
+                                               
+                                            </Grid>
+                                    
+                                </Border>  
+                                <!--Archive messages-->
+                                <Border Background="#3578CEBD" Padding="7"
+                                        IsVisible="{ Binding IsArchiveChoiceSelected}">
+                                            <Grid RowDefinitions="30,Auto">
+                                                <DockPanel>
+                                                    <PathIcon Width="20" Height="20"    Foreground="{StaticResource SecondaryGreen}" Data="{StaticResource ArchiveIcon}" HorizontalAlignment="Left"></PathIcon>
+                                                    <TextBlock Text="archive messages"
+                                                               FontFamily="{StaticResource Roboto}"
+                                                               HorizontalAlignment="Right"
+                                                               Foreground="{StaticResource SecondaryGreen}"
+                                                               FontWeight="Bold"></TextBlock>
+                                                </DockPanel>
+                                             
+                                                <StackPanel Grid.Row="1" Spacing="10">
+                                                    <StackPanel Spacing="4">
+                                                        <!--contain -->
+                                                        <components1:ArchiveThreashold />
+                                                    </StackPanel>    
+                                                   
+                                                   
+                                                </StackPanel>
+                                               
+                                            </Grid>
+                                    
+                                </Border>
+                                <!--mark as not spam-->
+                                <Border Background="#358093F1" Padding="7"
+                                        IsVisible="{ Binding IsReportingChoiceSelected}">
+                                            <Grid RowDefinitions="30,Auto">
+                                                <DockPanel>
+                                                    <PathIcon Width="20" Height="20"    Foreground="{StaticResource Spam}" Data="{StaticResource ReportingIcon}" HorizontalAlignment="Left"></PathIcon>
+                                                    <CheckBox Margin="9,0,0,0" Width="20" Height="20"
+                                                              Cursor="Hand"
+                                                              IsChecked="{Binding MarkMessagesAsNotSpamConfig.PreReportingSettings.IsPreReporting}">
+                                                        
+                                                    </CheckBox>
+                                                    <TextBlock Text="Mark as spam"
+                                                               FontFamily="{StaticResource Roboto}"
+                                                               HorizontalAlignment="Right"
+                                                               Foreground="{StaticResource Spam}"
+                                                               FontWeight="Bold"></TextBlock>
+                                                </DockPanel>
+                                             
+                                                <StackPanel Grid.Row="1" Spacing="10">
+                                                    <StackPanel Spacing="4">
+                                                        <!--contain -->
+                                                        <components1:MNSThreashold />
+                                                    </StackPanel>    
+                                                   
+                                                   
+                                                </StackPanel>
+                                               
+                                            </Grid>
+                                    
+                                </Border>
+                            </StackPanel>
+                            </ScrollViewer>
+                          
+                        </Border>
                     </Grid>
                 </Border>
                 <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Background="{StaticResource LightGrey}" />
@@ -479,7 +688,9 @@
                         
                           ColumnDefinitions="*,10,Auto"
                           RowDefinitions="40,*">
-                        <StackPanel Orientation="Horizontal" Spacing="2">
+                        <!--settings-->
+                        <Grid Grid.Row="0"  ColumnDefinitions="Auto,*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2">
                             <Button Grid.Row="0" Grid.Column="0"
                                     Background="Transparent"
                                     CornerRadius="100"
@@ -511,7 +722,7 @@
                                     </PathIcon.Styles>
                                 </PathIcon>
                             </Button>
-                           <Button Grid.Row="0" Grid.Column="0"
+                            <Button Grid.Row="0" Grid.Column="0"
                                     Background="Transparent"
                                     CornerRadius="100"
                                     Command="{Binding ReconnectToApiCommand}"
@@ -542,9 +753,50 @@
                                     </PathIcon.Styles>
                                 </PathIcon>
                             </Button>
-                        </StackPanel>
-                       
-                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" >
+                            </StackPanel>
+                       <Grid Grid.Column="1" ColumnDefinitions="*,10,*,10,*">
+                             <Border Background="#ffe9e1" CornerRadius="0,0,55,55"
+                                     Padding="9">
+                                 <Grid RowDefinitions="30,*">
+                                     <StackPanel>
+                                         <TextBlock Text="Logical Processors" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
+                                                    FontSize="11" HorizontalAlignment="Center"/>
+                                         <TextBlock Grid.Row="1" Text="{Binding LogicalProcessorCountDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                    FontSize="11" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
+                                     </StackPanel>
+                                     
+
+                                 </Grid>
+
+                             </Border>
+                             <Border Grid.Column="2" Background="#eaefe8" CornerRadius="0,0,55,55"
+                                     Padding="9">
+                                 <Grid RowDefinitions="30,*">
+                                     <StackPanel>
+                                         <TextBlock Text="Recommended Batch" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
+                                                    FontSize="11" HorizontalAlignment="Center"/>
+                                         <TextBlock Grid.Row="1" Text="{Binding RecommendedBatchSizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                    FontSize="11" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
+                                     </StackPanel>
+                                 </Grid>
+
+                             </Border>
+                             <Border Grid.Column="4" Background="#f0d7ed" CornerRadius="0,0,55,55"
+                                     Padding="9">
+                                 <Grid RowDefinitions="30,*">
+                                     <StackPanel>
+                                         <TextBlock Text="Recommended Number oF processes" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"
+                                                    FontSize="11" HorizontalAlignment="Center"/>
+                                         <TextBlock Grid.Row="1" Text="{Binding RecommendedMaxDegreeOfParallelismDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                    FontSize="11" FontFamily="{StaticResource Roboto}" Foreground="{StaticResource TextMain}"/>
+                                     </StackPanel>
+
+                                 </Grid>
+
+                             </Border>
+                             
+                        </Grid>
+                        <StackPanel Grid.Column="2"   Orientation="Horizontal" >
                             <Border BorderThickness="1"
                                     BorderBrush="{StaticResource LightGrey}"
                                     CornerRadius="6"
@@ -587,6 +839,8 @@
                             </Border>
                            
                         </StackPanel> 
+                        </Grid>
+      
                         <Grid RowDefinitions="*,*,3*"  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
                             <Border  Padding="10">
                                 <Grid ColumnDefinitions="*,20,*,20,*">
@@ -654,8 +908,8 @@
                                 </Grid>
                             </Border>
                            
-                            <Border Grid.Row="1" Padding="100,0">
-                                <StackPanel VerticalAlignment="Center"  HorizontalAlignment="Stretch" >
+                            <Border Grid.Row="1" Padding="100,0" >
+                                <!--<StackPanel VerticalAlignment="Center"  HorizontalAlignment="Stretch" >
                                     <Border 
                                             BorderBrush="{StaticResource LightGrey}"
                                             CornerRadius="20"
@@ -681,7 +935,164 @@
                                             </StackPanel>
                                         </Button>
                                     </Border>
-                                </StackPanel>
+                                </StackPanel>-->
+                                <Grid Grid.Row="1"
+                                     ColumnDefinitions="*,Auto,*"
+                                     RowDefinitions="*,20,*,20,*">
+                                                   
+                                       <StackPanel Orientation="Horizontal" Spacing="20" Grid.Column="1">
+                                         
+                                           <CheckBox Grid.Column="0" Content="Reporting" 
+                                                     Command="{Binding ProcessesCheckedManagerCommand}" 
+                                                     CommandParameter="IsReportingSelected"
+                                                     IsChecked="{Binding SelectedProcessesUi.IsReportingSelected, Mode=TwoWay}"
+                                                     Width="200"
+                                                     Height="40">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="White"
+                                                                    CornerRadius="2"
+                                                                    Padding="10"
+                                                                     BorderBrush="{Binding IsReportingChoiceSelected, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    BorderThickness="1"
+                                                                    >
+                                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                                                                    <PathIcon Foreground="#8093F1" Data="{StaticResource ReportingIcon}" Width="20" Height="20" HorizontalAlignment="Center"/>
+                                                                    <TextBlock Text="Reporting"  Foreground="{Binding IsReportingChoiceSelected, Converter={StaticResource SelectedForgroundConverter}}" FontFamily="{StaticResource Roboto}" FontWeight="SemiBold"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                           <CheckBox  Cursor="Hand"  Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsMMRI}"
+                                                      Width="200"
+                                                      Height="40">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="White"
+                                                                    CornerRadius="2"
+                                                                    Padding="10"
+                                                                    BorderBrush="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    BorderThickness="1">
+                                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                                                                    <PathIcon   Foreground="#EE2F69" Data="{StaticResource DeleteSpamIcon}" Width="20" Height="20" HorizontalAlignment="Center"/>
+                                                                   
+                                                                    <TextBlock Text="Delete Spam" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" 
+                                                                        Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
+                                                                    <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                           <CheckBox Cursor="Hand"  Content="Disappearing" 
+                                                     Command="{Binding ProcessesCheckedManagerCommand}" 
+                                                     CommandParameter="MarkMessagesAsReadFromInbox"
+                                                     IsChecked="{Binding  SelectedProcessesUi.IsMMRI}"
+                                                     Width="200"
+                                                     Height="40">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="White"
+                                                                    CornerRadius="2"
+                                                                    Padding="10"
+                                                                    BorderBrush="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    BorderThickness="1">
+                                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                                    <PathIcon   Foreground="{StaticResource Read}" Data="{StaticResource MarkReadIcon}" Width="20" Height="20"  HorizontalAlignment="Center"/>
+                                                                   
+                                                                    <TextBlock Text="Read messages" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" 
+                                                                        Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
+                                                                    <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                           <CheckBox Cursor="Hand" Content="Disappearing" 
+                                                                  Command="{Binding ProcessesCheckedManagerCommand}" 
+                                                                  CommandParameter="ArchiveMessages"
+                                                                  IsChecked="{Binding  SelectedProcessesUi.IsArchiveSelected}"
+                                                                  Width="200"
+                                                                  Height="40">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate>
+                                                            <Border Background="White"
+                                                                    CornerRadius="2"
+                                                                    Padding="10"
+                                                                    BorderBrush="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                    BorderThickness="1">
+                                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                                                                    <PathIcon   Foreground="#78CEBD" Data="{StaticResource ArchiveIcon}" Width="20" Height="20"  HorizontalAlignment="Center"/>
+                                                                   
+                                                                    <TextBlock Text="Archive messages" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" 
+                                                                        Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
+                                                                    <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+                                       </StackPanel>
+                                       <StackPanel Orientation="Horizontal" Spacing="20" Grid.Row="2"
+                                                   Grid.Column="1">
+                                               <CheckBox Cursor="Hand"   Content="Reporting" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsGetSpamNumbersSelected}"
+                                                              CommandParameter="CollectMessagesCount"
+                                                              Width="200"
+                                                              Height="40">
+                                                        <CheckBox.Template>
+                                                            <ControlTemplate>
+                                                                <Border Background="White"
+                                                                        CornerRadius="2"
+                                                                        Padding="10"
+                                                                        BorderBrush="{Binding IsCollectDataSelected, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                        BorderThickness="1">
+                                                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                                                                        <PathIcon Foreground="#C695EF" Data="{StaticResource CollectSpamNumberIcon}" Width="20" Height="20" HorizontalAlignment="Center"/>
+                                                                        <TextBlock Text="Collect Data" FontFamily="{StaticResource Roboto}" HorizontalAlignment="Center" FontWeight="Bold" 
+                                                                            Foreground="{Binding IsCollectDataSelected, Converter={StaticResource SelectedForgroundConverter}}"/>
+                                                                        <!--<TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </CheckBox.Template>
+                                                    </CheckBox>
+                                            <CheckBox  Cursor="Hand"  Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsFixAfterFinish}"
+                                                       Width="420"
+                                                       Height="40">
+                                                        <CheckBox.Template>
+                                                            <ControlTemplate>
+                                                                <Border Background="White"
+                                                                        CornerRadius="2"
+                                                                        Padding="10"
+                                                                        BorderBrush="{TemplateBinding IsChecked, Converter={StaticResource SelectedBackgroundConverter}}"
+                                                                        BorderThickness="1">
+                                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                                                                        <PathIcon  Foreground="#D39CB6" Data="{StaticResource FixIcon}" Width="20" Height="20" HorizontalAlignment="Center"/>
+                                                                        
+                                                                        <TextBlock Text="Fix Errors" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}"  FontWeight="Bold" 
+                                                                            Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
+                                                                        <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </CheckBox.Template>
+                                                    </CheckBox>
+                                         
+                                       </StackPanel>
+                                    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center" >
+                                        <Button  Content="Add campaign" HorizontalAlignment="Center" Background="{StaticResource MainAlert}"  Command="{Binding AddSingleCampaignTaskCommand}"  Foreground="{StaticResource MainWhite}"
+                                                 Width="120" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                                 Cursor="Hand" /> 
+                                        <Button Content="Start Normal" Background="{StaticResource Primary}" Foreground="{StaticResource MainWhite}"
+                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                                Cursor="Hand" Command="{Binding ReadAllEmailsInboxMessagesCommand }"
+                                                Width="120">
+                            
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>  
+                                            
                                
                             </Border>
                                 <Border Grid.Row="2" Grid.Column="0"
@@ -1205,7 +1616,7 @@
            
             </Border>
         
-            <Border Background="Transparent" Width="1480" Height="900"  IsVisible="{Binding IsPopupOpen}"
+            <!--<Border Background="Transparent" Width="1480" Height="900"  IsVisible="{Binding IsPopupOpen}"
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Center" 
                     ZIndex="100"
@@ -1214,7 +1625,7 @@
                     
                     <Grid ColumnDefinitions="*,2,400">
                      
-                        <!-- Content on the left -->
+                        ~1~ Content on the left @1@
                             <Grid RowDefinitions="50,2,*,50,12" Background="White">
                                 <Border Background="White" >
                                     <TextBlock Text="Processes Panel"
@@ -1227,7 +1638,7 @@
                                 <Border Grid.Row="1" Background="{StaticResource SLightGrey}"></Border>
                                 <Border Grid.Row="2"  Padding="10" >
                                     <StackPanel  Spacing="20">
-                                        <!--Title-->
+                                        ~1~Title@1@
                                         <Border>
                                             <StackPanel>
                                                 <TextBlock Text="Select Process(s)"
@@ -1257,7 +1668,7 @@
                                             </StackPanel>
                                           
                                         </Border>
-                                        <!--content-->
+                                        ~1~content@1@
                                         
                                         <Grid RowDefinitions="*,10">
                                            <Grid RowDefinitions="50,*">
@@ -1306,7 +1717,7 @@
                                                                                
                                                                                 <TextBlock Text="Delete Spam" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"
                                                                                     Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
-                                                                                <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                                ~1~<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>@1@
                                                                             </StackPanel>
                                                                         </Border>
                                                                     </ControlTemplate>
@@ -1330,7 +1741,7 @@
                                                                                
                                                                                 <TextBlock Text="Read messages" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"
                                                                                     Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
-                                                                                <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                                ~1~<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>@1@
                                                                             </StackPanel>
                                                                         </Border>
                                                                     </ControlTemplate>
@@ -1354,7 +1765,7 @@
                                                                                
                                                                                 <TextBlock Text="Archive messages" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" Margin="0,8,0,4"
                                                                                     Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
-                                                                                <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                                ~1~<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>@1@
                                                                             </StackPanel>
                                                                         </Border>
                                                                     </ControlTemplate>
@@ -1378,7 +1789,7 @@
                                                                                     <PathIcon Foreground="#C695EF" Data="{StaticResource CollectSpamNumberIcon}" Width="30" Height="30" HorizontalAlignment="Center"/>
                                                                                     <TextBlock Text="Collect Data" FontFamily="{StaticResource Roboto}" HorizontalAlignment="Center" FontWeight="Bold" Margin="0,8,0,4"
                                                                                         Foreground="{Binding IsCollectDataSelected, Converter={StaticResource SelectedForgroundConverter}}"/>
-                                                                                    <!--<TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                                    ~1~<TextBlock Text="Alert is sent as soon as person appears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>@1@
                                                                                 </StackPanel>
                                                                             </Border>
                                                                         </ControlTemplate>
@@ -1399,7 +1810,7 @@
                                                                                     
                                                                                     <TextBlock Text="Fix Errors" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}"  FontWeight="Bold" Margin="0,8,0,4"
                                                                                         Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
-                                                                                    <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
+                                                                                    ~1~<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>@1@
                                                                                 </StackPanel>
                                                                             </Border>
                                                                         </ControlTemplate>
@@ -1407,7 +1818,6 @@
                                                                 </CheckBox>
                                                      
                                                    </StackPanel>
-                                                   
                                                 </Grid>  
                                             
                                            </Grid>
@@ -1434,7 +1844,7 @@
                                 </Button>
                             </Grid>
                             <Border Grid.Column="1" Background="{StaticResource SLightGrey}"></Border>
-                        <!-- Pane on the right -->
+                        ~1~ Pane on the right @1@
                         <Border Grid.Column="2" Padding="10">
                             <ScrollViewer>
                                       <StackPanel Spacing="30">
@@ -1506,7 +1916,7 @@
                                 </Grid>
                                 </Border>
                             </StackPanel>
-                                <!--collect data-->
+                                ~1~collect data@1@
                                 <Border Background="#35C695EF" Padding="7"
                                         IsVisible="{ Binding IsCollectDataSelected}">
                                     <Grid RowDefinitions="30,Auto">
@@ -1591,7 +2001,7 @@
                                     </Grid>
                                     
                                 </Border>
-                                <!--mark as read -->
+                                ~1~mark as read @1@
                                 <Border Background="#3542494C" Padding="7"
                                         IsVisible="{ Binding IsMMRIChoiceSelected}">
                                             <Grid RowDefinitions="30,Auto">
@@ -1615,7 +2025,7 @@
                                                               SelectedItem="{Binding SelectedFolders, Mode=TwoWay}"
                                                               PlaceholderText="Select Folder"/>
                                                     <StackPanel Spacing="4">
-                                                        <!--contain -->
+                                                        ~1~contain @1@
                                                         <components1:MMRIThreashold />
                                                     </StackPanel>    
                                                    
@@ -1625,7 +2035,7 @@
                                             </Grid>
                                     
                                 </Border>  
-                                <!--Archive messages-->
+                                ~1~Archive messages@1@
                                 <Border Background="#3578CEBD" Padding="7"
                                         IsVisible="{ Binding IsArchiveChoiceSelected}">
                                             <Grid RowDefinitions="30,Auto">
@@ -1640,7 +2050,7 @@
                                              
                                                 <StackPanel Grid.Row="1" Spacing="10">
                                                     <StackPanel Spacing="4">
-                                                        <!--contain -->
+                                                        ~1~contain @1@
                                                         <components1:ArchiveThreashold />
                                                     </StackPanel>    
                                                    
@@ -1650,7 +2060,7 @@
                                             </Grid>
                                     
                                 </Border>
-                                <!--mark as not spam-->
+                                ~1~mark as not spam@1@
                                 <Border Background="#358093F1" Padding="7"
                                         IsVisible="{ Binding IsReportingChoiceSelected}">
                                             <Grid RowDefinitions="30,Auto">
@@ -1670,7 +2080,7 @@
                                              
                                                 <StackPanel Grid.Row="1" Spacing="10">
                                                     <StackPanel Spacing="4">
-                                                        <!--contain -->
+                                                        ~1~contain @1@
                                                         <components1:MNSThreashold />
                                                     </StackPanel>    
                                                    
@@ -1688,8 +2098,8 @@
                       
                     </Grid>
                   
-            </Border>
-        </Border>
+            </Border>-->
+        <!--</Border>-->
             <Popup IsLightDismissEnabled="True" 
                    Width="600"
                    Height="550"

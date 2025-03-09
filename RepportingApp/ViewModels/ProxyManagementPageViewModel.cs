@@ -17,7 +17,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     private TimeSpan _interval = TimeSpan.FromMinutes(1);
 
     [ObservableProperty]
-    private int _intervalMinutes = 1; 
+    private int _intervalMinutes = 15; 
 
 
     #endregion
@@ -36,6 +36,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty] public ObservableCollection<Proxy> _selectedProxies;
     [ObservableProperty] private ObservableCollection<EmailAccount> _emailAccounts = new ObservableCollection<EmailAccount>();
     private readonly IApiConnector _apiConnector;
+    private readonly ProxyListManager proxyListManager;
     private readonly IProxyApiService _proxyApiService;
     [ObservableProperty]
     private ObservableCollection<string> regions;
@@ -57,8 +58,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty]
     private string selectedAvailability; 
 
-    [ObservableProperty]
-    private string selectedConnectivity; 
+    [ObservableProperty] private string _selectedConnectivity = "Connectivity"; // Default
     
     
     [ObservableProperty]
@@ -69,12 +69,13 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         _apiConnector = apiConnector;
         _taskInfoManager = taskInfoManager;
         _proxyApiService = proxyApiService;
+        proxyListManager = new ProxyListManager();
         if (App.Configuration != null) ReportingSettingsValuesDisplay = new ReportingSettingValues(App.Configuration);
         
         Regions = new ObservableCollection<string> { "Select Region" }; // Placeholder item
         Subnets = new ObservableCollection<string> { "Select Subnet" }; // Placeholder item
         Availabilities = new ObservableCollection<string> { "availability", "used", "available" };
-        Connectivities = new ObservableCollection<string> { "Connectivity", "Google", "Yahoo" };
+        Connectivities = new ObservableCollection<string> { "Connectivity", "Working", "Failed" };
         SelectedRegion = "Select Region";
         SelectedSubnet = "Select Subnet";
         SelectedAvailability = "availability";
@@ -85,12 +86,33 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         _timer.Tick += async (s, e) => await GetAllProxiesFromApi();
         
         StartTimer();
-        
-        
+        proxyListManager.OnProxiesUpdated += UploadToApiProxiesRegion;
+
     }
 
     #region Timer
 
+    #region events
+
+    private  async void UploadToApiProxiesRegion(object? sender, List<Proxy> proxies)
+    {
+        await UploadProxiesToApiAsync(proxies);
+    }
+
+    public async Task UploadProxiesToApiAsync(List<Proxy> proxy)
+    {
+        
+        var proxyDtos = proxy.Select(p => new ProxyUpdateRegion
+        {
+            ProxyId = p.ProxyId,
+            Region = p.Region,
+            YahooConnectivity = p.YahooConnectivity,
+            Availability = p.Availability
+        });
+        var result = await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.UpdateProxy,proxyDtos);
+    }
+
+    #endregion
     private void StartTimer()
     {
         if (_timer.IsEnabled)
@@ -145,6 +167,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         CentralProxyList = proxies.ToObservableCollection();
         CopyCentralProxyList = new ObservableCollection<Proxy>(CentralProxyList);
         CountFilter = CopyCentralProxyList.Count;
+        await PopulateFilters(CopyCentralProxyList);
     }
     
     [RelayCommand]
@@ -174,29 +197,25 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
-            if (SelectedProxies == null) return;
-            if (!SelectedProxies.Any())
-            {
-                return;
-            }
-            var taskId = _taskManager.StartBatch(SelectedProxies, async (selectedProxy, cancellationToken) =>
-            {
-            
-                await ProxyListManager.TestProxiesAsync(selectedProxy);
-                return null;
-            }, batchSize:200,taskCategory: TaskCategory.Invincible);
+            if (SelectedProxies == null || !SelectedProxies.Any()) return;
 
-            await _taskManager.WaitForTaskCompletion(taskId);
+            // Convert ObservableCollection to List
+            List<Proxy> proxyList = SelectedProxies.ToList();
+
+            // Test proxies and fetch region data in batches
+            await proxyListManager.TestProxiesAsync(proxyList);
+
+            // Populate filters or update the UI
             await PopulateFilters(CopyCentralProxyList);
         }
         catch (Exception e)
         {
+            // Handle errors
             ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+            await ErrorIndicator.ShowErrorIndecator("Process Failed", e.Message);
         }
-      
     }
-    
+
     
     public async Task PopulateFilters(IEnumerable<Proxy> proxies)
     {
@@ -217,6 +236,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
             {
                 Subnets.Add(subnet);
             }
+            
         }
         catch (Exception e)
         {
@@ -225,6 +245,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         }
       
     }
+    
 
     private void ClearExceptFirst(ObservableCollection<string> collection)
     {
@@ -241,16 +262,48 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         // Example logic to calculate subnets
         return proxies.Select(p => p.ProxyIp.Split('.').Take(3).Aggregate((a, b) => $"{a}.{b}")).Distinct();
     }
-    
+
+    #region Filter
+
+    [ObservableProperty] private string _filterIpAddress = string.Empty;
+    [RelayCommand]
+    public async Task ExportFilteredData()
+    {
+        try
+        {
+            if (CopyCentralProxyList == null || !CopyCentralProxyList.Any())
+            {
+                await ErrorIndicator.ShowErrorIndecator("Export Failed", "No data to export.");
+                return;
+            }
+
+            // Get the Desktop path
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string filePath = Path.Combine(desktopPath, "FilteredProxies.txt");
+
+            // Format the data
+            var lines = CopyCentralProxyList.Select(proxy => 
+                $"{proxy.ProxyIp}:{proxy.Port}:{proxy.Username}:{proxy.Password}");
+
+            // Write to the file
+            await File.WriteAllLinesAsync(filePath, lines);
+        }
+        catch (Exception e)
+        {
+            await ErrorIndicator.ShowErrorIndecator("Export Failed", e.Message);
+        }
+    }
     [RelayCommand]
     public async Task ApplyFilter()
     {
         try
         {
-            // Start with the original unfiltered list
             var filtered = CentralProxyList.AsEnumerable();
 
-            // Filter based on selected values
+            // Filter by IP Address if it's not empty
+            if (!string.IsNullOrEmpty(FilterIpAddress))
+                filtered = filtered.Where(p => p.ProxyIp.Contains(FilterIpAddress));
+
             if (!string.IsNullOrEmpty(SelectedRegion) && SelectedRegion != "Select Region")
                 filtered = filtered.Where(p => p.Region == SelectedRegion);
 
@@ -259,26 +312,24 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
 
             if (!string.IsNullOrEmpty(SelectedAvailability) && SelectedAvailability != "availability")
                 filtered = filtered.Where(p => SelectedAvailability == "used" ? !p.Availability : p.Availability);
-
             if (!string.IsNullOrEmpty(SelectedConnectivity) && SelectedConnectivity != "Connectivity")
-                filtered = filtered.Where(p => SelectedConnectivity == "Google" ? p.GoogleConnectivity == "Connected" : p.YahooConnectivity == "Connected");
+                filtered = filtered.Where(p => p.YahooConnectivity == SelectedConnectivity);
 
-            // Update filtered list
+
             var centralProxies = filtered as Proxy[] ?? filtered.ToArray();
             CopyCentralProxyList.Clear();
             foreach (var proxy in centralProxies)
                 CopyCentralProxyList.Add(proxy);
 
-            // Update count of filtered results
             CountFilter = CopyCentralProxyList.Count;
         }
         catch (Exception e)
         {
-            ErrorIndicator = new ErrorIndicatorViewModel();
             await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
         }
-      
     }
+    #endregion
+  
 
     private string GetSubnet(string ip)
     {
@@ -298,7 +349,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         try
         {
             
-            ProxyListManager.UploadReservedProxyFile();
+            proxyListManager.UploadReservedProxyFile();
 
           
             var existingProxies = new HashSet<string>(CopyCentralProxyList.Select(p => $"{p.ProxyIp}:{p.Port}"));
@@ -332,7 +383,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
                 Port = p.Port,
                 Username = p.Username,
                 Password = p.Password,
-                Availability = "Available"
+                Availability = true
             });
             await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostProxy,proxyDtos);
         }
@@ -455,14 +506,14 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
             await ReplaceProxies();
             IsProcessWorking = true;
             await _proxyApiService.DownloadProxyListAsync();
-            var uploadedFiles = await ProxyListManager.UploadNewProxyFileAsync();
+            var uploadedFiles = await proxyListManager.UploadNewProxyFileAsync();
             var proxyDtos = uploadedFiles.Select(p => new ProxyDto
             {
                 ProxyIp = p.ProxyIp,
                 Port = p.Port,
                 Username = p.Username,
                 Password = p.Password,
-                Availability = "Available"
+                Availability = true
             });
             await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.PostProxy, proxyDtos);
             await LoadDataAsync();

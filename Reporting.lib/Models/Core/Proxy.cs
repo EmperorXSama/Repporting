@@ -10,16 +10,16 @@ public partial class Proxy : ObservableObject
     public string ProxyIp { get; set; }
 
     public int Port { get; set; }
+    
 
     public string Username { get; set; }
 
     public string Password { get; set; }
     
-    [ObservableProperty] private string _ms;
-    [ObservableProperty] private string _googleConnectivity;
     [ObservableProperty] private string _yahooConnectivity;
     [ObservableProperty] private string _region;
     [ObservableProperty] private bool _availability;
+    public int ProxyUsageCount { get; set; }
     
     
 }

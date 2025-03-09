@@ -1,16 +1,17 @@
 ﻿using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Reporting.lib.Models.DTO;
 
 namespace RepportingApp.CoreSystem.ProxyService;
 using System.IO;
 
-public static class ProxyListManager
+public  class ProxyListManager
 {
-    private const string GoogleUrl = "https://www.google.com";
-    private const string YahooUrl = "https://www.yahoo.com";
-    public static ConcurrentBag<Proxy> ReservedProxies { get; set; } = new ConcurrentBag<Proxy>();
-    public static ConcurrentBag<Proxy> DbProxy { get; set; } = new ConcurrentBag<Proxy>();
+    public static  ConcurrentBag<Proxy> ReservedProxies { get; set; } = new ConcurrentBag<Proxy>();
+    public  static ConcurrentBag<Proxy> DbProxy { get; set; } = new ConcurrentBag<Proxy>();
 
-    public static List<EmailAccount> DistributeEmailsBySubnetSingleList(List<EmailAccount> emailsGroupToWork)
+    public  List<EmailAccount> DistributeEmailsBySubnetSingleList(List<EmailAccount> emailsGroupToWork)
     {
         // Group emails by subnet (first three octets)
         var groupedBySubnet = emailsGroupToWork
@@ -42,7 +43,7 @@ public static class ProxyListManager
         return distributedList;
     }
 
-    public static void UploadReservedProxyFile()
+    public  void UploadReservedProxyFile()
     {
         ReservedProxies.Clear();
         // set path 
@@ -85,7 +86,7 @@ public static class ProxyListManager
         }
     }
 
-    public static void GetDBProxies(IEnumerable<Proxy> proxies)
+    public  void GetDBProxies(IEnumerable<Proxy> proxies)
     {
         DbProxy = new ConcurrentBag<Proxy>(); // Clear existing data if necessary
 
@@ -95,7 +96,7 @@ public static class ProxyListManager
         }
     }
 
-public static async Task<List<Proxy>> UploadNewProxyFileAsync()
+public  async Task<List<Proxy>> UploadNewProxyFileAsync()
     {
         var newProxies = new ConcurrentBag<Proxy>();
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
@@ -147,7 +148,7 @@ public static async Task<List<Proxy>> UploadNewProxyFileAsync()
         
         return newProxies.ToList();
     }
-    public static Proxy GetRandomDifferentSubnetProxy(Proxy proxy)
+    public  Proxy GetRandomDifferentSubnetProxy(Proxy proxy)
     {
         var currentSubnet = GetSubnet(proxy.ProxyIp);
         
@@ -163,7 +164,7 @@ public static async Task<List<Proxy>> UploadNewProxyFileAsync()
         }
         throw new InvalidOperationException("No proxy with a different subnet is available.");
     }
-    public static Proxy GetRandomDifferentSubnetProxyDb(Proxy proxy)
+    public  Proxy GetRandomDifferentSubnetProxyDb(Proxy proxy)
     {
         var currentSubnet = GetSubnet(proxy.ProxyIp);
         
@@ -179,13 +180,52 @@ public static async Task<List<Proxy>> UploadNewProxyFileAsync()
         }
         throw new InvalidOperationException("No proxy with a different subnet is available.");
     }
-    public static string GetSubnet(string ipAddress)
+    public  string GetSubnet(string ipAddress)
     {
         var parts = ipAddress.Split('.');
         return parts.Length >= 3 ? $"{parts[0]}.{parts[1]}.{parts[2]}" : string.Empty;
     }
     
-    public static async Task TestProxiesAsync(Proxy proxy)
+    private  readonly SemaphoreSlim Semaphore = new(100); // Controls concurrency (10 at a time)
+    private  readonly HttpClient HttpClient = new();
+    private  readonly ConcurrentDictionary<string, string> RegionCache = new(); // Cache for IP lookups
+
+    // Main method for testing proxies
+    public  async Task TestProxiesAsync(List<Proxy> proxies)
+    {
+        var batchedProxies = proxies.Chunk(100); // Process in chunks of 100
+
+        foreach (var batch in batchedProxies)
+        {
+            await Parallel.ForEachAsync(batch, new ParallelOptions { MaxDegreeOfParallelism = 100 }, async (proxy, _) =>
+            {
+                await Semaphore.WaitAsync();
+                try
+                {
+                    await TestProxyAsync(proxy);
+                }
+                finally
+                {
+                    Semaphore.Release();
+                }
+            });
+
+            // Fetch regions for the tested batch
+            await FetchRegionsInBatchAsync(batch.ToList());
+            InvokeOnProxiesUpdated(batch.ToList());
+         
+        }
+    }
+
+    public  event EventHandler<List<Proxy>> OnProxiesUpdated;
+
+    private  void InvokeOnProxiesUpdated(List<Proxy> proxies)
+    {
+        OnProxiesUpdated?.Invoke(this, proxies);
+    }
+
+    // Helper method to test individual proxy connectivity
+    private  async Task TestProxyAsync(Proxy proxy)
     {
         try
         {
@@ -200,58 +240,101 @@ public static async Task<List<Proxy>> UploadNewProxyFileAsync()
 
             using var httpClient = new HttpClient(httpClientHandler)
             {
-                Timeout = TimeSpan.FromSeconds(5) // Set timeout to avoid hanging
-            };
-
-            // Measure response time for Google connectivity
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            proxy.GoogleConnectivity = await GetStatusCodeAsync(httpClient, GoogleUrl);
-            stopwatch.Stop();
-            proxy.Ms = $"{stopwatch.ElapsedMilliseconds}ms";
-
-            // Test Yahoo connectivity
-            proxy.YahooConnectivity = await GetStatusCodeAsync(httpClient, YahooUrl);
-
-            // Fetch region information
-            proxy.Region = await GetRegionAsync(proxy.ProxyIp);
-        }
-        catch
-        {
-            proxy.GoogleConnectivity = "Error";
-            proxy.YahooConnectivity = "Error";
-            proxy.Ms = "N/A";
-            proxy.Region = "Unknown";
-        }
-    }
-    private static async Task<string> GetRegionAsync(string ipAddress)
-    {
-        try
-        {
-            using var httpClient = new HttpClient
-            {
                 Timeout = TimeSpan.FromSeconds(5)
             };
+            
 
-            var response = await httpClient.GetStringAsync($"https://ipinfo.io/{ipAddress}/region");
-            return response.Trim();
+            // Test Yahoo connectivity
+            bool yahooSuccess = await TestConnectivityAsync(httpClient, "https://www.yahoo.com");
+            proxy.YahooConnectivity = yahooSuccess ? "Working" : "Failed";
         }
         catch
         {
-            return "Unknown";
+            proxy.YahooConnectivity = "Error";
+            proxy.Region = "Unknown";
+            proxy.Availability = false;
         }
     }
 
-    private static async Task<string> GetStatusCodeAsync(HttpClient httpClient, string url)
+    // Helper method for testing connectivity to a specific URL
+    private  async Task<bool> TestConnectivityAsync(HttpClient httpClient, string url)
     {
         try
         {
-            var response = await httpClient.GetAsync(url);
-            return ((int)response.StatusCode).ToString(); // Return status code as string
+            using var response = await httpClient.GetAsync(url);
+            return response.IsSuccessStatusCode;
         }
         catch
         {
-            return "0"; 
+            return false;
         }
     }
+
+    // Fetch region information for proxies in batches
+    private  async Task FetchRegionsInBatchAsync(List<Proxy> proxies)
+    {
+        var ipsToFetch = proxies.Select(p => p.ProxyIp).Distinct().ToList();
+
+        try
+        {
+            string url = "http://ip-api.com/batch?key=oOVecJdhB0IK8p4";
+            string jsonRequest = System.Text.Json.JsonSerializer.Serialize(ipsToFetch);
+
+            using var requestContent = new StringContent(jsonRequest, System.Text.Encoding.UTF8, "application/json");
+            using var response = await HttpClient.PostAsync(url, requestContent);
+
+            if (!response.IsSuccessStatusCode) return;
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var results = System.Text.Json.JsonSerializer.Deserialize<List<RegionResponse>>(jsonResponse, options);
+
+
+            if (results == null) return;
+
+            foreach (var result in results)
+            {
+                if (result.Status == "success" && !string.IsNullOrEmpty(result.Country))
+                {
+                    RegionCache[result.Query] = result.Country;
+                }
+            }
+
+        }
+        catch
+        {
+            // Ignore failed request
+        }
+
+        foreach (var proxy in proxies)
+        {
+            if (RegionCache.TryGetValue(proxy.ProxyIp, out string region))
+            {
+                proxy.Region = region;
+            }
+        }
+    }
+
+    // Helper class to deserialize the API response
+    private class RegionResponse
+    {
+        [JsonPropertyName("query")]
+        public string Query { get; set; }
+
+        [JsonPropertyName("country")]
+        public string Country { get; set; }
+
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+    }
+
 }
 
+public class UpdateProxiesEventArgs : EventArgs
+{
+    public List<Proxy> List { get; set; }
+}

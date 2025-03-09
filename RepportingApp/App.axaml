@@ -28,6 +28,7 @@
          <FontFamily x:Key="Roboto">avares://RepportingApp/Assets/Font#Roboto</FontFamily>
          <helper:BooleanToWidthConverter x:Key="BooleanToWidthConverter"/>
          <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter"/>
+         <converters:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
          <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
          <helper:EnumToBooleanConverter x:Key="EnumToBooleanConverter "/>
          <helper:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter"/>

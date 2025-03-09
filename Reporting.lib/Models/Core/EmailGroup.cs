@@ -2,12 +2,13 @@
 
 public class EmailGroup
 {
-    public int? GroupId { get; set; } = null;
-    public string GroupName { get; set; } = null;
-    public string RdpIp { get; set; } = null;
-    //public ICollection<EmailAccount> EmailAccounts { get; set; } = new List<EmailAccount>();
+    public int? GroupId { get; set; }
+    public string GroupName { get; set; }
+    public string RdpIp { get; set; }
+    public int EmailCount { get; set; }  
+
     public override string ToString()
     {
-        return GroupName;
+        return $"{GroupName} - {RdpIp} - {EmailCount}";
     }
 }

@@ -42,6 +42,28 @@ public class ProxyServices : IProxyServices
 
         await _dbConnection.SaveDataAsync("[dbo].[AddNewProxies]", parameters);
     }
+    public async Task UpdateProxiesBatchAsync(IEnumerable<ProxyUpdateRegion> proxies)
+    {
+        var table = new DataTable();
+        table.Columns.Add("ProxyId", typeof(int));
+        table.Columns.Add("Region", typeof(string));
+        table.Columns.Add("YahooConnectivity", typeof(string));
+        table.Columns.Add("Availability", typeof(string));
+
+        foreach (var proxy in proxies)
+        {
+            table.Rows.Add(
+                proxy.ProxyId,
+                proxy.Region,
+                proxy.YahooConnectivity,
+                proxy.Availability ? "Available" : "Unavailable"
+            );
+        }
+
+        var parameters = new { ProxyUpdates = table.AsTableValuedParameter("ProxyUpdateTableType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[UpdateProxiesBatch]", parameters);
+    }
 
     public async Task UpdateReplacedProxiesBatchAsync(IEnumerable<ProxyUpdateDto> proxies)
     {
