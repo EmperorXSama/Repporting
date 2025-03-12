@@ -33,6 +33,38 @@ public class EmailService : IEmailService
         return result;
     }
 
+    public async Task AddNetworkLogsAsync(IEnumerable<NetworkLogDto> networkLogs)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailId", typeof(int));
+        table.Columns.Add("NickName", typeof(string));
+
+        foreach (var log in networkLogs)
+        {
+            table.Rows.Add(log.EmailId, log.NickName);
+        }
+
+        var parameters = new { NetworkLogs = table.AsTableValuedParameter("NetworkLogType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[AddNetworkLogs]", parameters);
+    }
+    public async Task AddMailBoxesAsync(IEnumerable<MailBoxDto> mailBoxDtos)
+    {
+        var table = new DataTable();
+        table.Columns.Add("MailboxEmail", typeof(string));
+        table.Columns.Add("EmailId", typeof(int));
+        table.Columns.Add("IdDelete", typeof(string));
+        table.Columns.Add("CostumeName", typeof(string));
+
+        foreach (var mailbox in mailBoxDtos)
+        {
+            table.Rows.Add(mailbox.MailboxEmail, mailbox.EmailId, mailbox.IdDelete, mailbox.CostumeName);
+        }
+
+        var parameters = new { MailBoxes = table.AsTableValuedParameter("MailBoxType") };
+
+        await _dbConnection.SaveDataAsync("[dbo].[AddMailBoxes]", parameters);
+    }
 
 
 public async Task AddEmailsToGroupWithMetadataAsync(
@@ -95,6 +127,12 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         {
             GroupId = groupId
         });
+
+        return results;
+    } 
+    public async Task<IEnumerable<NetworkLogDto>> GetAllMailBoxes()
+    {
+        var results = await _dbConnection.LoadDataAsync<NetworkLogDto, dynamic>("[dbo].[GetAllNetworkLog]", new {});
 
         return results;
     }  

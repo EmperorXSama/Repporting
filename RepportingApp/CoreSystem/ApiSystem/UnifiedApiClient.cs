@@ -98,7 +98,7 @@ public class UnifiedApiClient : IApiConnector
 
             response = await client.PostAsync(endpoint, content); // Assign response
             response.EnsureSuccessStatusCode();
-
+            var f = typeof(T);
             string jsonResponse = await response.Content.ReadAsStringAsync();
             if (typeof(T) == typeof(string))
             {

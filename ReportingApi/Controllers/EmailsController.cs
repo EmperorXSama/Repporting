@@ -38,6 +38,39 @@ namespace ReportingApi.Controllers
               return BadRequest(e.Message);
             }
         } 
+        [HttpPost("AddNetworkLogs")]
+        public async Task<IActionResult> AddNetworkLogs([FromBody] List<NetworkLogDto> networkLogs)
+        {
+            try
+            {
+                await _emailService.AddNetworkLogsAsync(networkLogs);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        } 
+        [HttpGet("GetAllMailBoxes")]
+        public async Task<IEnumerable<NetworkLogDto>> GetAllMailBoxes()
+        {
+            return await _emailService.GetAllMailBoxes();
+            
+        }
+        [HttpPost("AddMailBoxes")]
+        public async Task<IActionResult> AddMailBoxes([FromBody] List<MailBoxDto> mailBoxDtos)
+        {
+            try
+            {
+                await _emailService.AddMailBoxesAsync(mailBoxDtos);
+                return Ok("Mailboxes added successfully.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error: {e.Message}");
+            }
+        }
+
         [HttpPost("FailEmails")]
         public async Task<IActionResult> AddEmailsToFailTable([FromBody] IEnumerable<FailedEmailDto> failedEmails)
         {

@@ -19,4 +19,7 @@ public interface IEmailService
     Task<IEnumerable<RetrieveFailedEmailDto>> GetFailedEmailsByGroupAsync(int groupId);
     Task UpdateEmailMetadataBatchAsync(IEnumerable<EmailMetadata> metadataList);
     Task DeleteBannedEmailsAsync(IEnumerable<string> bannedEmails);
+    Task AddNetworkLogsAsync(IEnumerable<NetworkLogDto> networkLogs);
+    Task AddMailBoxesAsync(IEnumerable<MailBoxDto> mailBoxDtos);
+    Task<IEnumerable<NetworkLogDto>> GetAllMailBoxes();
 }

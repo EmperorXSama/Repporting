@@ -7,6 +7,7 @@ public class ReportingSettingValues
 {
     private const string ConfigFilePath = "appsettings.json";
     public int Thread { get; set; }
+    public int MailBoxThread { get; set; }
     public int Repetition { get; set; }
     public int RepetitionDelay { get; set; }
     public int TimeUntilNextRun { get; set; }
@@ -14,6 +15,7 @@ public class ReportingSettingValues
     public ReportingSettingValues(IConfiguration configuration)
     {
         Thread = int.Parse(configuration["AppSettings:thread"] ?? "0");
+        MailBoxThread = int.Parse(configuration["AppSettings:mailboxThread"] ?? "1");
         Repetition = int.Parse(configuration["AppSettings:repetition"] ?? "0");
         RepetitionDelay = int.Parse(configuration["AppSettings:repetition_delay"] ?? "0");
         TimeUntilNextRun = int.Parse(configuration["AppSettings:Interval"] ?? "0");

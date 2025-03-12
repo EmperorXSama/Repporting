@@ -565,7 +565,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     } 
     
     [RelayCommand]
-    public async void OnDropFile(string filePath)
+ public async void OnDropFile(string filePath)
     {
         try
         {
@@ -688,6 +688,14 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         }
            
     }
+
+// Utility method to show an error indicator
+private async Task ShowError(string title, string message)
+{
+    ErrorIndicator = new ErrorIndicatorViewModel();
+    await ErrorIndicator.ShowErrorIndecator(title, message);
+}
+
   
 
     private async Task<string> ProcessLineWithProgress(
@@ -1499,18 +1507,18 @@ private async Task ReadAllEmailsInboxMessagesAsync()
             // Base query from original data
             var filteredList = NetworkItems.AsQueryable();
 
-            // Filter by spam count only if IsGetContainSpam is true
+            // Apply spam filtering only if IsGetContainSpam is true
             if (IsGetContainSpam)
             {
                 filteredList = filteredList
                     .Where(item => item.Stats != null && item.Stats.SpamCount > 0);
-            }
 
-            // Filter by spam count range
-            filteredList = filteredList
-                .Where(item => item.Stats != null &&
-                               item.Stats.SpamCount >= SpamCountMin &&
-                               item.Stats.SpamCount <= SpamCountMax);
+                // Apply spam count range filter only if spam filtering is enabled
+                filteredList = filteredList
+                    .Where(item => item.Stats != null &&
+                                   item.Stats.SpamCount >= SpamCountMin &&
+                                   item.Stats.SpamCount <= SpamCountMax);
+            }
 
             // Filter by the selected email group
             if (SelectedEmailGroupFilter != null)
@@ -1530,6 +1538,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
             EmailDiaplysTable = new ObservableCollection<EmailAccount>(filteredList);
             CountFilter = EmailDiaplysTable.Count;
         }
+
 
 
         [RelayCommand]

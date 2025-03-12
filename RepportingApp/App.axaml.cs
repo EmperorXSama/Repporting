@@ -2,6 +2,7 @@
 using RepportingApp.Services;
 using Avalonia.Diagnostics;
 using RepportingApp.CoreSystem.ProxyService;
+using RepportingApp.Request_Connection_Core.MailBox;
 using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
 
 namespace RepportingApp;
@@ -35,6 +36,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<MainWindowViewModel>();
         serviceCollection.AddSingleton<ProcessTrackerPageViewModel>();
         serviceCollection.AddSingleton<ReportingPageViewModel>();
+        serviceCollection.AddSingleton<MailBoxPageViewModel>();
         serviceCollection.AddSingleton<TaskInfoManager>();
 
 
@@ -42,6 +44,7 @@ public partial class App : Application
         serviceCollection.AddSingleton<ICacheService, CacheService>();
         serviceCollection.AddSingleton<IReportingRequests, ReportingRequests>();
         serviceCollection.AddSingleton<IProxyApiService, ProxyApiService>();
+        serviceCollection.AddSingleton<IMailBoxRequests, MailBoxRequests>();
         
         
         

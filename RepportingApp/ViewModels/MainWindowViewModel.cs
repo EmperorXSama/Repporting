@@ -40,6 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
         new ListItemTemplate(typeof(ReportingPageViewModel),"Reporting"),
         new ListItemTemplate(typeof(ProcessTrackerPageViewModel),"Process"),
         new ListItemTemplate(typeof(EmailManagementPageViewModel),"ManageEmail"),
+        new ListItemTemplate(typeof(MailBoxPageViewModel),"Mailbox"),
     };
 
     partial void OnCurrentPageChanged(ViewModelBase value)

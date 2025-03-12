@@ -19,6 +19,9 @@ public class ApiEndPoints
     public static string GetAllProxies => $"{BaseUrl}/Proxy/GetProxies";
     public static string GetAddEmails => $"{BaseUrl}/Emails/AddEmails";
     public static string UpdateStatsEmails => $"{BaseUrl}/Emails/UpdateStats";
+    public static string NetworkLogAdd => $"{BaseUrl}/Emails/AddNetworkLogs";
+    public static string MailboxesAdd => $"{BaseUrl}/Emails/AddMailBoxes";
+    public static string GetAllMailBoxes => $"{BaseUrl}/Emails/GetAllMailBoxes";
     
     
     

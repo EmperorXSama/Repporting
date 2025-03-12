@@ -1,0 +1,82 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"   d:DesignWidth="1620" d:DesignHeight="900"
+             xmlns:li="using:LoadingIndicators.Avalonia"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:components="clr-namespace:RepportingApp.Views.Components"
+             x:Class="RepportingApp.Views.MailBoxPageView"
+             x:DataType="viewModels:MailBoxPageViewModel">
+    <Grid >
+        <Border ZIndex="10000">
+            <components:ErrorIndicatorView DataContext="{Binding ErrorIndicator}" /> 
+        </Border>
+        <Border  ZIndex="10000"   IsVisible="{Binding IsDataLoaded , Mode=TwoWay}">
+            <li:LoadingIndicator VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Height="50" IsActive="{Binding IsDataLoaded , Mode=TwoWay}"  Mode="Arcs" SpeedRatio="1.2"/>
+        </Border>
+            <Grid
+                IsVisible="{Binding !IsDataLoaded , Mode=TwoWay}"
+                RowDefinitions="120,30,*,40">
+           
+                <Border Padding="12" >
+                
+                    <Grid 
+                          ColumnDefinitions="Auto,*,Auto"
+                          RowDefinitions="*,Auto">
+                        <Border CornerRadius="12" >
+                            <TextBlock 
+                                FontSize="20"
+                                FontWeight="Bold"
+                                VerticalAlignment="Center"
+                            >
+                                <TextBlock Text="Reporto"></TextBlock>
+                                <TextBlock  Text="." Foreground="#FFD85F" FontWeight="Black"></TextBlock>
+                            </TextBlock>
+                       
+                        </Border>
+                        
+                        <Button Grid.Row="0" Grid.Column="1" Content="Initialize Mailbox" HorizontalAlignment="Center" Background="#044B7F"    Foreground="{StaticResource MainWhite}"
+                                Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                Command="{Binding InitializeMailBoxCommand}"
+                                Cursor="Hand" 
+                                CornerRadius="12,0,0,0"
+                                BorderThickness="0"/> 
+                        
+                   <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Height="40" Spacing="10">
+                                              <Button Name="DropdownButton1"
+                                                      HorizontalAlignment="Stretch"
+                                                      Theme="{StaticResource CustomBtn}"
+                                                      Background="#95190C"
+                                                      Content="Select Groups"
+                                                      Foreground="{StaticResource LightGrey}"
+                                                      Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
+                                              <Popup Name="DropdownPopup1"
+                                                     PlacementTarget="{Binding ElementName=DropdownButton1}"
+                                                     PlacementMode="Bottom"
+                                                     IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
+
+                                                  <Border BorderBrush="#95190C"
+                                                          BorderThickness="1"
+                                                          Background="White" >
+                                                      <ListBox HorizontalAlignment="Stretch"
+                                                          VerticalAlignment="Top"
+                                                          Padding="2"
+                                                          Background="White"
+                                                          Foreground="{StaticResource Primary}"
+                                                          ItemsSource="{Binding Groups}"
+                                                          SelectionMode="Multiple"
+                                                          SelectedItems="{Binding SelectedEmailGroupForTask}"
+                                                          />
+                                                  </Border>
+                                              </Popup>
+                                              <TextBox Text="{Binding ReportingSettingsValuesDisplay.MailBoxThread}"></TextBox>
+                   </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+    </Grid>
+            
+                    
+   
+</UserControl>
