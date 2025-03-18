@@ -9,7 +9,7 @@
             x:DataType="viewModels:ProxyManagementPageViewModel"
              x:Class="RepportingApp.Views.ProxyManagementPageView">
      
-    <Grid>
+    <Grid IsEnabled="{Binding !IsProcessWorking}">
         <Border ZIndex="10000">
             <components1:ErrorIndicatorView DataContext="{Binding ErrorIndicator}" />
         </Border>
@@ -60,8 +60,6 @@
                                 <Button Content="Get Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
-                                        
-                                        IsEnabled="False"
                                         Command="{Binding GetAllProxiesFromApiCommand}"
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
                              

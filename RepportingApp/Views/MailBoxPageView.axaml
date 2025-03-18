@@ -17,7 +17,7 @@
         </Border>
             <Grid
                 IsVisible="{Binding !IsDataLoaded , Mode=TwoWay}"
-                RowDefinitions="120,30,*,40">
+                RowDefinitions="120,30,*,50">
            
                 <Border Padding="12" >
                 
@@ -36,44 +36,114 @@
                        
                         </Border>
                         
-                        <Button Grid.Row="0" Grid.Column="1" Content="Initialize Mailbox" HorizontalAlignment="Center" Background="#044B7F"    Foreground="{StaticResource MainWhite}"
-                                Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
-                                Command="{Binding InitializeMailBoxCommand}"
-                                Cursor="Hand" 
-                                CornerRadius="12,0,0,0"
-                                BorderThickness="0"/> 
-                        
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="20" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <Button  Content="Initialize Mailbox"  Background="#044B7F"    Foreground="{StaticResource MainWhite}"
+                                     Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                     Command="{Binding InitializeMailBoxCommand}"
+                                     Cursor="Hand" 
+                                     CornerRadius="12,0,0,0"
+                                     BorderThickness="0"/>
+                            <Button  Content="Clear and populate"  Background="#BA8F95"    Foreground="{StaticResource MainWhite}"
+                                     Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                     Command="{Binding RefreachAndCleanCommand}"
+                                     Cursor="Hand" 
+                                     CornerRadius="12,0,0,0"
+                                     BorderThickness="0"/> 
+                        </StackPanel>
                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Height="40" Spacing="10">
-                                              <Button Name="DropdownButton1"
-                                                      HorizontalAlignment="Stretch"
-                                                      Theme="{StaticResource CustomBtn}"
-                                                      Background="#95190C"
-                                                      Content="Select Groups"
-                                                      Foreground="{StaticResource LightGrey}"
-                                                      Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
-                                              <Popup Name="DropdownPopup1"
-                                                     PlacementTarget="{Binding ElementName=DropdownButton1}"
-                                                     PlacementMode="Bottom"
-                                                     IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
+                          <Button Name="DropdownButton1"
+                                  HorizontalAlignment="Stretch"
+                                  Theme="{StaticResource CustomBtn}"
+                                  Background="#95190C"
+                                  Content="Select Groups"
+                                  Foreground="{StaticResource LightGrey}"
+                                  Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
+                          <Popup Name="DropdownPopup1"
+                                 PlacementTarget="{Binding ElementName=DropdownButton1}"
+                                 PlacementMode="Bottom"
+                                 IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
 
-                                                  <Border BorderBrush="#95190C"
-                                                          BorderThickness="1"
-                                                          Background="White" >
-                                                      <ListBox HorizontalAlignment="Stretch"
-                                                          VerticalAlignment="Top"
-                                                          Padding="2"
-                                                          Background="White"
-                                                          Foreground="{StaticResource Primary}"
-                                                          ItemsSource="{Binding Groups}"
-                                                          SelectionMode="Multiple"
-                                                          SelectedItems="{Binding SelectedEmailGroupForTask}"
-                                                          />
-                                                  </Border>
-                                              </Popup>
-                                              <TextBox Text="{Binding ReportingSettingsValuesDisplay.MailBoxThread}"></TextBox>
+                              <Border BorderBrush="#95190C"
+                                      BorderThickness="1"
+                                      Background="White" >
+                                  <ListBox HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Top"
+                                      Padding="2"
+                                      Background="White"
+                                      Foreground="{StaticResource Primary}"
+                                      ItemsSource="{Binding Groups}"
+                                      SelectionMode="Multiple"
+                                      SelectedItems="{Binding SelectedEmailGroupForTask}"
+                                      />
+                              </Border>
+                          </Popup>
+                          
+                          <StackPanel>
+                              <TextBlock Text="thread"></TextBlock>
+                              <TextBox Text="{Binding ReportingSettingsValuesDisplay.MailBoxThread}"></TextBox>
+                          </StackPanel> 
+                          <StackPanel>
+                              <TextBlock Text="Custom Name"></TextBlock>
+                              <TextBox Text="{Binding CustomName}" Watermark="custom name"></TextBox>
+                          </StackPanel> 
+                          <StackPanel>
+                              <TextBlock Text="Creation Count"></TextBlock>
+                              <TextBox Text="{Binding Count}"></TextBox>
+                          </StackPanel>
+                         
+                       
+                        
                    </StackPanel>
                     </Grid>
                 </Border>
+                
+                <Border Grid.Row="2" Padding="12" >
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button  Content="Export"  Background="#424B54"    Foreground="{StaticResource MainWhite}"
+                                     Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                     Command="{Binding ExportToTxtCommand}"
+                                     Cursor="Hand" 
+                                     CornerRadius="12,0,0,0"
+                                     BorderThickness="0"/>
+                        </StackPanel>
+                        <DataGrid
+                            Grid.Row="1" ItemsSource="{Binding EmailsMailboxesDetailsTable ,Mode=TwoWay}" 
+                            AutoGenerateColumns="False"
+                            HorizontalAlignment="Center"
+                            GridLinesVisibility="All"
+                            BorderThickness="1" BorderBrush="{StaticResource Primary}"
+                            IsReadOnly="True"
+                            CanUserReorderColumns="True"
+                        >
+                            <DataGrid.Styles>
+                                <Style Selector="DataGridColumnHeader">
+                                    <Setter Property="Foreground" Value="Black" />
+                                    <Setter Property="Background" Value="White" />
+                                    <Setter Property="FontFamily" Value="{StaticResource Roboto}"></Setter>
+                                </Style>
+                            </DataGrid.Styles>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn  Header="EmailAddress" Foreground="Black" Binding="{Binding EmailAddress}" Width="Auto"/>
+                                <DataGridTextColumn Header="Mailbox Count" Foreground="Black" Binding="{Binding MailboxesCount}" Width="Auto"/>
+                                <DataGridTextColumn Header="Nickname" Foreground="Black" Binding="{Binding NickName}" Width="Auto"/>
+                                <DataGridTextColumn Header="Aliasesss" Foreground="Black" Binding="{Binding Aliases}" Width="*"/> <!-- Stretch to available space -->
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                    
+                </Border>
+                
+                <Grid
+                    Grid.Row="3" Grid.Column="0" ColumnDefinitions="*,*" Background="LightGray">
+                    <TextBox  IsReadOnly="True"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              VerticalAlignment="Center"
+                              TextWrapping="Wrap" Foreground="#78290F" Text="{Binding SuccessMessage}"></TextBox>
+                    
+                </Grid>
+
             </Grid>
     </Grid>
             

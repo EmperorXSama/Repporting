@@ -723,7 +723,8 @@ private async Task ShowError(string title, string message)
                 ProxyIp = data[3],
                 Port = int.TryParse(data[4], out var port) ? port : 0,
                 Username = data[5],
-                Password = data[6]
+                Password = data[6],
+                Availability = false
             },
             Status = EmailStatus.NewAdded,
             Group = SelectedEmailGroup,

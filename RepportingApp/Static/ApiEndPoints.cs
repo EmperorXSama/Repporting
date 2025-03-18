@@ -3,9 +3,9 @@
 public class ApiEndPoints
 {
     // private API 
-    /*private static readonly string BaseUrl = "http://65.109.62.85:2030/api";*/
+    private static readonly string BaseUrl = "http://65.109.62.85:2030/api";
     /*private static readonly string BaseUrl = "http://95.217.183.87:2030/api";*/
-    private static readonly string BaseUrl = "http://localhost:5164/api";
+    /*private static readonly string BaseUrl = "http://localhost:5164/api";*/
     public static string GetGroups => $"{BaseUrl}/Group";
     public static string PostGroup => $"{BaseUrl}/Group/AddGroup";
     public static string PostProxy => $"{BaseUrl}/Proxy/UploadProxies";
@@ -22,6 +22,8 @@ public class ApiEndPoints
     public static string NetworkLogAdd => $"{BaseUrl}/Emails/AddNetworkLogs";
     public static string MailboxesAdd => $"{BaseUrl}/Emails/AddMailBoxes";
     public static string GetAllMailBoxes => $"{BaseUrl}/Emails/GetAllMailBoxes";
+    public static string DeleteAllMailboxes => $"{BaseUrl}/Emails/DeleteAllMailboxes";
+    public static string GetAllEmailsWithMailboxes => $"{BaseUrl}/Emails/GetAllEmailsWithMailboxes";
     
     
     

@@ -22,4 +22,6 @@ public interface IEmailService
     Task AddNetworkLogsAsync(IEnumerable<NetworkLogDto> networkLogs);
     Task AddMailBoxesAsync(IEnumerable<MailBoxDto> mailBoxDtos);
     Task<IEnumerable<NetworkLogDto>> GetAllMailBoxes();
+    Task DeleteAllMailboxes();
+    Task<IEnumerable<EmailMailboxDetails>> GetAllEmailsWithMailboxesDetails();
 }

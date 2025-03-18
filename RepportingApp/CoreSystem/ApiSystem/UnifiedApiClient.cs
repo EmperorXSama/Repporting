@@ -98,7 +98,6 @@ public class UnifiedApiClient : IApiConnector
 
             response = await client.PostAsync(endpoint, content); // Assign response
             response.EnsureSuccessStatusCode();
-            var f = typeof(T);
             string jsonResponse = await response.Content.ReadAsStringAsync();
             if (typeof(T) == typeof(string))
             {
@@ -207,15 +206,7 @@ public class UnifiedApiClient : IApiConnector
         try
         {
             HttpClient client = proxyState?.Client ?? _httpClient;
-
-            /*if (!ignoreCache)
-            {
-                var cachedData = _cacheService.Get<T>(endpoint);
-                if (cachedData != null)
-                {
-                    return cachedData;
-                }
-            }*/
+            
 
             if (headers != null) ApplyHeaders(client, headers);
             HttpResponseMessage response = await client.GetAsync(endpoint);

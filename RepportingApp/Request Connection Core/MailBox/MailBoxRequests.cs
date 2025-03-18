@@ -34,6 +34,7 @@ public class MailBoxRequests : IMailBoxRequests
     
     public async Task<ReturnTypeObject> PrepareMailBoxNickName(EmailAccount emailAccount)
     {
+        CheckEmailMetaData(emailAccount);
         var result = await ProcessPrepareMailBoxNickName(emailAccount);
        return result;
     }
@@ -41,6 +42,7 @@ public class MailBoxRequests : IMailBoxRequests
 
     public async Task<ReturnTypeObject> ProcessCollectAlias(EmailAccount emailAccount)
     {
+        CheckEmailMetaData(emailAccount);
         var result = await ProcessCollectMailboxAliases(emailAccount);
         return result;
     }
@@ -78,13 +80,19 @@ public async  Task<ReturnTypeObject> ProcessCollectMailboxAliases(EmailAccount e
 
 public async Task<ReturnTypeObject> CreateAliaseManagerInitializer(EmailAccount emailAccount,int count,string nickname,string customName)
 {
+    CheckEmailMetaData(emailAccount);
     var result = await CreateAliaseManager(emailAccount , count, nickname, customName);
     return result;
 }
 public async  Task<ReturnTypeObject> CreateAliaseManager(EmailAccount emailAccount,int count,string nickname,string customName)
 {
-       
-    var aliases = await CreateAliases(emailAccount,nickname,customName);
+    var aliases = string.Empty;
+    for (int i = 0; i < count; i++)
+    {
+        await Task.Delay(1200);
+         aliases =  await CreateAliases(emailAccount,nickname,customName);
+    }
+   
     return new ReturnTypeObject
     {
         ReturnedValue = aliases,

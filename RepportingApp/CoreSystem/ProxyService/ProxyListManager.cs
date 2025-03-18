@@ -191,7 +191,7 @@ public  async Task<List<Proxy>> UploadNewProxyFileAsync()
     private  readonly ConcurrentDictionary<string, string> RegionCache = new(); // Cache for IP lookups
 
     // Main method for testing proxies
-    public  async Task TestProxiesAsync(List<Proxy> proxies)
+    public  async Task<List<Proxy>> TestProxiesAsync(List<Proxy> proxies)
     {
         var batchedProxies = proxies.Chunk(100); // Process in chunks of 100
 
@@ -215,6 +215,8 @@ public  async Task<List<Proxy>> UploadNewProxyFileAsync()
             InvokeOnProxiesUpdated(batch.ToList());
          
         }
+
+        return proxies;
     }
 
     public  event EventHandler<List<Proxy>> OnProxiesUpdated;

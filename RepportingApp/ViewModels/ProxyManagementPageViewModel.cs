@@ -17,7 +17,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     private TimeSpan _interval = TimeSpan.FromMinutes(1);
 
     [ObservableProperty]
-    private int _intervalMinutes = 15; 
+    private int _intervalMinutes = 1; 
 
 
     #endregion
@@ -25,6 +25,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     
     [ObservableProperty] private bool _isDataLoaded = false;
     [ObservableProperty] private bool _isProcessWorking = false;
+    [ObservableProperty] private bool _isTestingQuality = false;
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
@@ -82,10 +83,10 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         SelectedConnectivity = "Connectivity";
        
         InitializeTaskManager();
-        _timer = new DispatcherTimer();
+        /*_timer = new DispatcherTimer();
         _timer.Tick += async (s, e) => await GetAllProxiesFromApi();
         
-        StartTimer();
+        StartTimer();*/
         proxyListManager.OnProxiesUpdated += UploadToApiProxiesRegion;
 
     }
@@ -161,9 +162,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
 
     private async Task LoadDataAsync()
     {
-        var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails,ignoreCache:false);
         var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies,ignoreCache:false);
-        EmailAccounts = emails.ToObservableCollection();
         CentralProxyList = proxies.ToObservableCollection();
         CopyCentralProxyList = new ObservableCollection<Proxy>(CentralProxyList);
         CountFilter = CopyCentralProxyList.Count;
@@ -197,6 +196,8 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
+            IsProcessWorking = true;
+            IsTestingQuality = true;
             if (SelectedProxies == null || !SelectedProxies.Any()) return;
 
             // Convert ObservableCollection to List
@@ -212,7 +213,12 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         {
             // Handle errors
             ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Failed", e.Message);
+            await ErrorIndicator.ShowErrorIndecator("StartTestProxies", e.Message);
+        }
+        finally
+        {
+            IsTestingQuality = false;
+            IsProcessWorking = false;
         }
     }
 
@@ -399,62 +405,51 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     public async Task AssignProxies()
     {
         try
-        {
+        { 
             IsProcessWorking = true;
+            
+            //await StartTestProxies();
             var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: false);
-            var newProxies = proxies.Where(e => e.Availability);
-            if (!newProxies.Any())throw new Exception("available proxies File is empty please import ");
-            if (!EmailAccounts.Any())throw new Exception("there is no emails account");
-            var newProxySet = new HashSet<string>(newProxies.Select(p => p.ProxyIp));
-            var availableProxies = new Queue<Proxy>(newProxies);
-
-            var removedProxies = new List<Proxy>();
-            var removedProxySet = new HashSet<string>();
-            var updatedMappings = new List<EmailProxyMappingDto>(); // DTO list for updates
-
-            foreach (var email in EmailAccounts)
+            var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache: false);
+            var unassignedEmails = emails.Where(e => e.Proxy == null).ToList();
+            if (!unassignedEmails.Any())
             {
-                if (email.Proxy != null && !newProxySet.Contains(email.Proxy.ProxyIp))
+                Console.WriteLine("No emails need proxy assignment.");
+                return;
+            }
+            // Create a modifiable list of proxies, sorted by usage count (Least used first)
+            List<Proxy> proxyPool = proxies.OrderBy(p => p.ProxyUsageCount).ToList();
+
+            List<EmailProxyMappingDto> updatedMappings = new();
+
+            foreach (var email in unassignedEmails)
+            {
+                if (proxyPool.Count == 0)
                 {
-                    if (removedProxySet.Add(email.Proxy.ProxyIp))
-                    {
-                        removedProxies.Add(email.Proxy);
-                    }
-
-                    if (availableProxies.TryDequeue(out var newProxy))
-                    {
-                        
-                        updatedMappings.Add(new EmailProxyMappingDto
-                        {
-                            EmailAddress = email.EmailAddress,
-                            ProxyIp = newProxy.ProxyIp,
-                            Port = newProxy.Port
-                        });
-
-                        // Replace the proxy in the email object
-                        email.Proxy = newProxy;
-                    }
-                    else
-                    {
-
-                    }
+                    Console.WriteLine($"No proxies left for email: {email.EmailAddress}");
+                    break;
                 }
-            }
 
-            foreach (var proxy in removedProxies)
-            {
-                CentralProxyList.Remove(proxy);
-            }
+                // Always pick the least-used proxy (first one in sorted list)
+                Proxy assignedProxy = proxyPool.First();
+                assignedProxy.ProxyUsageCount++; // Simulate incrementing usage count (must update DB later)
 
-            foreach (var proxy in newProxies)
-            {
-                if (!CentralProxyList.Any(p => p.ProxyIp == proxy.ProxyIp))
+                updatedMappings.Add(new EmailProxyMappingDto
                 {
-                    CentralProxyList.Add(proxy);
-                }
+                    EmailAddress = email.EmailAddress,
+                    ProxyIp = assignedProxy.ProxyIp,
+                    Port = assignedProxy.Port
+                });
+
+                // Re-sort the proxy pool after updating usage count
+                proxyPool = proxyPool.OrderBy(p => p.ProxyUsageCount).ToList();
             }
 
-            await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
+            if (updatedMappings.Any())
+            {
+                await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
+            }
+            
         }
         catch (Exception e)
         {
@@ -503,6 +498,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     {
         try
         {
+            if (IsTestingQuality) return;
             await ReplaceProxies();
             IsProcessWorking = true;
             await _proxyApiService.DownloadProxyListAsync();

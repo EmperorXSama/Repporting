@@ -56,6 +56,17 @@ namespace ReportingApi.Controllers
         {
             return await _emailService.GetAllMailBoxes();
             
+        } 
+        [HttpGet("GetAllEmailsWithMailboxes")]
+        public async Task<IEnumerable<EmailMailboxDetails>> GetAllEmailsWithMailboxes()
+        {
+            return await _emailService.GetAllEmailsWithMailboxesDetails();
+            
+        }   
+        [HttpDelete("DeleteAllMailboxes")]
+        public async Task DeleteAllMailboxes()
+        {
+            await _emailService.DeleteAllMailboxes();
         }
         [HttpPost("AddMailBoxes")]
         public async Task<IActionResult> AddMailBoxes([FromBody] List<MailBoxDto> mailBoxDtos)

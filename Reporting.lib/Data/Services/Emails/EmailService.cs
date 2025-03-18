@@ -135,6 +135,12 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         var results = await _dbConnection.LoadDataAsync<NetworkLogDto, dynamic>("[dbo].[GetAllNetworkLog]", new {});
 
         return results;
+    }   
+    public async Task<IEnumerable<EmailMailboxDetails>> GetAllEmailsWithMailboxesDetails()
+    {
+        var results = await _dbConnection.LoadDataAsync<EmailMailboxDetails, dynamic>("[dbo].[GetEmailDetails]", new {});
+
+        return results;
     }  
     public async Task<IEnumerable<RetrieveFailedEmailDto>> GetFailedEmailsByGroupAsync(int groupId)
     {
@@ -290,6 +296,9 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         return deletedCount; // Return the number of deleted emails
     }
 
-
+    public async Task DeleteAllMailboxes()
+    {
+        await _dbConnection.SaveDataAsync("[dbo].[DeleteAllMailBoxes]",new {});
+    }
 
 }

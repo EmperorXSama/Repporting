@@ -123,7 +123,7 @@ public partial class TaskInfoUiModel : ObservableObject
                     var proxyDetails = proxy != null
                         ? $"{proxy.ProxyIp};{proxy.Port};{proxy.Username};{proxy.Password}"
                         : "No Proxy";
-                    return $"{info.Email.EmailAddress};{info.Email.Password};;{proxyDetails};{info.Email.Group.GroupName};{info.Message}";
+                    return $"{info.Email.Id};{info.Email.EmailAddress};{info.Email.Password};;{proxyDetails};{info.Email.Group.GroupName};{info.Message}";
                 })
                 .ToList();
 

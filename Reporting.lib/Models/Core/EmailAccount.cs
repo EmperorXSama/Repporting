@@ -17,7 +17,7 @@ public partial class EmailAccount: ObservableObject
     public string RecoveryEmail { get; set; }
 
     [JsonPropertyName("proxy")]
-    public Proxy Proxy { get; set; }
+    public Proxy? Proxy { get; set; }
 
     #endregion
     public int Id { get; set; }

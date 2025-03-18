@@ -8,6 +8,8 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
 {
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] private string _customName= "Some Name";
+    [ObservableProperty] private string _successMessage;
+    [ObservableProperty] private string _errorMessage;
     [ObservableProperty] private int _count = 1;
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
     [ObservableProperty] private bool _isDataLoaded = false;
@@ -68,6 +70,9 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
         }
 
     }
+    
+    
+    
     private void InitializeTaskManager()
     {
         var systemEstimator = new SystemConfigurationEstimator();
@@ -76,14 +81,18 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
     [ObservableProperty] private ObservableCollection<EmailGroup> _groups= new ObservableCollection<EmailGroup>();
     [ObservableProperty] private ObservableCollection<EmailAccount> _networkItems;
     [ObservableProperty] private ObservableCollection<EmailAccount> _emailDiaplysTable;
+    [ObservableProperty] private ObservableCollection<EmailMailboxDetails> _emailsMailboxesDetails;
+    [ObservableProperty] private ObservableCollection<EmailMailboxDetails> _emailsMailboxesDetailsTable;
     [ObservableProperty] private ObservableCollection<EmailAccount>? _emailAccounts = new();
     [ObservableProperty] private bool _isGroupSettingsDropdownOpen1 = false;
     [RelayCommand] private void ToggleGroupSelctionMenuOne() => IsGroupSettingsDropdownOpen1 = !IsGroupSettingsDropdownOpen1; 
     [ObservableProperty] private ObservableCollection<EmailGroup> _selectedEmailGroupForTask = new (); 
     private async Task LoadDataAsync(bool ignoreCache)
     {
+        IsDataLoaded = true;
         // Fetch API data in parallel, awaiting them properly
-        var fetchGroupsTask = _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache:ignoreCache);
+        var fetchGroupsTask =
+            _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache: ignoreCache);
  
         var fetchEmailsTask = _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache:ignoreCache);
         var fetchProxiesTask = _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache:ignoreCache);
@@ -91,16 +100,31 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
         // Await tasks separately
         var groups = await fetchGroupsTask;
         var emails = await fetchEmailsTask;
+       
         var proxies = await fetchProxiesTask;
 
         
         Task.Run(() => proxyListManager.GetDBProxies(proxies));
-
+        await LoadEmailDetailsAsync();
         // Efficiently update observable collections
         Groups = groups.ToObservableCollection();
         NetworkItems = emails.ToObservableCollection();
+       
+      
         EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
         EmailAccounts = emails.ToObservableCollection();
+        IsDataLoaded = false;
+    }
+
+    private async Task LoadEmailDetailsAsync()
+    {
+        var mailboxesDetails = _apiConnector.GetDataAsync<IEnumerable<EmailMailboxDetails>>(ApiEndPoints.GetAllEmailsWithMailboxes, ignoreCache:false);
+        var emailsDetails = await mailboxesDetails;
+        EmailsMailboxesDetails = emailsDetails.ToObservableCollection();
+        EmailsMailboxesDetailsTable = new ObservableCollection<EmailMailboxDetails>(
+            EmailsMailboxesDetails
+                .OrderByDescending(e => e.MailboxesCount ?? 0) 
+        );
     }
     public ObservableCollection<EmailAccount> FilterEmailsBySelectedGroups()
     {
@@ -109,7 +133,7 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
             if (!SelectedEmailGroupForTask.Any())
             {
                 // If no groups are selected, return an empty collection or the full list, depending on your requirements
-                return EmailDiaplysTable;
+                return new ObservableCollection<EmailAccount>(EmailDiaplysTable);
             }
 
             var filteredEmails = EmailAccounts
@@ -118,7 +142,7 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
             if (filteredEmails == null || !filteredEmails.Any())
             {
                 // If no groups are selected, return an empty collection or the full list, depending on your requirements
-                return EmailDiaplysTable;
+                return new ObservableCollection<EmailAccount>(EmailDiaplysTable);
             }
             return new ObservableCollection<EmailAccount>(filteredEmails!.ToObservableCollection());
         }
@@ -132,6 +156,12 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
     private void InitializeMailBox()
     {
         _ = Task.Run(InitializeMailBoxAync);
+        
+    } 
+    [RelayCommand]
+    private void RefreachAndClean()
+    {
+        _ = Task.Run(RefreachAndCleanMailBoxAync);
         
     }
 
@@ -173,7 +203,6 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
         {
             if (emailAccount == null) throw new ArgumentNullException(nameof(emailAccount));
             ReturnTypeObject result = await _mailBoxRequests.PrepareMailBoxNickName(emailAccount);
-            Console.WriteLine(result);
             NetworkLogDto entry = new NetworkLogDto()
             {
                 EmailId = emailAccount.Id,
@@ -205,31 +234,47 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
             if (emailAccount == null) throw new ArgumentNullException(nameof(emailAccount));
             var networkLog = networkLogs.FirstOrDefault(n => n.EmailId == emailAccount.Id);
             if (networkLog == null) throw new NullReferenceException("Nickname is null");
-            if (networkLog.MailboxesCount >= 3) return "this mailbox already have 3 aliases";
+            /*if (networkLog.MailboxesCount >= 3) return "this mailbox already have 3 aliases";*/
             ReturnTypeObject result = await _mailBoxRequests.CreateAliaseManagerInitializer(emailAccount,Count,networkLog.NickName,CustomName);
-            Console.WriteLine(result);
-            return "Sucessfully Created Alias Manager";
+            return $"Sucessfully Created Alias Manager \n {result.ReturnedValue}";
         }, batchSize: ReportingSettingsValuesDisplay.MailBoxThread);
 
         await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Saved, TakInfoType.Batch, taskId, "Create MailBox",
             Statics.ReportingColor, Statics.ReportingSoftColor, distributedBatches.ToObservableCollection());
         await _taskManager.WaitForTaskCompletion(taskId);
-        /*var apiCreateEmails = _taskManager.StartTask(async cancellationToken =>
-        {
-            await _apiConnector.PostDataObjectAsync<object>(
-                ApiEndPoints.NetworkLogAdd,
-                networkLogEntries);
-        });*/
-
-        /*await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Invincible,TakInfoType.Single,apiCreateEmails,"update api ",Statics.ReportingColor,Statics.ReportingSoftColor,null);*/
     }
 
     #endregion
+    private async Task RefreachAndCleanMailBoxAync()
+    {
+        try
+        {
+            SuccessMessage = "";
+            var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
+            var distributedBatches = proxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
 
+            if (!distributedBatches.Any())
+            {
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+                return;
+            }
+            await _apiConnector.DeleteDataAsync(ApiEndPoints.DeleteAllMailboxes);
+            await CollectMailboxesAsync(distributedBatches);
+            await LoadEmailDetailsAsync();
+            SuccessMessage = "we Successfully Updated database ";
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", e.Message);
+        }
+    }
     private async Task InitializeMailBoxAync()
     {
         try
         {
+            SuccessMessage = "";
             await LoadEmailsFromDb();
 
             var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
@@ -241,13 +286,20 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
                 await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
                 return;
             }
-            
+
+            SuccessMessage = "UPDATE Mailboxes aliases STARTED";
             await CollectMailboxesAsync(distributedBatches);
+            SuccessMessage = "PDATE Mailboxes aliases Finished";
+           
+            SuccessMessage = "Collecting Mailboxes nickname STARTED";
             await GetNickNameAsync(distributedBatches);
+            SuccessMessage = "Collecting Mailboxes nickname Finished";
             var networkLogs = await _apiConnector.GetDataAsync<IEnumerable<NetworkLogDto>>(ApiEndPoints.GetAllMailBoxes, ignoreCache:false);
+            SuccessMessage = "Creating  Mailboxes Aliases STARTED";
             await CreateAliasesAsync(distributedBatches,networkLogs.ToList());
+            SuccessMessage = "Creating  Mailboxes Aliases Finished";
             await CollectMailboxesAsync(distributedBatches);
-            await LoadDataAsync(true);
+            await LoadEmailDetailsAsync();
         }
         catch (Exception e)
         {
@@ -525,4 +577,28 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
 
     
     #endregion
+    
+    [RelayCommand]
+    private void ExportToTxt()
+    {
+        try
+        {
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string filePath = Path.Combine(desktopPath, "EmailsExport.txt");
+
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                foreach (var item in EmailsMailboxesDetailsTable)
+                {
+                    string line = $"{item.EmailAddress};{item.Aliases}";
+                    writer.WriteLine(line);
+                }
+            }
+            SuccessMessage = $"Exported to {filePath}";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessages = $"Error exporting file: {ex.Message}";
+        }
+    }
 }

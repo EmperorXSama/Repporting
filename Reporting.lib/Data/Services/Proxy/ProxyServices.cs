@@ -56,7 +56,7 @@ public class ProxyServices : IProxyServices
                 proxy.ProxyId,
                 proxy.Region,
                 proxy.YahooConnectivity,
-                proxy.Availability ? "Available" : "Unavailable"
+                proxy.Availability ? "Available" : "Used"
             );
         }
 
