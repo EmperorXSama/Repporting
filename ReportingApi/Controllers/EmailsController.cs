@@ -32,12 +32,33 @@ namespace ReportingApi.Controllers
             {
                 await _emailService.AddEmailsToGroupWithMetadataAsync(request.EmailAccounts,request.emailMetadata, request.GroupId, request.GroupName);
                 return Ok();
+                return Ok();
             }
             catch (Exception e)
             {
               return BadRequest(e.Message);
             }
         } 
+        
+        [HttpPost("UpdateEmailMetadata")]
+        public async Task<IActionResult> UpdateEmailMetadata([FromBody] List<EmailMetadataDto> metadataList)
+        {
+            if (metadataList == null || !metadataList.Any())
+            {
+                return BadRequest("No metadata provided.");
+            }
+
+            try
+            {
+                await _emailService.UpdateEmailMetadataBatchAsync(metadataList);
+                return Ok("Metadata updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error updating metadata: {ex.Message}");
+            }
+        }
+
         [HttpPost("AddNetworkLogs")]
         public async Task<IActionResult> AddNetworkLogs([FromBody] List<NetworkLogDto> networkLogs)
         {
@@ -126,22 +147,6 @@ namespace ReportingApi.Controllers
             catch (Exception e)
             {
               return BadRequest(e.Message);
-            }
-        }
-        [HttpPost("UpdateEmailMetadata")]
-        public async Task<IActionResult> UpdateEmailsMetadata([FromBody] IEnumerable<EmailMetadata> emails)
-        {
-            if (emails == null || !emails.Any())
-                return BadRequest("Email metadata list cannot be empty.");
-
-            try
-            {
-                await _emailService.UpdateEmailMetadataBatchAsync(emails);
-                return Ok(new { Message = "Email metadata updated successfully!" });
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
             }
         }
 

@@ -295,9 +295,13 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
             await GetNickNameAsync(distributedBatches);
             SuccessMessage = "Collecting Mailboxes nickname Finished";
             var networkLogs = await _apiConnector.GetDataAsync<IEnumerable<NetworkLogDto>>(ApiEndPoints.GetAllMailBoxes, ignoreCache:false);
-            SuccessMessage = "Creating  Mailboxes Aliases STARTED";
-            await CreateAliasesAsync(distributedBatches,networkLogs.ToList());
-            SuccessMessage = "Creating  Mailboxes Aliases Finished";
+            if (Count > 0)
+            {
+                SuccessMessage = "Creating  Mailboxes Aliases STARTED";
+                await CreateAliasesAsync(distributedBatches,networkLogs.ToList());
+                SuccessMessage = "Creating  Mailboxes Aliases Finished";
+            }
+          
             await CollectMailboxesAsync(distributedBatches);
             await LoadEmailDetailsAsync();
         }
@@ -503,17 +507,20 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                         if (errorMessage.Contains("connection attempt failed", StringComparison.OrdinalIgnoreCase) ||
                             errorMessage.Contains("established connection failed", StringComparison.OrdinalIgnoreCase))
                         {
-                            errorMessage = "Proxy Error"; 
+                            errorMessage = "Proxy Error";
                         }
-                       
+
                         taskInfo.ItemFailedMessasges.Add(new ItemInfo()
                         {
                             Email = emailProcessed,
-                            Title = e.Error?.Message.GetValueBetweenBrackets() ,
+                            Title = e.Error?.Message.GetValueBetweenBrackets(),
                             Message = $"Email failed in task {e.TaskId}: {e.Error?.Message}"
                         });
-                        if (e.Error != null && !e.Error.Message.Contains("proxy"))
-                        {
+                        if (e.Error != null && !e.Error.Message.Contains("Object reference not")||
+                            !errorMessage.Contains("A connection attempt failed because the connected")||
+                            !errorMessage.Contains("Unexpected error: The request was canceled due to the configured HttpClient."))
+
+                    {
                             failedEmailsIds.Add(new FailedEmailDto()
                             {
                                 EmailId = emailProcessed.Id,
@@ -583,17 +590,38 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     {
         try
         {
+            // Get the filtered email list based on selected groups and store email addresses in a HashSet
+            var filteredEmails = new HashSet<string>(FilterEmailsBySelectedGroups()?.Select(e => e.EmailAddress) ?? Enumerable.Empty<string>());
+
+            if (!filteredEmails.Any())
+            {
+                ErrorMessages = "No emails found for the selected groups.";
+                return;
+            }
+
+            // Filter EmailsMailboxesDetailsTable using the email addresses from the selected groups
+            var emailsToExport = EmailsMailboxesDetailsTable
+                .Where(details => filteredEmails.Contains(details.EmailAddress))
+                .ToList();
+
+            if (!emailsToExport.Any())
+            {
+                ErrorMessages = "No matching emails found in the details table.";
+                return;
+            }
+
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string filePath = Path.Combine(desktopPath, "EmailsExport.txt");
 
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                foreach (var item in EmailsMailboxesDetailsTable)
+                foreach (var item in emailsToExport)
                 {
                     string line = $"{item.EmailAddress};{item.Aliases}";
                     writer.WriteLine(line);
                 }
             }
+
             SuccessMessage = $"Exported to {filePath}";
         }
         catch (Exception ex)
@@ -601,4 +629,6 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
             ErrorMessages = $"Error exporting file: {ex.Message}";
         }
     }
+
+
 }

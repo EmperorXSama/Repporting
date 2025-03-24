@@ -15,7 +15,7 @@ public class CreateEmailAccountDto
     public string RecoveryEmail { get; set; }
 
     [JsonPropertyName("proxy")]
-    public ProxyDto Proxy { get; set; }
+    public ProxyDto? Proxy { get; set; }
 
     [JsonPropertyName("status")]
     public EmailStatus Status { get; set; }
@@ -26,8 +26,9 @@ public class CreateEmailAccountDto
 }
 public class EmailMetadataDto
 {
-    public string MailId { get; set; }
-    public string YmreqId { get; set; }
-    public string Wssid { get; set; }
-    public string Cookie { get; set; }
+    public string EmailAddress { get; set; } // Add this field
+    public string? MailId { get; set; }
+    public string? YmreqId { get; set; }
+    public string? Wssid { get; set; }
+    public string? Cookie { get; set; }
 }

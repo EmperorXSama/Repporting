@@ -2,8 +2,7 @@
 
 namespace Reporting.lib.Models.Core;
 
-
-public partial class EmailAccount: ObservableObject
+public partial class EmailAccount : ObservableObject
 {
     #region core info 
 
@@ -20,6 +19,7 @@ public partial class EmailAccount: ObservableObject
     public Proxy? Proxy { get; set; }
 
     #endregion
+
     public int Id { get; set; }
 
     [JsonPropertyName("status")]
@@ -27,14 +27,14 @@ public partial class EmailAccount: ObservableObject
 
     [JsonPropertyName("group")]
     public EmailGroup Group { get; set; }
-    public EmailAccountStats? Stats { get; set; }
-    public string UserAgent { get; set; }
     
-    public EmailMetaData MetaIds { get; set; } = new();
+    public EmailAccountStats? Stats { get; set; }
+
+    [JsonPropertyName("UserAgent")]
+    public string UserAgent { get; set; }
+    public EmailMetaData? MetaIds { get; set; } = new();
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, object>> apiResponses = new();
-
-    [JsonPropertyName("processLogs")] public ICollection<ProcessLog> ProcessLogs { get; set; } = new List<ProcessLog>();
     
         [ObservableProperty]
     private ObservableCollection<object> _extraData = new();

@@ -95,14 +95,14 @@
            <Border Grid.Row="1" Padding="10">
                
                <StackPanel  Spacing="3">
-                   <ComboBox HorizontalAlignment="Stretch"
-                             VerticalAlignment="Center"
-                             PlaceholderText="Group"
-                             Background="{StaticResource MainWhite}"
-                             Foreground="{StaticResource Primary}"
-                             ItemsSource="{Binding Groups}"
-                             SelectedItem="{Binding SelectedEmailGroupFilter}">
-                       <ComboBox.ItemTemplate>
+                   <ListBox HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            Background="{StaticResource MainWhite}"
+                            Foreground="{StaticResource Primary}"
+                            ItemsSource="{Binding Groups}"
+                            SelectionMode="Multiple"
+                            SelectedItems="{Binding SelectedEmailGroupFilters}">
+                       <ListBox.ItemTemplate>
                            <DataTemplate>
                                <StackPanel Orientation="Horizontal">
                                    <TextBlock FontWeight="Bold" Text="{Binding GroupName}" Margin="0,0,5,0"/>
@@ -112,11 +112,12 @@
                                    <TextBlock FontWeight="Bold" Foreground="#2274A5" Text="{Binding EmailCount}"/>
                                </StackPanel>
                            </DataTemplate>
-                       </ComboBox.ItemTemplate>
-                   </ComboBox>
+                       </ListBox.ItemTemplate>
+                   </ListBox>
+
 
                    <StackPanel Orientation="Vertical">
-                       <CheckBox Content="Download All Groups" 
+                       <CheckBox Content="Separated Profiles" 
                                  IsChecked="{Binding DownloadAllGroups}" 
                                  Margin="1" />
 

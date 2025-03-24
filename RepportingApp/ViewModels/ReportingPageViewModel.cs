@@ -68,6 +68,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private ReportingSettings _selectedReportSetting;
     [ObservableProperty] private ReportingSittingsProcesses _selectedProcessesUi = new ReportingSittingsProcesses();
     private Dictionary<string, Func<EmailAccount, Task<List<ReturnTypeObject>>>> _processsMapping;
+    private readonly ProxyManagementPageViewModel _proxyManagementPageViewModel;
     public List<string> SelectedProcesses { get; set; } = new();
     
     #endregion
@@ -82,14 +83,10 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private bool _isUploading;
     private CancellationTokenSource _cancellationTokenSource;
     [ObservableProperty] private ObservableCollection<EmailAccount>? _emailAccounts = new();
+    [ObservableProperty] private string _emailAccountsTemporary ;
 
     #endregion
-
-    #region Email Service
-
-    private readonly IEmailAccountServices _emailAccountServices;
-
-    #endregion
+    
 
     #region mark messages as read & spam UI variables
 
@@ -149,15 +146,16 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         TaskInfoManager taskInfoManager,
         IEmailAccountServices emailAccountServices,
         IApiConnector apiConnector,
+        ProxyManagementPageViewModel proxyManagementPageViewModel,
         IReportingRequests reportingRequests) : base(messenger)
     {
         proxyListManager = new ProxyListManager();
         _apiConnector = apiConnector;
         _reportingRequests = reportingRequests;
-        _emailAccountServices = emailAccountServices;
+      
         _taskInfoManager = taskInfoManager;
         _configEstimator = configEstimator;
-
+        _proxyManagementPageViewModel = proxyManagementPageViewModel;
         InitializeSettings();
         InitializeTaskManager();
         InitializeCommands();
@@ -248,26 +246,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         }
 
     }
-
-    /*private async Task LoadDataAsync(bool ignoreCache)
-    {
-        var groups = await _apiConnector.GetDataAsync<IEnumerable<EmailGroup>>(ApiEndPoints.GetGroups, ignoreCache:ignoreCache);
-        var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails,ignoreCache:ignoreCache);
-        Task.Run(async () =>
-        {
-            var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: ignoreCache);
-            proxyListManager.GetDBProxies(proxies);
-        });
-
-      
-        //FileManager.WriteEmailAccountsToFileAsync("emails.txt",emails);
-        Groups = groups.ToObservableCollection();
-        
-        NetworkItems = emails.ToObservableCollection();
-        EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
-        EmailAccounts =  emails.ToObservableCollection();
-        CountFilter = EmailDiaplysTable.Count;
-    }*/
+    
     private async Task LoadDataAsync(bool ignoreCache)
     {
         // Fetch API data in parallel, awaiting them properly
@@ -552,8 +531,6 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     private int _processedLines;
     private readonly ConcurrentBag<CreateEmailAccountDto> _emailsToGetUploaded = new();
     private readonly ConcurrentDictionary<string, EmailMetadataDto> _metadataDictionary = new();
-    private readonly object _emailLock = new();
-    private readonly object _metadataLock = new();
     
     [RelayCommand] private void OpenFileUploadPopup()  => IsUploadPopupOpen = true;
 
@@ -565,135 +542,135 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     } 
     
     [RelayCommand]
- public async void OnDropFile(string filePath)
+public async void OnDropFile(string filePath)
+{
+    try
     {
-        try
+        _emailsToGetUploaded.Clear();
+        _metadataDictionary.Clear();
+
+        if (!ValidateFile(filePath))
         {
-            _emailsToGetUploaded.Clear();
-            _metadataDictionary.Clear();
-            if (!ValidateFile(filePath))
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Invalid File", "You dropped an invalid file extension (only txt, Excel format)");
+            return;
+        }
+
+        if (SelectedEmailGroup?.GroupName == null)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("No group selected", "You have to assign a group or provide a name for a new group.");
+            return;
+        }
+
+        var fileInfo = new FileInfo(filePath);
+        FileName = fileInfo.Name;
+        FileSize = Math.Floor(fileInfo.Length / (1024.0 * 1024.0)); // Convert to MB
+
+        _cancellationTokenSource = new CancellationTokenSource();
+        IsUploading = true;
+        UploadProgress = 0;
+        _processedLines = 0;
+
+        var fileLines = File.ReadLines(filePath).ToList();
+        var totalLines = fileLines.Count;
+        var progress = new Progress<int>(value => UploadProgress = value);
+
+        // Process Email Accounts in Batches
+        var batches = fileLines.Batch(1000);
+        foreach (var batch in batches)
+        {
+            var currentBatchId = _taskManager.StartBatch(
+                batch,
+                (line, cancellationToken) => ProcessLineWithProgress(line, totalLines, progress, cancellationToken),
+                TaskCategory.Invincible,
+                batchSize: _configEstimator.RecommendedBatchSize
+            );
+
+            await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible, TakInfoType.Batch, currentBatchId, "Profile Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor, null);
+            await _taskManager.WaitForTaskCompletion(currentBatchId);
+        }
+
+        // Process Metadata (Optional)
+        var metadataFilePath = FileManager.GetMasterIdsPath();
+        if (File.Exists(metadataFilePath))
+        {
+            var metadataLines = File.ReadLines(metadataFilePath).ToList();
+            var metadataBatches = metadataLines.Batch(1000);
+
+            foreach (var batch in metadataBatches)
             {
-                ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("Invalid File", "You dropped an invalid file extention (only txt, excel format)");
-                return;
-            }
-
-            if (SelectedEmailGroup?.GroupName == null)
-            {
-                ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("no group selected", "you have to assign a group or give a name for a group to be created ");
-                return;
-            }
-            
-            var fileInfo = new FileInfo(filePath);
-            FileName = fileInfo.Name;
-            FileSize = Math.Floor(fileInfo.Length / (1024.0 * 1024.0)); // Convert to MB
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            IsUploading = true;
-            UploadProgress = 0;
-            _processedLines = 0;
-        
-
-            var fileLines =  File.ReadLines(filePath);
-            var lines2 = File.ReadLines(FileManager.GetMasterIdsPath());
-             var totalLines = fileLines.Count();
-            var progress = new Progress<int>(value => UploadProgress = value);
-
-            
-            var batches = fileLines.Batch(1000);
-            foreach (var batch in batches)
-            {
-                var currentBatchId = _taskManager.StartBatch(
+                var currentTaskId = _taskManager.StartBatch(
                     batch,
-                    (line, cancellationToken) => ProcessLineWithProgress(line, totalLines, progress, cancellationToken),
+                    async (line, cancellationToken) => await ProcessMetaData(line, cancellationToken),
                     TaskCategory.Invincible,
                     batchSize: _configEstimator.RecommendedBatchSize
                 );
-                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible,TakInfoType.Batch, currentBatchId, "profile Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
-                await _taskManager.WaitForTaskCompletion(currentBatchId);
+
+                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible, TakInfoType.Batch, currentTaskId, "Metadata Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor, null);
+                await _taskManager.WaitForTaskCompletion(currentTaskId);
             }
-            
-            var Metabatches = lines2.Batch(1000);
-            foreach (var batch in Metabatches)
-            {
-                var currentTaskId4 = _taskManager.StartBatch(
-                    batch, 
-                    async (line, cancellationToken) => await ProcessMetaData(line, cancellationToken), 
-                    TaskCategory.Invincible,
-                    batchSize: _configEstimator.RecommendedBatchSize
-                    
-                );  
-                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible, TakInfoType.Batch, currentTaskId4, "MetaData Upload", Statics.UploadFileColor, Statics.UploadFileSoftColor,null);
-                await _taskManager.WaitForTaskCompletion(currentTaskId4);
-            }
-            
-            int? groupId = SelectedEmailGroup.GroupId; 
-            string? groupName = SelectedEmailGroup.GroupName;
-            var emailsSnapshot = new List<CreateEmailAccountDto>();
-            var metadataSnapshot = new Dictionary<string, EmailMetadataDto>();
-            
-            emailsSnapshot = _emailsToGetUploaded.ToList();
-            metadataSnapshot = _metadataDictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            var unmatchedEmails = emailsSnapshot
-                .Where(email => !metadataSnapshot.ContainsKey(email.EmailAddress))
-                .ToList();
-
-            if (unmatchedEmails.Any())
-            {
-                ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("no group selected", $"The following emails have no matching metadata: {string.Join(", ", unmatchedEmails.Select(e => e.EmailAddress))}");
-                return;
-            }
-            // Define the chunk size
-            const int chunkSize = 1000;
-            var chunks = emailsSnapshot
-                .Select((email, index) => new { email, index })
-                .GroupBy(x => x.index / chunkSize)
-                .Select(group => new
-                {
-                    Emails = group.Select(x => x.email).ToList(),
-                    Metadata = group.Select(x => x.email.EmailAddress)
-                        .ToDictionary(email => email, email => metadataSnapshot[email])
-                })
-                .ToList();
-
-// Process each chunk
-            foreach (var chunk in chunks)
-            {
-                var chunkPayload = new
-                {
-                    emailAccounts = chunk.Emails,
-                    emailMetadata = chunk.Metadata,
-                    groupId,
-                    groupName
-                };
-
-                var apiCreateEmails = _taskManager.StartTask(async cancellationToken =>
-                {
-                    await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.GetAddEmails, chunkPayload);
-                });
-
-                await CreateAnActiveTask(TaskCategory.Active, TaskCategory.Invincible, TakInfoType.Single, apiCreateEmails, 
-                    "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor, null);
-
-                await _taskManager.WaitForTaskCompletion(apiCreateEmails);
-            }
-            await ReconnectToApi();
         }
-        catch (Exception e)
+
+        // Prepare Data for API
+        int? groupId = SelectedEmailGroup.GroupId;
+        string? groupName = SelectedEmailGroup.GroupName;
+
+        var emailsSnapshot = _emailsToGetUploaded.ToList();
+        var metadataSnapshot = _metadataDictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        // Handle Missing Metadata Gracefully
+        var unmatchedEmails = emailsSnapshot
+            .Where(email => !metadataSnapshot.ContainsKey(email.EmailAddress))
+            .ToList();
+
+        if (unmatchedEmails.Any())
         {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("File", e.Message);
+            Console.WriteLine($"Warning: {unmatchedEmails.Count} emails have no metadata. They will be uploaded without metadata.");
         }
-           
-    }
 
-// Utility method to show an error indicator
-private async Task ShowError(string title, string message)
-{
-    ErrorIndicator = new ErrorIndicatorViewModel();
-    await ErrorIndicator.ShowErrorIndecator(title, message);
+        // Process in Chunks
+        const int chunkSize = 1000;
+        var chunks = emailsSnapshot
+            .Select((email, index) => new { email, index })
+            .GroupBy(x => x.index / chunkSize)
+            .Select(group => new
+            {
+                Emails = group.Select(x => x.email).ToList(),
+                Metadata = group.Select(x => x.email.EmailAddress)
+                    .Where(email => metadataSnapshot.ContainsKey(email))
+                    .ToDictionary(email => email, email => metadataSnapshot[email])
+            })
+            .ToList();
+
+        foreach (var chunk in chunks)
+        {
+            var chunkPayload = new
+            {
+                emailAccounts = chunk.Emails,
+                emailMetadata = chunk.Metadata, // Only matching metadata
+                groupId,
+                groupName
+            };
+
+            var apiCreateEmails = _taskManager.StartTask(async cancellationToken =>
+            {
+                await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.GetAddEmails, chunkPayload);
+            });
+
+            await CreateAnActiveTask(TaskCategory.Invincible, TaskCategory.Invincible, TakInfoType.Single, apiCreateEmails,
+                "Create Emails (API)", Statics.UploadFileColor, Statics.UploadFileSoftColor, null);
+
+            await _taskManager.WaitForTaskCompletion(apiCreateEmails);
+        }
+
+        await ReconnectToApi();
+    }
+    catch (Exception e)
+    {
+        ErrorIndicator = new ErrorIndicatorViewModel();
+        await ErrorIndicator.ShowErrorIndecator("File Upload Error", e.Message);
+    }
 }
 
   
@@ -707,9 +684,9 @@ private async Task ShowError(string title, string message)
         cancellationToken.ThrowIfCancellationRequested();
 
         var data = line.Split(';');
-        if (data.Length != 7)
+        if (data.Length < 3)
         {
-            // Handle incorrect data format, e.g., skip the line or log an error
+            // Invalid format, log or skip
             return "";
         }
 
@@ -718,19 +695,25 @@ private async Task ShowError(string title, string message)
             EmailAddress = data[0],
             Password = data[1],
             RecoveryEmail = data[2],
-            Proxy = new ProxyDto
+            Status = EmailStatus.NewAdded,
+            Group = SelectedEmailGroup,
+        };
+
+        // Handle optional proxy (Ensure at least 7 elements exist)
+        if (data.Length >= 7 && !string.IsNullOrWhiteSpace(data[3]))
+        {
+            emailAccount.Proxy = new ProxyDto
             {
                 ProxyIp = data[3],
                 Port = int.TryParse(data[4], out var port) ? port : 0,
                 Username = data[5],
                 Password = data[6],
-                Availability = false
-            },
-            Status = EmailStatus.NewAdded,
-            Group = SelectedEmailGroup,
-        };
+                Availability = false,
+                YahooConnectivity = "",
+                Region = ""
+            };
+        }
 
-        // Add to the collection (no UI thread needed)
         _emailsToGetUploaded.Add(emailAccount);
 
         // Update and report progress
@@ -739,54 +722,48 @@ private async Task ShowError(string title, string message)
         return "";
     }
 
+
     private async Task<string> ProcessMetaData(
         string line,
         CancellationToken cancellationToken)
     {
-        try 
+        try
         {
             cancellationToken.ThrowIfCancellationRequested();
-        
+
             if (string.IsNullOrEmpty(line))
-            {
-                Console.WriteLine("Line is null or empty");
                 return "";
-            }
 
             var data = line.Split(',');
-            if (data.Length != 4)
-            {
-                Console.WriteLine($"Invalid data length: {data.Length}");
+            if (data.Length < 4)
                 return "";
-            }
 
             var email = data[0];
-            var cookiePath = Path.Combine(FileManager.GetProfileCookieFolder(email + ".txt"));
-        
-            Console.WriteLine($"Attempting to read cookie file: {cookiePath}");
-        
-            var cookie = await File.ReadAllTextAsync(cookiePath, cancellationToken);
-        
-            var emailAccount = new EmailMetadataDto
+            var metadataDto = new EmailMetadataDto
             {
+                EmailAddress = data[0],
                 MailId = data[1],
                 YmreqId = data[2],
                 Wssid = data[3],
-                Cookie = cookie
+                Cookie = null // Default to null, update below if file exists
             };
 
-            var added = _metadataDictionary.TryAdd(email, emailAccount);
-            Console.WriteLine($"Added to dictionary: {added}");
+            var cookiePath = Path.Combine(FileManager.GetProfileCookieFolder(email + ".txt"));
+            if (File.Exists(cookiePath))
+            {
+                metadataDto.Cookie = await File.ReadAllTextAsync(cookiePath, cancellationToken);
+            }
 
+            _metadataDictionary.TryAdd(email, metadataDto);
             return "";
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error in ProcessMetaData: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            throw;
+            return "";
         }
     }
+
     private bool ValidateFile(string filePath)
     {
         var validExtensions = new[] { ".txt" };
@@ -1044,7 +1021,9 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                             Title = e.Error?.Message.GetValueBetweenBrackets() ,
                             Message = $"Email failed in task {e.TaskId}: {e.Error?.Message}"
                         });
-                        if (e.Error != null && !e.Error.Message.Contains("proxy"))
+                        if (e.Error != null && !e.Error.Message.Contains("Object reference not")||
+                            !errorMessage.Contains("A connection attempt failed because the connected")||
+                            !errorMessage.Contains("Unexpected error: The request was canceled due to the configured HttpClient."))
                         {
                             failedEmailsIds.Add(new FailedEmailDto()
                             {
@@ -1115,12 +1094,25 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     {
         try
         {
+            // Check if the TextBox contains emails
+            if (!string.IsNullOrWhiteSpace(EmailAccountsTemporary))
+            {
+                var enteredEmails = EmailAccountsTemporary
+                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) // Split by newline
+                    .Select(e => e.Trim())
+                    .ToHashSet(); // Convert to HashSet for fast lookup
+
+                var tempraryG = EmailAccounts.Where(email => enteredEmails.Contains(email.EmailAddress)).ToList();
+                return tempraryG.ToObservableCollection();
+            }
+            
             if (!SelectedEmailGroupForTask.Any())
             {
                 // If no groups are selected, return an empty collection or the full list, depending on your requirements
                 return EmailDiaplysTable;
             }
-
+            
+            
             var filteredEmails = EmailAccounts
                 ?.Where(email => SelectedEmailGroupForTask.Any(group => group.GroupId == email.Group.GroupId))
                 .ToList();
@@ -1148,17 +1140,19 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
     }
 
     private async Task LoadEmailsFromDb()
-    {
+    { 
+        await _proxyManagementPageViewModel.AssignProxiesCommand.ExecuteAsync(null);
         var fetchEmailsTask = _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache:true);
         var emails = await fetchEmailsTask;
         NetworkItems = emails.ToObservableCollection();
         EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
-        EmailAccounts = emails.ToObservableCollection();
+        EmailAccounts = new ObservableCollection<EmailAccount>(NetworkItems);
     }
 private async Task ReadAllEmailsInboxMessagesAsync()
 {
     try
     {
+        // assign proxies to email
         await LoadEmailsFromDb();
         if (!SelectedProcesses.Any())
         {

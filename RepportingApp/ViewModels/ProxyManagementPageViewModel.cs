@@ -14,10 +14,10 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     #region Timer
 
     private readonly DispatcherTimer _timer;
-    private TimeSpan _interval = TimeSpan.FromMinutes(1);
+    private TimeSpan _interval = TimeSpan.FromMinutes(30);
 
     [ObservableProperty]
-    private int _intervalMinutes = 1; 
+    private int _intervalMinutes = 30; 
 
 
     #endregion
@@ -26,6 +26,8 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
     [ObservableProperty] private bool _isDataLoaded = false;
     [ObservableProperty] private bool _isProcessWorking = false;
     [ObservableProperty] private bool _isTestingQuality = false;
+    [ObservableProperty] private bool _isCleanAllBeforeAssign = false;
+    [ObservableProperty] private bool _isAssignWorking = false;
     private readonly TaskInfoManager _taskInfoManager;
     [ObservableProperty] private ReportingSettingValues _reportingSettingsValuesDisplay;
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator= new ErrorIndicatorViewModel();
@@ -83,10 +85,10 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         SelectedConnectivity = "Connectivity";
        
         InitializeTaskManager();
-        /*_timer = new DispatcherTimer();
+        _timer = new DispatcherTimer();
         _timer.Tick += async (s, e) => await GetAllProxiesFromApi();
         
-        StartTimer();*/
+        StartTimer();
         proxyListManager.OnProxiesUpdated += UploadToApiProxiesRegion;
 
     }
@@ -102,15 +104,23 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
 
     public async Task UploadProxiesToApiAsync(List<Proxy> proxy)
     {
-        
-        var proxyDtos = proxy.Select(p => new ProxyUpdateRegion
+        try
         {
-            ProxyId = p.ProxyId,
-            Region = p.Region,
-            YahooConnectivity = p.YahooConnectivity,
-            Availability = p.Availability
-        });
-        var result = await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.UpdateProxy,proxyDtos);
+            var proxyDtos = proxy.Select(p => new ProxyUpdateRegion
+            {
+                ProxyId = p.ProxyId,
+                Region = p.Region,
+                YahooConnectivity = p.YahooConnectivity,
+                Availability = p.Availability
+            });
+            var result = await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.UpdateProxy,proxyDtos);
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("UploadProxiesToApiAsync Fail", e.Message);
+        }
+       
     }
 
     #endregion
@@ -191,7 +201,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
   
     }
 
-    [RelayCommand]
+    /*[RelayCommand]
     private async Task StartTestProxies()
     {
         try
@@ -220,7 +230,7 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
             IsTestingQuality = false;
             IsProcessWorking = false;
         }
-    }
+    }*/
 
     
     public async Task PopulateFilters(IEnumerable<Proxy> proxies)
@@ -400,66 +410,102 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         }
       
     }
+// Helper method to save failed proxies to a file on Desktop
 
     [RelayCommand]
     public async Task AssignProxies()
     {
+
         try
-        { 
-            IsProcessWorking = true;
-            
-            //await StartTestProxies();
+        {
+            IsAssignWorking = true;
             var proxies = await _apiConnector.GetDataAsync<IEnumerable<Proxy>>(ApiEndPoints.GetAllProxies, ignoreCache: false);
             var emails = await _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache: false);
-            var unassignedEmails = emails.Where(e => e.Proxy == null).ToList();
-            if (!unassignedEmails.Any())
-            {
-                Console.WriteLine("No emails need proxy assignment.");
-                return;
-            }
-            // Create a modifiable list of proxies, sorted by usage count (Least used first)
-            List<Proxy> proxyPool = proxies.OrderBy(p => p.ProxyUsageCount).ToList();
+            var enumerable = proxies.ToList();
 
-            List<EmailProxyMappingDto> updatedMappings = new();
-
-            foreach (var email in unassignedEmails)
+            try
             {
-                if (proxyPool.Count == 0)
+                if (IsCleanAllBeforeAssign)
                 {
-                    Console.WriteLine($"No proxies left for email: {email.EmailAddress}");
-                    break;
+                    int batchSize = 1000;
+                    var proxyBatches = enumerable.Chunk(batchSize);
+
+                    foreach (var batch in proxyBatches)
+                    {
+                        await proxyListManager.TestProxiesAsync(batch.ToList());
+                    }
+
+
+                }
+            }
+            catch (Exception e)
+            {
+              throw new Exception($"Clean Before Assign {e.Message}");
+            }
+            try
+            { 
+                IsProcessWorking = true;
+                
+                var unassignedEmails = emails.Where(e => e.Proxy == null).ToList();
+                if (!unassignedEmails.Any())
+                {
+                    Console.WriteLine("No emails need proxy assignment.");
+                    return;
+                }
+                // Create a modifiable list of proxies, sorted by usage count (Least used first)
+                List<Proxy> proxyPool = enumerable.OrderBy(p => p.ProxyUsageCount).ToList();
+
+                List<EmailProxyMappingDto> updatedMappings = new();
+
+                foreach (var email in unassignedEmails)
+                {
+                    if (proxyPool.Count == 0)
+                    {
+                        Console.WriteLine($"No proxies left for email: {email.EmailAddress}");
+                        break;
+                    }
+
+                    // Always pick the least-used proxy (first one in sorted list)
+                    Proxy assignedProxy = proxyPool.First();
+                    assignedProxy.ProxyUsageCount++; // Simulate incrementing usage count (must update DB later)
+
+                    updatedMappings.Add(new EmailProxyMappingDto
+                    {
+                        EmailAddress = email.EmailAddress,
+                        ProxyIp = assignedProxy.ProxyIp,
+                        Port = assignedProxy.Port,
+                    });
+
+                    // Re-sort the proxy pool after updating usage count
+                    proxyPool = proxyPool.OrderBy(p => p.ProxyUsageCount).ToList();
                 }
 
-                // Always pick the least-used proxy (first one in sorted list)
-                Proxy assignedProxy = proxyPool.First();
-                assignedProxy.ProxyUsageCount++; // Simulate incrementing usage count (must update DB later)
-
-                updatedMappings.Add(new EmailProxyMappingDto
+                if (updatedMappings.Any())
                 {
-                    EmailAddress = email.EmailAddress,
-                    ProxyIp = assignedProxy.ProxyIp,
-                    Port = assignedProxy.Port
-                });
-
-                // Re-sort the proxy pool after updating usage count
-                proxyPool = proxyPool.OrderBy(p => p.ProxyUsageCount).ToList();
+                    await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
+                }
+                
             }
-
-            if (updatedMappings.Any())
+            catch (Exception e)
             {
-                await _apiConnector.PostDataObjectAsync<object>(ApiEndPoints.PostEmailsProxiesUpdate, updatedMappings);
+                throw new Exception($"Assign Fail: {e.Message}");
             }
-            
+            finally
+            {
+                IsProcessWorking = false;
+            }
         }
         catch (Exception e)
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Process Fail", e.Message);
+            await ErrorIndicator.ShowErrorIndecator("Assign", e.Message);
         }
         finally
         {
-            IsProcessWorking = false;
+            IsAssignWorking = false;
         }
+     
+        
         
 
     }
@@ -492,26 +538,70 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         }
       
     }
+    [RelayCommand]
+    private async Task CleanEmailsProxy()
+    {
+        try
+        {
+            IsProcessWorking = true;
+            await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.CleanEmailsProxies, string.Empty);
+            await AssignProxies();
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("CleanEmailsProxy Fail", e.Message);
+        }
+        finally
+        {
+            IsProcessWorking = false;
+        }
+      
+    }
 
     [RelayCommand]
     private async Task GetAllProxiesFromApi()
     {
         try
         {
-            if (IsTestingQuality) return;
+            if (IsAssignWorking || IsProcessWorking) return;
             await ReplaceProxies();
             IsProcessWorking = true;
             await _proxyApiService.DownloadProxyListAsync();
             var uploadedFiles = await proxyListManager.UploadNewProxyFileAsync();
-            var proxyDtos = uploadedFiles.Select(p => new ProxyDto
+
+            int batchSize = 1000; // Adjust based on your needs
+            var proxyBatches = await DistributeProxiesBySubnet(uploadedFiles, batchSize);
+
+            foreach (var batch in proxyBatches)
             {
-                ProxyIp = p.ProxyIp,
-                Port = p.Port,
-                Username = p.Username,
-                Password = p.Password,
-                Availability = true
-            });
-            await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.PostProxy, proxyDtos);
+                // Test proxies in parallel with subnet-aware rate limiting
+                var testedBatch = await proxyListManager.TestProxiesAsync(batch, 3, false);
+
+                // Filter working proxies
+                var validProxies = testedBatch
+                    .Where(p => p.YahooConnectivity == "Working")
+                    .ToList();
+
+                if (validProxies.Any())
+                {
+                    var proxyDtos = validProxies.Select(p => new ProxyDto
+                    {
+                        ProxyId = p.ProxyId > 0 ? p.ProxyId : null,
+                        ProxyIp = p.ProxyIp,
+                        Port = p.Port,
+                        Username = p.Username,
+                        Password = p.Password,
+                        Availability = true,
+                        Region = p.Region,
+                        YahooConnectivity = p.YahooConnectivity
+                    }).ToList();
+
+                    // Upload working proxies immediately in batch
+                    await _apiConnector.PostDataObjectAsync<string>(ApiEndPoints.PostProxy, proxyDtos);
+                }
+            }
+            
             await LoadDataAsync();
         }
         catch (Exception e)
@@ -523,10 +613,32 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         {
             IsProcessWorking = false;
         }
-      
-         
+    }
+    private async Task<List<List<Proxy>>> DistributeProxiesBySubnet(List<Proxy> proxies, int batchSize)
+    {
+        // Group proxies by subnet
+        var groupedBySubnet = proxies.GroupBy(p => ProxyListManager.GetSubnet2(p.ProxyIp)).ToList();
+
+        // Create an interleaved list of proxies to reduce same-subnet grouping
+        var interleavedList = new List<Proxy>();
+        int maxGroupSize = groupedBySubnet.Max(g => g.Count());
+
+        for (int i = 0; i < maxGroupSize; i++)
+        {
+            foreach (var group in groupedBySubnet)
+            {
+                if (i < group.Count())
+                    interleavedList.Add(group.ElementAt(i));
+            }
+        }
+
+        // Create batches from the interleaved list
+        return interleavedList.Chunk(batchSize).Select(chunk => chunk.ToList()).ToList();
     }
 
+
+
+  
 
 }
 

@@ -26,15 +26,22 @@ public class ProxyServices : IProxyServices
         table.Columns.Add("Username", typeof(string));
         table.Columns.Add("Password", typeof(string));
         table.Columns.Add("Availability", typeof(string));
+        table.Columns.Add("Region", typeof(string));              
+        table.Columns.Add("YahooConnectivity", typeof(string));  
 
         foreach (var proxy in proxies)
         {
+            if (proxy.Region == null)
+                proxy.Region = "";
+            
             table.Rows.Add(
                 proxy.ProxyIp,
                 proxy.Port,
                 proxy.Username,
                 proxy.Password,
-                proxy.Availability
+                proxy.Availability ? "True" : "False",
+                proxy.Region,               // ✅ Add Region
+                proxy.YahooConnectivity     // ✅ Add YahooConnectivity
             );
         }
 
@@ -42,6 +49,7 @@ public class ProxyServices : IProxyServices
 
         await _dbConnection.SaveDataAsync("[dbo].[AddNewProxies]", parameters);
     }
+
     public async Task UpdateProxiesBatchAsync(IEnumerable<ProxyUpdateRegion> proxies)
     {
         var table = new DataTable();
@@ -52,11 +60,14 @@ public class ProxyServices : IProxyServices
 
         foreach (var proxy in proxies)
         {
+            if (proxy.Region == null)
+                proxy.Region = "";
             table.Rows.Add(
                 proxy.ProxyId,
                 proxy.Region,
-                proxy.YahooConnectivity,
-                proxy.Availability ? "Available" : "Used"
+                proxy.YahooConnectivity ,
+                proxy.Availability ? "True" : "False"
+              
             );
         }
 
@@ -90,4 +101,8 @@ public class ProxyServices : IProxyServices
         await _dbConnection.SaveDataAsync("[dbo].[UpdateReplacedProxiesBatch]", parameters);
     }
 
+    public async Task CleanEmailsProxy()
+    {
+        await _dbConnection.SaveDataAsync("[dbo].[CleanEmailProxy]", new { });
+    }
 }

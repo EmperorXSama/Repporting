@@ -139,7 +139,7 @@ public class UnifiedApiClient : IApiConnector
         }
     }
 
-    public async Task<string> PostDataAsync<T>(EmailAccount acc,string endpoint, string payload, Dictionary<string, string>? headers = null, Proxy? proxy = null)
+    public async Task<string> PostDataAsync<T>(EmailAccount acc,string endpoint, string? payload, Dictionary<string, string>? headers = null, Proxy? proxy = null)
     {
         ProxyState? proxyState = null;
 
@@ -155,8 +155,11 @@ public class UnifiedApiClient : IApiConnector
             ApplyHeaders(client, headers);
 
             var content = new MultipartFormDataContent();
-            content.Add(new StringContent(payload), "batchJson");
-
+            if (payload != null)
+            {
+                content.Add(new StringContent(payload), "batchJson");
+            }
+            
             HttpResponseMessage response = await client.PostAsync(endpoint, content);
            
             response.EnsureSuccessStatusCode();

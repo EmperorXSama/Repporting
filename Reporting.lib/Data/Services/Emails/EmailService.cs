@@ -13,24 +13,72 @@ public class EmailService : IEmailService
         _dbConnection = dbConnection;
     }
 
-    public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
+    /*public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
     {
+        var emailDictionary = new Dictionary<int, EmailAccount>();
         var result = await _dbConnection.LoadDataWithMappingAsync<
             EmailAccount, Models.Core.Proxy, EmailGroup, EmailMetaData, EmailAccountStats, string, dynamic>(
             "[dbo].[GetAllEmails]",
             new { }, // No parameters needed
             (email, proxy, group, metaData, stats, userAgent) =>
             {
-                email.Proxy = proxy;
-                email.Group = group;
-                email.MetaIds = metaData;
-                email.Stats = stats;
-                email.UserAgent = userAgent; // ✅ Assign UserAgent
-                return email;
-            },
+                // Avoid duplicating EmailAccount instances
+                if (!emailDictionary.TryGetValue(email.Id, out var existingEmail))
+                {
+                    existingEmail = email;
+                    existingEmail.Proxy = proxy;
+                    existingEmail.Group = group;
+                    existingEmail.Stats = stats;
+                    existingEmail.UserAgent = userAgent;
+                    existingEmail.MetaIds = new List<EmailMetaData>(); // Initialize list
+                    emailDictionary[email.Id] = existingEmail;
+                }
+
+                // Add metadata (to handle one-to-many)
+                if (metaData != null && metaData.MetaDataId > 0)
+                {
+                    existingEmail.MetaIds.Add(metaData);
+                }
+
+                return existingEmail;
+            }
+            ,
             "ProxyId,GroupId,MetaDataId,InboxCount,UserAgent" // ✅ Correct order
         ); 
-        return result;
+        return emailDictionary.Values;
+    }*/
+    public async Task<IEnumerable<EmailAccount>> GetAllEmailsAsync()
+    {
+        var emailDictionary = new Dictionary<int, EmailAccount>();
+
+        var result = await _dbConnection.LoadDataWithMappingAsync<
+            EmailAccount, Models.Core.Proxy, EmailGroup, EmailMetaData, EmailAccountStats, string, dynamic>(
+            "[dbo].[GetAllEmails]",
+            new { }, // No parameters needed for this stored procedure
+            (email, proxy, group, meta, stats, userAgent) =>
+            {
+                if (!emailDictionary.TryGetValue(email.Id, out var existingEmail))
+                {
+                    existingEmail = email;
+                    existingEmail.Proxy = proxy;
+                    existingEmail.Group = group;
+                    existingEmail.Stats = stats;
+                    existingEmail.UserAgent = userAgent;
+                    existingEmail.MetaIds = new EmailMetaData(); // Ensure meta is initialized
+                    emailDictionary.Add(email.Id, existingEmail);
+                }
+
+                // Assign EmailMetaData
+                existingEmail.MetaIds = meta;
+
+                return existingEmail;
+            },
+            splitOn: "ProxyId,GroupId,MetaDataId,InboxCount,UserAgent"
+
+            
+        );
+
+        return emailDictionary.Values;
     }
 
     public async Task AddNetworkLogsAsync(IEnumerable<NetworkLogDto> networkLogs)
@@ -90,21 +138,26 @@ public async Task AddEmailsToGroupWithMetadataAsync(
     foreach (var email in emails)
     {
         var proxy = email.Proxy;
+
+        // Try to get metadata, if missing, use null values
+        emailMetadata.TryGetValue(email.EmailAddress, out var metadata);
+
         emailTable.Rows.Add(
             email.EmailAddress,
             email.Password,
             email.RecoveryEmail,
             (int)email.Status,
-            proxy?.ProxyIp,
-            proxy?.Port,
-            proxy?.Username,
-            proxy?.Password,
-            emailMetadata[email.EmailAddress].MailId,
-            emailMetadata[email.EmailAddress].YmreqId,
-            emailMetadata[email.EmailAddress].Wssid,
-            emailMetadata[email.EmailAddress].Cookie
+            proxy?.ProxyIp ?? (object)DBNull.Value,
+            proxy?.Port ?? (object)DBNull.Value,
+            proxy?.Username ?? (object)DBNull.Value,
+            proxy?.Password ?? (object)DBNull.Value,
+            metadata?.MailId ?? (object)DBNull.Value,
+            metadata?.YmreqId ?? (object)DBNull.Value,
+            metadata?.Wssid ?? (object)DBNull.Value,
+            metadata?.Cookie ?? (object)DBNull.Value
         );
     }
+
 
     var parameters = new
     {
@@ -197,6 +250,35 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             parameters
         );
     }
+    public async Task UpdateEmailMetadataBatchAsync(IEnumerable<EmailMetadataDto> metadataList)
+    {
+        var table = new DataTable();
+        table.Columns.Add("EmailAddress", typeof(string));
+        table.Columns.Add("MailId", typeof(string));
+        table.Columns.Add("YmreqId", typeof(string));
+        table.Columns.Add("Wssid", typeof(string));
+        table.Columns.Add("Cookie", typeof(string));
+
+        foreach (var metadata in metadataList)
+        {
+            table.Rows.Add(
+                metadata.EmailAddress,
+                metadata.MailId ?? (object)DBNull.Value,  // Handle null values properly
+                metadata.YmreqId ?? (object)DBNull.Value,
+                metadata.Wssid ?? (object)DBNull.Value,
+                metadata.Cookie ?? (object)DBNull.Value
+            );
+        }
+
+        var parameters = new { EmailMetadata = table.AsTableValuedParameter("EmailMetadataTableType") };
+
+        await _dbConnection.SaveDataAsync( // Use ExecuteAsync instead of SaveDataAsync
+            "[dbo].[UploadEmailMetadata]",
+            parameters
+        );
+    }
+
+
     public async Task UpdateEmailMetadataBatchAsync(IEnumerable<EmailMetadata> metadataList)
     {
         var table = new DataTable();

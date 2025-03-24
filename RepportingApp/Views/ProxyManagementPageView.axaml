@@ -51,12 +51,6 @@
                     <Border Grid.Row="0" Grid.Column="2" Background="#70ffffff" CornerRadius="12">
                         <Border Padding="12,7">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="20">
-                                <Button Content="Test Quality" VerticalAlignment="Center" Background="Transparent" Padding="12"
-                                        Command="{Binding StartTestProxiesCommand}"
-                                        CornerRadius="12"
-                                        Cursor="Hand"
-                                        IsEnabled="{Binding !IsProcessWorking}"
-                                        FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
                                 <Button Content="Get Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
@@ -64,12 +58,12 @@
                                         FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>
                              
                               
-                                <!--<Button Content="Replace Proxies" VerticalAlignment="Center" Background="Transparent" Padding="12"
+                                <Button Content="Organize" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         IsEnabled="{Binding !IsProcessWorking}"
-                                        Command="{Binding ReplaceProxiesCommand}"
+                                        Command="{Binding CleanEmailsProxyCommand}"
                                         Cursor="Hand"
-                                        FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>  -->
+                                        FontFamily="{StaticResource Roboto}" FontWeight="Bold"/>  
                                 <Button Content="Assign" VerticalAlignment="Center" Background="Transparent" Padding="12"
                                         CornerRadius="12"
                                         Cursor="Hand"
@@ -79,14 +73,22 @@
                             </StackPanel>
                         </Border>
                     </Border>
-                    <Border Grid.Row="1" Grid.Column="2" Background="#70ffffff" CornerRadius="12">
-                        <Border Padding="2">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="20">
-                                <TextBox Text="{Binding IntervalMinutes, Mode=TwoWay}" Width="100"/>
-                                <Button Command="{Binding UpdateCycleIntervalCommand}" Content="Update Interval"/>
-                            </StackPanel>
-                        </Border>
-                    </Border>
+                    <Grid Grid.Row="0" Grid.Column="1" RowDefinitions="Auto,Auto" HorizontalAlignment="Center">
+                        <StackPanel>
+                            <Border Padding="2">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="20">
+                                    <TextBox Text="{Binding IntervalMinutes, Mode=TwoWay}" Width="100"/>
+                                    <Button Command="{Binding UpdateCycleIntervalCommand}" Content="Update Interval"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Row="1" Padding="2">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="20">
+                                    <CheckBox IsChecked="{Binding IsCleanAllBeforeAssign}" Content="Clean All Db"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                      
+                    </Grid>
                    
                     
                 </Grid> 

@@ -64,5 +64,18 @@ namespace ReportingApi.Controllers
                 return BadRequest($"Failed to replaced proxies: {e.Message}");
             }
         }
+        [HttpPost("SetProxyNull")]
+        public async Task<IActionResult> SetEmailsProxiesToNull()
+        {
+            try
+            {
+                await _proxyServices.CleanEmailsProxy();
+                return Ok("emails proxies cleaned successfully.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Failed to clean proxies: {e.Message}");
+            }
+        }
     }
 }

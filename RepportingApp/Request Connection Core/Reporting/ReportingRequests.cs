@@ -36,9 +36,9 @@ public async   Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount ema
     var retryPolicy = Policy
         .Handle<SocketException>()
         .Or<HttpRequestException>()
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error"))
+        .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection"))
         .WaitAndRetryAsync(
-            retryCount: 1,
+            retryCount: 3,
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
@@ -98,9 +98,9 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(Emai
         var retryPolicy = Policy
             .Handle<SocketException>()
             .Or<HttpRequestException>()
-            .Or<Exception>(ex => ex.Message.Contains("Proxy error"))
+            .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection"))
             .WaitAndRetryAsync(
-                retryCount: 1,
+                retryCount: 3,
                 retryAttempt => TimeSpan.FromSeconds(1),
                 (exception, timeSpan, retryCount, context) =>
                 {
@@ -140,9 +140,9 @@ public async Task<List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount em
     var retryPolicy = Policy
         .Handle<SocketException>()
         .Or<HttpRequestException>()
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error"))
+        .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection") )
         .WaitAndRetryAsync(
-            retryCount: 1,
+            retryCount: 3,
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
@@ -176,9 +176,9 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
     var retryPolicy = Policy
         .Handle<SocketException>()
         .Or<HttpRequestException>()
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error"))
+        .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection"))
         .WaitAndRetryAsync(
-            retryCount: 1,
+            retryCount: 3,
             retryAttempt => TimeSpan.FromSeconds(1),
             (exception, timeSpan, retryCount, context) =>
             {
@@ -259,9 +259,9 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
         var retryPolicy = Policy
             .Handle<SocketException>() // Catch socket errors
             .Or<HttpRequestException>() // Catch network-related errors
-            .Or<Exception>(ex => ex.Message.Contains("Proxy error")) // Catch proxy-related errors
+            .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection")) // Catch proxy-related errors
             .WaitAndRetryAsync(
-                retryCount: 1, // Retry only once
+                retryCount: 3, // Retry only once
                 retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
                 (exception, timeSpan, retryCount, context) =>
                 {
@@ -632,7 +632,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
             { "sec-fetch-dest", "empty" },
             { "sec-fetch-mode", "cors" },
             { "sec-fetch-site", "same-origin" },
-            { "user-agent", emailAccount.UserAgent },
+            { "user-agent", emailAccount.UserAgent},
             { "cookie", emailAccount.MetaIds.Cookie.Trim() }
         };
     }

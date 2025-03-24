@@ -2,7 +2,7 @@
 
 public class ApiEndPoints
 {
-    // private API 
+
     private static readonly string BaseUrl = "http://65.109.62.85:2030/api";
     /*private static readonly string BaseUrl = "http://95.217.183.87:2030/api";*/
     /*private static readonly string BaseUrl = "http://localhost:5164/api";*/
@@ -11,6 +11,7 @@ public class ApiEndPoints
     public static string PostProxy => $"{BaseUrl}/Proxy/UploadProxies";
     public static string UpdateProxy => $"{BaseUrl}/Proxy/UpdateProxiesRC";
     public static string ReplaceProxyProxy => $"{BaseUrl}/Proxy/ReplaceProxyProxy";
+    public static string CleanEmailsProxies => $"{BaseUrl}/Proxy/SetProxyNull";
     public static string DeleteGroup => $"{BaseUrl}/Group/DeleteGroup";
     public static string GetEmails => $"{BaseUrl}/Emails/GetEmails";
     public static string AddEmailsToFail => $"{BaseUrl}/Emails/FailEmails";

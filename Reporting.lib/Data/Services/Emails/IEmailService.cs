@@ -24,4 +24,5 @@ public interface IEmailService
     Task<IEnumerable<NetworkLogDto>> GetAllMailBoxes();
     Task DeleteAllMailboxes();
     Task<IEnumerable<EmailMailboxDetails>> GetAllEmailsWithMailboxesDetails();
+    Task UpdateEmailMetadataBatchAsync(IEnumerable<EmailMetadataDto> metadataList);
 }

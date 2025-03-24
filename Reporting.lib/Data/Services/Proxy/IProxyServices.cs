@@ -8,4 +8,5 @@ public interface IProxyServices
     Task SaveProxiesBatchAsync(IEnumerable<ProxyDto> proxies);
     Task UpdateReplacedProxiesBatchAsync(IEnumerable<ProxyUpdateDto> proxies);
     Task UpdateProxiesBatchAsync(IEnumerable<ProxyUpdateRegion> proxies);
+    Task CleanEmailsProxy();
 }

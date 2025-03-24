@@ -69,8 +69,7 @@ public class DataConnection : IDataConnection
 
         return result;
     }  
-    public async Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<
-        TPrimary, TSecondary, TThird, TFourth, TFifth, TSixth, TU>(
+    public async Task<IEnumerable<TPrimary>> LoadDataWithMappingAsync<TPrimary, TSecondary, TThird, TFourth, TFifth, TSixth, TU>(
         string storeProcedure, 
         TU param, 
         Func<TPrimary, TSecondary, TThird, TFourth, TFifth, TSixth, TPrimary> map, 
@@ -81,8 +80,7 @@ public class DataConnection : IDataConnection
 
         using IDbConnection connection = new SqlConnection(connectionString);
 
-        var result = await connection.QueryAsync<
-            TPrimary, TSecondary, TThird, TFourth, TFifth, TSixth, TPrimary>(
+        var result = await connection.QueryAsync<TPrimary, TSecondary, TThird, TFourth, TFifth, TSixth, TPrimary>(
             storeProcedure, 
             map,
             param, 
@@ -92,6 +90,7 @@ public class DataConnection : IDataConnection
 
         return result;
     }
+
 
 
     public async Task<IEnumerable<T>> SaveDataAsync<T>(string storeProcedure, object param, string connectionStringName = "Default")

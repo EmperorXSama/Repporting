@@ -5,7 +5,7 @@ namespace Reporting.lib.Models.DTO;
 public class ProxyDto
 {
     [JsonPropertyName("proxyId")]
-    public int ProxyId { get; set; }
+    public int? ProxyId { get; set; }
 
     [JsonPropertyName("proxyIp")]
     public string ProxyIp { get; set; }
@@ -20,7 +20,8 @@ public class ProxyDto
     public string Password { get; set; }
 
     [JsonPropertyName("availability")] public bool Availability { get; set; }
-    
+    public string? Region { get; set; }                   // ✅ Add Region
+    public string? YahooConnectivity { get; set; }      
 
     
 

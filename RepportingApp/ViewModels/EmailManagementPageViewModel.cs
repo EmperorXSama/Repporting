@@ -58,9 +58,9 @@ private async Task DownloadEmailsAsync()
         ErrorMessage = "";
         SuccessMessage = "";
 
-        if (!DownloadAllGroups && (SelectedEmailGroupFilter == null || string.IsNullOrWhiteSpace(SelectedEmailGroupFilter.GroupName)))
+        if ((!SelectedEmailGroupFilters.Any() || string.IsNullOrWhiteSpace(SelectedEmailGroupFilters[0].GroupName)))
         {
-            ErrorMessage = "Please select a group or enable 'Download All Groups'.";
+            ErrorMessage = "Please select a group .";
             return;
         }
 
@@ -69,61 +69,56 @@ private async Task DownloadEmailsAsync()
         Directory.CreateDirectory(outputFolder); // Ensure directory exists
 
         StringBuilder sb = new();
+        StringBuilder networkLog = new();
+        var selectedGroupNames = SelectedEmailGroupFilters.Select(group => group.GroupName).ToHashSet();
 
-        if (DownloadAllGroups)
+        var emailsInGroup = NetworkItems
+            .Where(email => selectedGroupNames.Contains(email.Group.GroupName))
+            .ToList();
+
+
+        if (!emailsInGroup.Any())
         {
-            // Download all groups
-            foreach (var group in Groups)
-            {
-                var emailsInGroup = NetworkItems.Where(email => email.Group?.GroupName == group.GroupName).ToList();
-
-                if (emailsInGroup.Any())
-                {
-                    sb.AppendLine($"# Group: {group.GroupName}"); // Add a separator for each group
-                    foreach (var email in emailsInGroup)
-                    {
-                        sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}");
-                    }
-                    sb.AppendLine(); // Extra line for readability
-                }
-            }
+            ErrorMessage = "No emails found in the selected group.";
+            return;
         }
-        else
+        
+        foreach (var email in emailsInGroup)
         {
-            // Download only the selected group
-            var emailsInGroup = NetworkItems.Where(email => email.Group?.GroupName == SelectedEmailGroupFilter.GroupName)
-                .ToList();
-
-            if (!emailsInGroup.Any())
+            sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy?.ProxyIp};{email.Proxy?.Port};{email.Proxy?.Username};{email.Proxy?.Password}");
+            if (email.MetaIds != null)
             {
-                ErrorMessage = "No emails found in the selected group.";
-                return;
+                networkLog.AppendLine(
+                    $"{email.EmailAddress};{email.MetaIds.MailId};{email.MetaIds.YmreqId};{email.MetaIds.Wssid}");
+                /*string cookieFile = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data","Cookies",$"{email.EmailAddress}.txt");
+                await File.WriteAllTextAsync(cookieFile, email.MetaIds?.Cookie);*/
             }
-            
-            foreach (var email in emailsInGroup)
-            {
-                sb.AppendLine($"{email.EmailAddress};{email.Password};;{email.Proxy.ProxyIp};{email.Proxy.Port};{email.Proxy.Username};{email.Proxy.Password}");
-            }
+          
         }
-
         string filePath;
+        string masterIdsPath = Path.Combine(outputFolder, "MasterIds.txt");
 
         if (OverwriteDownloadFile)
         {
             filePath = Path.Combine(outputFolder, "Profiles.txt");
+            // Write to file
+            await File.WriteAllTextAsync(filePath, sb.ToString());
+            await File.WriteAllTextAsync(masterIdsPath, networkLog.ToString());
         }
         else if (DownloadAllGroups)
         {
-            filePath = Path.Combine(outputFolder, "AllGroups.txt");
+            filePath = Path.Combine(outputFolder, "SeparatedProfiles.txt");
+            // Write to file
+            await File.WriteAllTextAsync(filePath, sb.ToString());
+            await File.WriteAllTextAsync(masterIdsPath, networkLog.ToString());
         }
         else
         {
-            filePath = Path.Combine(outputFolder, $"{SelectedEmailGroupFilter.GroupName}.txt");
+            filePath = Path.Combine(outputFolder, "Profiles.txt");
+            await File.AppendAllTextAsync(filePath, sb.ToString());
+            await File.AppendAllTextAsync(masterIdsPath, networkLog.ToString());
         }
-
-        // Write to file
-        await File.WriteAllTextAsync(filePath, sb.ToString());
-
+        
         SuccessMessage = $"File saved to: {filePath}";
     }
     catch (Exception e)
@@ -158,7 +153,9 @@ private async Task DownloadEmailsAsync()
     }
     [ObservableProperty] private ObservableCollection<EmailGroup> _groups= new ObservableCollection<EmailGroup>();
     [ObservableProperty] public ObservableCollection<Proxy> centralProxyList = new ObservableCollection<Proxy>();
-    [ObservableProperty] private EmailGroup? _selectedEmailGroupFilter = null;
+    [ObservableProperty]
+    private ObservableCollection<EmailGroup> _selectedEmailGroupFilters = new();
+
     private async Task LoadDataAsync(bool ignoreCache)
     {
         var fetchEmailsTask = _apiConnector.GetDataAsync<IEnumerable<EmailAccount>>(ApiEndPoints.GetEmails, ignoreCache:ignoreCache);
