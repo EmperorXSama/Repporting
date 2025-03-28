@@ -22,6 +22,12 @@ public static class PayloadManager
             "\",\"type\":\"DEA\",\"email\":\"" + nickName.ToLower() + "-" + alias + "@yahoo.com\"}},\"requests\":[{\"id\":\"GetAccounts\",\"uri\":\"/ws/v3/mailboxes/@.id==" + id +
             "/accounts\",\"method\":\"GET\"}]}],\"responseType\":\"json\"}";
         
+    }     
+    public static string DeleteAliasePayload(string id , int deleteId)
+    {
+        return
+            "{\"requests\":[{\"id\":\"deleteAccount\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/accounts/@.id=="+deleteId+"\",\"method\":\"DELETE\",\"requests\":[{\"id\":\"GetAccounts\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/accounts\",\"method\":\"GET\"}]}],\"responseType\":\"json\"}";
+
     }  
     public static string CollectMailBoxPayload(string id)
     {

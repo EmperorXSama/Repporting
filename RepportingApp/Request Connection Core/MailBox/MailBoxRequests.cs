@@ -17,6 +17,8 @@ public interface IMailBoxRequests
 
     Task<ReturnTypeObject> CreateAliaseManagerInitializer(EmailAccount emailAccount, int count, string nickname,
         string customName);
+
+    Task<ReturnTypeObject> DeleteAliases(EmailAccount emailAccount, bool deleteExtra);
 }
 
 public class MailBoxRequests : IMailBoxRequests
@@ -45,7 +47,8 @@ public class MailBoxRequests : IMailBoxRequests
         CheckEmailMetaData(emailAccount);
         var result = await ProcessCollectMailboxAliases(emailAccount);
         return result;
-    }
+    }  
+    
 
 public async  Task<ReturnTypeObject> ProcessPrepareMailBoxNickName(EmailAccount emailAccount)
 {
@@ -74,6 +77,94 @@ public async  Task<ReturnTypeObject> ProcessCollectMailboxAliases(EmailAccount e
             $"we have retrieved aliases from {emailAccount.EmailAddress} "
     };
 }
+
+#region delete aliases
+
+public async Task<ReturnTypeObject> DeleteAliases(EmailAccount emailAccount, bool deleteExtra)
+{
+    CheckEmailMetaData(emailAccount);
+    var aliases = await GetAliases(emailAccount);
+
+    // Parse aliases
+    List<MailBoxDto> parsedAliases = ParseAliases(aliases, emailAccount.Id);
+
+    // Extract and parse IdDelete values
+    List<int> idsToDelete = parsedAliases
+        .Select(alias => int.TryParse(alias.IdDelete, out int parseId) ? parseId : (int?)null)
+        .Where(id => id.HasValue)
+        .Select(id => id.Value)
+        .ToList();
+
+    // If deleteExtra is true, sort and skip the first three elements
+    if (deleteExtra)
+    {
+        idsToDelete = idsToDelete.OrderBy(id => id).Skip(3).ToList();
+    }
+
+    if (!idsToDelete.Any())
+    {
+        return new ReturnTypeObject
+        {
+            ReturnedValue = null,
+            Message = deleteExtra ? "No extra aliases to delete" : "No aliases to delete"
+        };
+    }
+
+    return await DeleteAliasesMailbox(emailAccount, idsToDelete);
+}
+
+public async  Task<ReturnTypeObject> DeleteAliasesMailbox(EmailAccount emailAccount,List<int> aliasIdsToDelete)
+{
+       
+    var results = await DeleteAliasesMain(emailAccount,aliasIdsToDelete);
+    return new ReturnTypeObject
+    {
+        ReturnedValue = results,
+        Message =
+            $"{results} "
+    };
+}
+private async Task<string> DeleteAliasesMain(EmailAccount emailAccount,List<int> aliasIdsToDelete)
+{
+    var headers = PopulateHeaders(emailAccount);
+
+    // Define a retry policy for specific exceptions.
+    var retryPolicy = GetRetryPolicy(emailAccount);
+
+    string result = string.Empty;
+    return await retryPolicy.ExecuteAsync(async () =>
+    {
+        foreach (var id in aliasIdsToDelete)
+        {
+            // Generate endpoint and payload
+            string getEndpoint = GenerateEndpoint(emailAccount, MailBoxEndpointType.DeleteAliases);
+            string getPayload = PayloadManager.DeleteAliasePayload(emailAccount.MetaIds.MailId,id);
+
+            // Call the API
+            string response = await _apiConnector.PostDataAsync<string>(
+                emailAccount,
+                getEndpoint,
+                getPayload,
+                headers,
+                emailAccount.Proxy
+            );
+            
+            UsersDeleteRootObject? responceParsed = JsonConvert.DeserializeObject<UsersDeleteRootObject>(response);
+            if (responceParsed != null && responceParsed.result.status.successRequests[0].httpCode == 200)
+            {
+                result += $"[{id} deleted]";
+            }
+            else
+            {
+                result += $"[{id} failed to delete]";
+            }
+            await Task.Delay(2000);
+        }
+        return result;
+    });
+}
+#endregion
+
 
 #region Create Aliases
 
@@ -138,19 +229,7 @@ private async Task<string> GetMailBoxNickName(EmailAccount emailAccount)
     var headers = PopulateHeaders(emailAccount);
 
     // Define a retry policy for specific exceptions.
-    var retryPolicy = Policy
-        .Handle<SocketException>() // Catch socket errors
-        .Or<HttpRequestException>() // Catch network-related errors
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error")) // Catch proxy-related errors
-        .WaitAndRetryAsync(
-            retryCount: 1, // Retry only once
-            retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
-            (exception, timeSpan, retryCount, context) =>
-            {
-                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
-                emailAccount.Proxy = reservedProxyInUse;
-            }
-        );
+    var retryPolicy = GetRetryPolicy(emailAccount);
 
 
     return await retryPolicy.ExecuteAsync(async () =>
@@ -203,20 +282,7 @@ private async Task<string> MailBoxPrepareSetBaseName(EmailAccount emailAccount)
     var headers = PopulateHeaders(emailAccount);
 
     // Define a retry policy for specific exceptions.
-    var retryPolicy = Policy
-        .Handle<SocketException>() // Catch socket errors
-        .Or<HttpRequestException>() // Catch network-related errors
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error")) // Catch proxy-related errors
-        .WaitAndRetryAsync(
-            retryCount: 1, // Retry only once
-            retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
-            (exception, timeSpan, retryCount, context) =>
-            {
-                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
-                emailAccount.Proxy = reservedProxyInUse;
-            }
-        );
-
+    var retryPolicy = GetRetryPolicy(emailAccount);
 
     return await retryPolicy.ExecuteAsync(async () =>
     {
@@ -263,20 +329,7 @@ private async Task<string> GetAliases(EmailAccount emailAccount)
     var headers = PopulateHeaders(emailAccount);
 
     // Define a retry policy for specific exceptions.
-    var retryPolicy = Policy
-        .Handle<SocketException>() // Catch socket errors
-        .Or<HttpRequestException>() // Catch network-related errors
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error")) // Catch proxy-related errors
-        .WaitAndRetryAsync(
-            retryCount: 1, // Retry only once
-            retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
-            (exception, timeSpan, retryCount, context) =>
-            {
-                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
-                emailAccount.Proxy = reservedProxyInUse;
-            }
-        );
-
+    var retryPolicy = GetRetryPolicy(emailAccount);
 
     return await retryPolicy.ExecuteAsync(async () =>
     {
@@ -380,7 +433,9 @@ private List<MailBoxDto> ParseAliases(string aliases,int id)
         return endpointType switch
         {
             MailBoxEndpointType.Prepare =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=settings.get&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"https://mail.yahoo.com/ws/v3/batch?name=settings.get&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",  
+            MailBoxEndpointType.DeleteAliases =>
+                $"https://mail.yahoo.com/ws/v3/batch?name=settings.deleteAccount&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             MailBoxEndpointType.SetBaseName =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=settings.setBaseNameJWS&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             MailBoxEndpointType.Collect => 
@@ -421,7 +476,7 @@ private List<MailBoxDto> ParseAliases(string aliases,int id)
             .Or<HttpRequestException>() // Catch network-related errors
             .Or<Exception>(ex => ex.Message.Contains("Proxy error")) // Catch proxy-related errors
             .WaitAndRetryAsync(
-                retryCount: 1, // Retry only once
+                retryCount: 3, // Retry only once
                 retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
                 (exception, timeSpan, retryCount, context) =>
                 {
@@ -436,5 +491,6 @@ public enum MailBoxEndpointType
     Create,
     Prepare,
     SetBaseName,
-    Collect
+    Collect,
+    DeleteAliases
 }

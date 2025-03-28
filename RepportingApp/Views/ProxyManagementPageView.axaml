@@ -361,6 +361,7 @@
                                     SelectionMode="Extended"
                                     SelectionChanged="DataGrid_OnSelectionChanged"
                                     CanUserReorderColumns="True"
+                                   KeyDown="DataGrid_OnKeyDown"
                                    >
                                     <DataGrid.Styles>
                                         <!-- Pseudo-class for Selected Rows -->

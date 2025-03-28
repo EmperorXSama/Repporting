@@ -31,7 +31,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
     #region UI
 
-    [ObservableProperty] private bool _isMenuOpen;
+    [ObservableProperty] private bool _isMenuOpen = true;
     [ObservableProperty] private bool _isPopupOpen;
     [ObservableProperty] private bool _isNotificationOpen;
     
@@ -734,7 +734,7 @@ public async void OnDropFile(string filePath)
             if (string.IsNullOrEmpty(line))
                 return "";
 
-            var data = line.Split(',');
+            var data = line.Split(';');
             if (data.Length < 4)
                 return "";
 

@@ -125,6 +125,7 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
             EmailsMailboxesDetails
                 .OrderByDescending(e => e.MailboxesCount ?? 0) 
         );
+        CountFilter = EmailsMailboxesDetailsTable.Count;
     }
     public ObservableCollection<EmailAccount> FilterEmailsBySelectedGroups()
     {
@@ -165,6 +166,48 @@ public partial class MailBoxPageViewModel : ViewModelBase,ILoadableViewModel
         
     }
 
+    #region delete aliases
+    [ObservableProperty] private bool _isdeleteExtra = false;
+    private async Task<List<MailBoxDto>> GetAliasesAsyncWithoutApiUpdate(List<EmailAccount> distributedBatches)
+    {
+        ConcurrentBag<MailBoxDto> mailBoxDtos = new();
+        var taskId2 = _taskManager.StartBatch(distributedBatches, async (emailAccount, cancellationToken) =>
+        {
+            if (emailAccount == null) throw new ArgumentNullException(nameof(emailAccount));
+            ReturnTypeObject result = await _mailBoxRequests.DeleteAliases(emailAccount,IsdeleteExtra);
+            return result.Message;
+        }, batchSize: ReportingSettingsValuesDisplay.MailBoxThread);
+
+        await CreateAnActiveTask(TaskCategory.Active,TaskCategory.Saved, TakInfoType.Batch, taskId2, "Delete Aliases",
+            Statics.AliaseDeleteColor, Statics.AliaseDeleteSoftColor, distributedBatches.ToObservableCollection());
+        await _taskManager.WaitForTaskCompletion(taskId2);
+        return mailBoxDtos.ToList();
+    }
+    [RelayCommand]
+    private async Task DeleteAliases()
+    {
+        try
+        {
+            SuccessMessage = "";
+            var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
+            var distributedBatches = proxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
+
+            if (!distributedBatches.Any())
+            {
+                ErrorIndicator = new ErrorIndicatorViewModel();
+                await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+                return;
+            }
+            var aliases  = await GetAliasesAsyncWithoutApiUpdate(distributedBatches);
+            SuccessMessage = "we Successfully Updated database ";
+        }
+        catch (Exception e)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", e.Message);
+        }
+    }
+    #endregion
     #region Initialize sub methods
 
         private async Task CollectMailboxesAsync(List<EmailAccount> distributedBatches)
@@ -630,5 +673,63 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
         }
     }
 
+    #region Filter Table
+        [ObservableProperty] private int _countFilter;
+        [ObservableProperty] private EmailGroup? _selectedEmailGroup = null;
+        [ObservableProperty] private bool _isGridPopupOpen = false;
+        [ObservableProperty] private int _aliasCountFilter;
 
+        [RelayCommand]
+        private void ResetFilterTable()
+        {
+            
+            EmailsMailboxesDetailsTable = EmailsMailboxesDetails;
+            CountFilter = EmailsMailboxesDetailsTable.Count;
+        }
+        [RelayCommand]
+        private void ToggleGridFilterPopup()
+        {
+            IsGridPopupOpen = !IsGridPopupOpen;
+        }
+
+        [RelayCommand]
+        private async Task FilterTable()
+        {
+            
+            var filteredList = EmailsMailboxesDetails.AsQueryable();
+
+            // If a group is selected, filter based on GroupId
+            if (SelectedEmailGroup != null && SelectedEmailGroup.GroupName != "No Group")
+            {
+                var emailsInSelectedGroup = NetworkItems
+                    .Where(account => account.Group != null && account.Group.GroupId == SelectedEmailGroup.GroupId)
+                    .Select(account => account.EmailAddress)
+                    .ToHashSet();
+
+                filteredList = filteredList.Where(details => emailsInSelectedGroup.Contains(details.EmailAddress));
+            }
+
+            // If a MailboxesCount filter is applied (i.e., user enters a number)
+            if (AliasCountFilter == 0)
+            {
+                // Filter items where Aliases is null or empty
+                filteredList = filteredList.Where(details =>
+                    string.IsNullOrEmpty(details.Aliases));
+            }
+            else if (AliasCountFilter > 0) 
+            {
+                // Filter items where the alias count matches AliasCountFilter
+                filteredList = filteredList.Where(details =>
+                    !string.IsNullOrEmpty(details.Aliases) &&
+                    details.Aliases.Split(';', StringSplitOptions.RemoveEmptyEntries).Length == AliasCountFilter);
+            }
+
+
+            // Update the observable collection
+            EmailsMailboxesDetailsTable = new ObservableCollection<EmailMailboxDetails>(filteredList);
+
+            
+            CountFilter = EmailsMailboxesDetailsTable.Count;
+        }
+    #endregion
 }

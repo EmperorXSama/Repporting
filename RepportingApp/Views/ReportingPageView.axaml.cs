@@ -22,6 +22,7 @@ public partial class ReportingPageView : UserControl
     {
         InitializeComponent();
         DataContext = App.Services.GetRequiredService<ReportingPageViewModel>();
+        AdjustGridColumns(true);
     }
     
     
@@ -42,7 +43,7 @@ public partial class ReportingPageView : UserControl
         {
             // If the menu is open, set the width to an appropriate value (e.g., 250)
             mainGrid!.ColumnDefinitions[0].Width = new GridLength(3, GridUnitType.Star); // Main content column
-            mainGrid.ColumnDefinitions[1].Width = new GridLength(320, GridUnitType.Pixel); // Side menu column
+            mainGrid.ColumnDefinitions[1].Width = new GridLength(420, GridUnitType.Pixel); // Side menu column
         }
         else
         {

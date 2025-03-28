@@ -1,4 +1,5 @@
-﻿using Avalonia.Interactivity;
+﻿using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace RepportingApp.Views;
@@ -62,4 +63,31 @@ public partial class ProxyManagementPageView : UserControl
             viewModel.ApplyFilter();
         }
     }*/
+    private void DataGrid_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.C) // Fix: Using KeyModifiers instead of ModifierKeys
+        {
+            CopySelectedRows();
+            e.Handled = true; // Prevents default copy behavior
+        }
+        
+    }
+    
+    private async Task CopySelectedRows()
+    {
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (DataContext is ProxyManagementPageViewModel viewModel )
+        {
+            if (DataGrid.SelectedItems.Count > 0)
+            {
+                var copiedText = DataGrid.SelectedItems
+                    .OfType<Proxy>()
+                    .Select(proxy => $"{proxy.ProxyIp};{proxy.Port};{proxy.ProxyUsageCount}")
+                    .Aggregate((current, next) => $"{current}\n{next}"); // Newline-separated rows
+                await clipboard.SetTextAsync(copiedText);
+            }
+        }
+
+      
+    }
 }

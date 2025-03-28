@@ -13,6 +13,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\DataAccess\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -44,8 +45,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "all"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -81,23 +81,11 @@
               "version": "[8.0.10, 8.0.10]"
             },
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
               "name": "Microsoft.NETCore.App.Ref",
               "version": "[8.0.10, 8.0.10]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
               "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
               "version": "[8.0.10, 8.0.10]"
             }
           ],
@@ -107,11 +95,6 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11/PortableRuntimeIdentifierGraph.json"
-        }
-      },
-      "runtimes": {
-        "win-x64": {
-          "#import": []
         }
       }
     },
@@ -124,6 +107,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\Reporting.lib\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -155,8 +139,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "all"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -200,23 +183,11 @@
               "version": "[8.0.10, 8.0.10]"
             },
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
               "name": "Microsoft.NETCore.App.Ref",
               "version": "[8.0.10, 8.0.10]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
               "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
               "version": "[8.0.10, 8.0.10]"
             }
           ],
@@ -226,11 +197,6 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11/PortableRuntimeIdentifierGraph.json"
-        }
-      },
-      "runtimes": {
-        "win-x64": {
-          "#import": []
         }
       }
     },
@@ -243,6 +209,7 @@
         "packagesPath": "C:\\Users\\khali\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\khali\\RiderProjects\\Repporting\\RepportingApp\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -281,8 +248,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "all"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -297,6 +263,10 @@
               "version": "[11.2.2, )"
             },
             "Avalonia.Desktop": {
+              "target": "Package",
+              "version": "[11.2.2, )"
+            },
+            "Avalonia.Diagnostics": {
               "target": "Package",
               "version": "[11.2.2, )"
             },
@@ -398,10 +368,6 @@
               "version": "[8.0.10, 8.0.10]"
             },
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
               "name": "Microsoft.NETCore.App.Host.win-x64",
               "version": "[8.0.10, 8.0.10]"
             },
@@ -410,15 +376,7 @@
               "version": "[8.0.10, 8.0.10]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
               "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.10, 8.0.10]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
               "version": "[8.0.10, 8.0.10]"
             }
           ],
@@ -428,11 +386,6 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11/PortableRuntimeIdentifierGraph.json"
-        }
-      },
-      "runtimes": {
-        "win-x64": {
-          "#import": []
         }
       }
     }

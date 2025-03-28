@@ -95,27 +95,32 @@
            <Border Grid.Row="1" Padding="10">
                
                <StackPanel  Spacing="3">
-                   <ListBox HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            Background="{StaticResource MainWhite}"
-                            Foreground="{StaticResource Primary}"
-                            ItemsSource="{Binding Groups}"
-                            SelectionMode="Multiple"
-                            SelectedItems="{Binding SelectedEmailGroupFilters}">
-                       <ListBox.ItemTemplate>
-                           <DataTemplate>
-                               <StackPanel Orientation="Horizontal">
-                                   <TextBlock FontWeight="Bold" Text="{Binding GroupName}" Margin="0,0,5,0"/>
-                                   <TextBlock Text="-" Margin="0,0,5,0"/>
-                                   <TextBlock Text="{Binding RdpIp}"/>
-                                   <TextBlock Text="-" Margin="0,0,5,0"/>
-                                   <TextBlock FontWeight="Bold" Foreground="#2274A5" Text="{Binding EmailCount}"/>
-                               </StackPanel>
-                           </DataTemplate>
-                       </ListBox.ItemTemplate>
-                   </ListBox>
 
-
+                <StackPanel>
+                      <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                    VerticalScrollBarVisibility="Auto"
+                                    MaxHeight="300"> <!-- Adjust height as needed -->
+                          <ListBox HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center"
+                                   Background="{StaticResource MainWhite}"
+                                   Foreground="{StaticResource Primary}"
+                                   ItemsSource="{Binding Groups}"
+                                   SelectionMode="Multiple"
+                                   SelectedItems="{Binding SelectedEmailGroupFilters}">
+                              <ListBox.ItemTemplate>
+                                  <DataTemplate>
+                                      <StackPanel Orientation="Horizontal">
+                                          <TextBlock FontWeight="Bold" Text="{Binding GroupName}" Margin="0,0,5,0"/>
+                                          <TextBlock Text="-" Margin="0,0,5,0"/>
+                                          <TextBlock Text="{Binding RdpIp}"/>
+                                          <TextBlock Text="-" Margin="0,0,5,0"/>
+                                          <TextBlock FontWeight="Bold" Foreground="#2274A5" Text="{Binding EmailCount}"/>
+                                      </StackPanel>
+                                  </DataTemplate>
+                              </ListBox.ItemTemplate>
+                          </ListBox>
+                      </ScrollViewer>
+                </StackPanel>
                    <StackPanel Orientation="Vertical">
                        <CheckBox Content="Separated Profiles" 
                                  IsChecked="{Binding DownloadAllGroups}" 

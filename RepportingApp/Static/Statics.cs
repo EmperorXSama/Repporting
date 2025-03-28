@@ -6,7 +6,9 @@ public static  class Statics
     public static string UploadFileColor { get; } = "#FF0000";
     public static string UploadFileSoftColor { get; } ="#FFFFFF";
     public static string ReportingColor { get; } ="#55C1FB";
-    public static string ReportingSoftColor { get; } ="#b1e4ff";
+    public static string ReportingSoftColor { get; } ="#b1e4ff"; 
+    public static string AliaseDeleteColor { get; } ="#B8336A";
+    public static string AliaseDeleteSoftColor { get; } ="#D35F8F";
 
 
 
