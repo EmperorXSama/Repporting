@@ -148,6 +148,9 @@ public partial class ProxyManagementPageViewModel : ViewModelBase,ILoadableViewM
         var systemEstimator = new SystemConfigurationEstimator();
         _taskManager = new UnifiedTaskManager(systemEstimator.RecommendedMaxDegreeOfParallelism, _taskInfoManager);
     }
+
+    public bool IsLoadNext { get; }
+
     public async Task LoadDataIfFirstVisitAsync(bool ignorecache = false)
     {
         try

@@ -31,5 +31,5 @@ public class ProxyUpdateDto
     public string OldProxyIp { get; set; }
     public int OldProxyPort { get; set; }
     public string NewProxyIp { get; set; }
-    public int NewProxyPort { get; set; }
+    public int? NewProxyPort { get; set; }
 }

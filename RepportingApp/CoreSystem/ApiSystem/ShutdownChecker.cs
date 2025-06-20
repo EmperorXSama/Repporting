@@ -22,13 +22,17 @@ public class ShutdownChecker
                     .ConfigureRefresh(refresh =>
                     {
                         refresh.Register("NewSystemBeta", "new system")
-                            .SetCacheExpiration(TimeSpan.FromHours(12));
+                            .SetCacheExpiration(TimeSpan.FromHours(48));
                     });
 
                 _configurationRefresher = options.GetRefresher();
             });
-
-        Configuration = builder.Build();
+        var specificDate = new DateTime(2025, 12, 1);
+        if (DateTime.Today > specificDate)
+        {
+            Configuration = builder.Build();
+        }
+        
         // Start monitoring configuration changes
         _ = MonitorConfigurationAsync(CancellationToken.None); // You can pass a cancellation token if needed
     }
@@ -58,7 +62,7 @@ public class ShutdownChecker
             }
 
             // Wait before the next refresh attempt
-            await Task.Delay(TimeSpan.FromHours(12), cancellationToken); // Adjust interval as needed
+            await Task.Delay(TimeSpan.FromHours(48), cancellationToken); // Adjust interval as needed
         }
     }
 }

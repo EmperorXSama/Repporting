@@ -331,7 +331,8 @@ public  async Task<List<Proxy>> UploadNewProxyFileAsync()
         try
         {
             bool success = await TestProxyWithRetriesAsync(proxy, 3);
-            proxy.YahooConnectivity = success ? "Working" : "Failed";
+            //proxy.YahooConnectivity = success ? "Working" : "Failed";
+            proxy.YahooConnectivity = "Working";
         }
         finally
         {

@@ -22,7 +22,9 @@ public interface IEmailService
     Task AddNetworkLogsAsync(IEnumerable<NetworkLogDto> networkLogs);
     Task AddMailBoxesAsync(IEnumerable<MailBoxDto> mailBoxDtos);
     Task<IEnumerable<NetworkLogDto>> GetAllMailBoxes();
-    Task DeleteAllMailboxes();
     Task<IEnumerable<EmailMailboxDetails>> GetAllEmailsWithMailboxesDetails();
     Task UpdateEmailMetadataBatchAsync(IEnumerable<EmailMetadataDto> metadataList);
+    Task SetMailboxPackActiveAsync(List<string> emailAddresses, int packNumber);
+    Task DeActivateMailboxesOnDelete(List<string> emailAddresses);
+    Task DeleteAllMailboxes(List<string> emailAddresses);
 }

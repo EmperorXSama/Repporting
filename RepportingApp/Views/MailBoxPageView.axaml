@@ -7,7 +7,9 @@
              xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
              xmlns:components="clr-namespace:RepportingApp.Views.Components"
              x:Class="RepportingApp.Views.MailBoxPageView"
-             x:DataType="viewModels:MailBoxPageViewModel">
+             x:Name="Root"
+             x:DataType="viewModels:MailBoxPageViewModel"
+             xmlns:component="clr-namespace:RepportingApp.Views.Components">
     <Grid >
         <Border ZIndex="10000">
             <components:ErrorIndicatorView DataContext="{Binding ErrorIndicator}" /> 
@@ -36,12 +38,12 @@
                        
                         </Border>
                         
-                        <Grid  Grid.Row="0" Grid.Column="1"  HorizontalAlignment="Center" 
+                        <Grid  Grid.Row="0" Grid.Column="1"  HorizontalAlignment="Center" VerticalAlignment="Center" 
                                ColumnDefinitions="*,10,*,10,*"
-                               RowDefinitions="Auto,40,Auto">
-                            <Button  Content="Initialize Mailbox"  Background="#044B7F"    Foreground="{StaticResource MainWhite}"
+                               RowDefinitions="Auto">
+                            <Button  Content="Start"  Background="#044B7F"    Foreground="{StaticResource MainWhite}"
                                      Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
-                                     Command="{Binding InitializeMailBoxCommand}"
+                                     Command="{Binding  InitializeMailBoxCommand}"
                                      Cursor="Hand" 
                                      CornerRadius="12,0,0,0"
                                      BorderThickness="0"/>
@@ -51,7 +53,7 @@
                                     Cursor="Hand" 
                                     CornerRadius="12,0,0,0"
                                     BorderThickness="0"/>
-                            <CheckBox Grid.Row="1" Grid.Column="2" Content="Delete Extra"    FontFamily="{StaticResource Roboto}" IsChecked="{Binding IsdeleteExtra}" />
+                           
                             <Button Grid.Row="0" Grid.Column="4" Content="Clear and populate"  Background="#BA8F95"    Foreground="{StaticResource MainWhite}"
                                     Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
                                     Command="{Binding RefreachAndCleanCommand}"
@@ -59,103 +61,218 @@
                                     CornerRadius="12,0,0,0"
                                     BorderThickness="0"/> 
                         </Grid>
-                 
-                   <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Height="40" Spacing="10">
-                          <Button Name="DropdownButton1"
-                                  HorizontalAlignment="Stretch"
-                                  Theme="{StaticResource CustomBtn}"
-                                  Background="#95190C"
-                                  Content="Select Groups"
-                                  Foreground="{StaticResource LightGrey}"
-                                  Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
-                          <Popup Name="DropdownPopup1"
-                                 PlacementTarget="{Binding ElementName=DropdownButton1}"
-                                 PlacementMode="Bottom"
-                                 IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
-
-                              <Border BorderBrush="#95190C"
-                                      BorderThickness="1"
-                                      Background="White" >
-                                  <ListBox HorizontalAlignment="Stretch"
-                                      VerticalAlignment="Top"
-                                      Padding="2"
-                                      Background="White"
-                                      Foreground="{StaticResource Primary}"
-                                      ItemsSource="{Binding Groups}"
-                                      SelectionMode="Multiple"
-                                      SelectedItems="{Binding SelectedEmailGroupForTask}"
-                                      />
-                              </Border>
-                          </Popup>
-                          
-                          <StackPanel>
-                              <TextBlock Text="thread"></TextBlock>
-                              <TextBox Text="{Binding ReportingSettingsValuesDisplay.MailBoxThread}"></TextBox>
-                          </StackPanel> 
-                          <StackPanel>
-                              <TextBlock Text="Custom Name"></TextBlock>
-                              <TextBox Text="{Binding CustomName}" Watermark="custom name"></TextBox>
-                          </StackPanel> 
-                          <StackPanel>
-                              <TextBlock Text="Creation Count"></TextBlock>
-                              <TextBox Text="{Binding Count}"></TextBox>
-                          </StackPanel>
-                         
-                       
                         
-                   </StackPanel>
+                        <Border Grid.Row="0" Grid.Column="2"
+                               >
+                            <Button  
+                                     Background="#eeeeee"
+                                     CornerRadius="100"
+                                    Command="{Binding ResetDataCommand}"
+                                     BorderThickness="3"
+                                     Content="Refresh"
+                            >
+                            </Button>
+                        </Border>
                     </Grid>
                 </Border>
                 
                 <Border Grid.Row="2" Padding="12" >
+                    
                     <StackPanel Spacing="20">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button  Content="Export"  Background="#424B54"    Foreground="{StaticResource MainWhite}"
-                                     Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
-                                     Command="{Binding ExportToTxtCommand}"
-                                     Cursor="Hand" 
-                                     CornerRadius="12,0,0,0"
-                                     BorderThickness="0"/>
-                            <TextBlock Text="{Binding CountFilter}" FontFamily="{StaticResource Roboto}" FontWeight="Bold"
-                                       Foreground="#424B54"
-                                       Margin="20,0,20,0">
-                                
-                            </TextBlock>
+                        <Grid  ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Row="0"  Orientation="Horizontal" Height="70" Spacing="50" >
+                         
+                                <Border Padding="10" >
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <StackPanel>
+                                            <TextBlock FontSize="11" Text="Thread" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                            <TextBox Width="100" FontFamily="{StaticResource Roboto}" Text="{Binding ReportingSettingsValuesDisplay.MailBoxThread}"></TextBox>
+                                        </StackPanel> 
+                                        <StackPanel>
+                                            <TextBlock FontSize="11" Text="Custom Name" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                            <TextBox Width="100" FontFamily="{StaticResource Roboto}" Text="{Binding CustomName}" Watermark="custom name"></TextBox>
+                                        </StackPanel> 
+                                        <StackPanel>
+                                            <TextBlock FontSize="11" Text="Creation Count" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                            <TextBox Width="100" FontFamily="{StaticResource Roboto}" Text="{Binding Count}"></TextBox>
+                                        </StackPanel>        
+                                      
+
+                                    </StackPanel>
+                                </Border>
+                              
+                                <StackPanel  VerticalAlignment="Center">
+                                    <TextBlock FontSize="11" Text="delete extra" FontFamily="{StaticResource Roboto}"></TextBlock>
+                                    <CheckBox HorizontalAlignment="Center" Grid.Row="1" Grid.Column="2"  FontFamily="{StaticResource Roboto}" IsChecked="{Binding IsdeleteExtra}" />
+                                </StackPanel>
                             
-                            <Button x:Name="GridFilterButton" DockPanel.Dock="Right"
-                                        Background="{StaticResource MainWhite}"
-                                        Foreground="#424B54"
-                                        Width="170"
-                                        CornerRadius="12,0,0,0"
-                                        Padding="3"
-                                        BorderBrush="#F6F7EB"
-                                        BorderThickness="2"
-                                        Command="{Binding ToggleGridFilterPopupCommand}" HorizontalAlignment="Right" >
-                                    <Button.Styles>
-                                        <Style Selector="Button">
-                                            <Setter Property="Background" Value="Transparent" />
-                                        </Style>
-                                        <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                            <Setter Property="Background" Value="{StaticResource MainWhite}" />
-                                            <Setter Property="Foreground" Value="#424B54" />
-                                           </Style>
-                                        <Style Selector="Button:pressed /template/ ContentPresenter">
-                                            <Setter Property="Background" Value="{StaticResource MainWhite}" />
-                                            <Setter Property="Foreground" Value="#424B54" />
-                                        </Style>
-                                    </Button.Styles>
+                            </StackPanel>
+                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                <Button  Name="DropdownButton1"
                                     
-                                    <DockPanel >
+                                         HorizontalAlignment="Center"
+                                         Width="170"
+                                         HorizontalContentAlignment="Center"
+                                         Background="#044B7F"
+                                         Content="Select Groups"
+                                         Foreground="{StaticResource LightGrey}"
+                                         Command="{Binding ToggleGroupSelctionMenuOneCommand }"/>
+                                <Popup Name="DropdownPopup1"
+                                       PlacementTarget="{Binding ElementName=DropdownButton1}"
+                                       PlacementMode="Bottom"
+                                       IsOpen="{Binding IsGroupSettingsDropdownOpen1, Mode=TwoWay}">
+
+                                    <Border BorderBrush="#95190C"
+                                            BorderThickness="1"
+                                            Background="White" >
+                                        <ListBox HorizontalAlignment="Stretch"
+                                                 VerticalAlignment="Top"
+                                                 Padding="2"
+                                                 Background="White"
+                                                 Foreground="{StaticResource Primary}"
+                                                 ItemsSource="{Binding Groups}"
+                                                 SelectionMode="Multiple"
+                                                 SelectedItems="{Binding SelectedEmailGroupForTask}"
+                                        />
+                                    </Border>
+                                </Popup>
+                                <TextBlock Text="{Binding CountFilter , Mode=TwoWay}" Width="100" FontFamily="{StaticResource Roboto}" VerticalAlignment="Center"
+                                           ></TextBlock>
+                                
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,2*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button  Content="Switch"  Background="#E3B93B"    Foreground="{StaticResource MainWhite}"
+                                         Width="170" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                         Command="{Binding SwitchPacksCommand}"
+                                         Cursor="Hand" 
+                                         CornerRadius="12,0,0,0"
+                                         BorderThickness="0"/>
+                                <Border Grid.Row="1" >
+                                    <NumericUpDown 
+                                        Minimum="0"
+                                        Maximum="{Binding MaxTotalPacks}" 
+                                        Value="{Binding SelectedTotalPackToSwitch, Mode=TwoWay}" 
+                                        Increment="1"
+                                        Width="100"
+                                
+                                        HorizontalAlignment="Left"
+                                        Margin="10"/>
+                                </Border>
+
+                            </StackPanel>
+                           
+                            
+                            <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="10" >
+                                <Button  Content="Export"  Background="#424B54"    Foreground="{StaticResource MainWhite}"
+                                         Width="120" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                         Command="{Binding ExportToTxtCommand}"
+                                         Cursor="Hand" 
+                                         CornerRadius="12,0,0,0"
+                                         BorderThickness="0"/>
+                                <Button  Content="Export aliase"  Background="#424B54"    Foreground="{StaticResource MainWhite}"
+                                         Width="130" HorizontalContentAlignment="Center" FontFamily="{StaticResource Roboto}" 
+                                         Command="{Binding ExportToTxtAliasesCommand}"
+                                         Cursor="Hand" 
+                                         CornerRadius="12,0,0,0"
+                                         BorderThickness="0"/>
+                                <TextBlock Width="60" Text="{Binding MailboxesCount}" FontFamily="{StaticResource Roboto}" FontWeight="Bold"
+                                           Foreground="#424B54"
+                                           VerticalAlignment="Center"
+                                           Margin="20,0,20,0">
+                                
+                                </TextBlock>
+                                <Border >
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <Grid RowDefinitions="30,*" Height="50" VerticalAlignment="Center">
+                            
+                                            <TextBlock FontFamily="{StaticResource Roboto}"
+                                                       Foreground="{StaticResource Primary}"
+                                                       Text="Pack number"
+                                                       HorizontalAlignment="Center"/>
+                                 
+                            
+                                            <Border Grid.Row="1" >
+                                                <NumericUpDown 
+                                                    Minimum="0"
+                                                    Maximum="{Binding MaxTotalPacks}" 
+                                                    Value="{Binding SelectedTotalPackToFilter, Mode=TwoWay}" 
+                                                    Increment="1"
+                                                    Width="100"
+                                
+                                                    HorizontalAlignment="Left"
+                                                    Margin="10"/>
+                                            </Border>
+                              
+                                        </Grid>   
+                                        <Grid RowDefinitions="30,*" Height="50"  Width="200">
+                                                        
+                                            <Border >
+                                                <TextBlock FontFamily="{StaticResource Roboto}"
+                                                           Foreground="{StaticResource Primary}"
+                                                           Text="by email"
+                                                          />
+                                            </Border>
+                                                       
+                                               
+                                            <Border Grid.Row="1" >
+                                                <TextBox 
+                                                         Background="{StaticResource MainWhite}"
+                                                         Foreground="{StaticResource Primary}"
+                                                         BorderThickness="0"
+                                                         Watermark="email name ..."
+                                                         Padding="6"
+                                                         Text="{Binding SearchLabel, Mode=TwoWay}"></TextBox>
+                                            </Border>
+                                                  
+                                        </Grid>
+                                        <Grid ColumnDefinitions="30,*" Width="100" VerticalAlignment="Bottom">
+                                            <Border Grid.Column="0">
+                                                <CheckBox IsChecked="{Binding HasNoActiveAliases}">
                                         
-                                        <TextBlock Text="Filter"
-                                                   Foreground="#424B54"
-                                                   FontFamily="{StaticResource Roboto}"></TextBlock>
-                                        <PathIcon x:Name="FilterIcon" HorizontalAlignment="Right" Foreground="#F6F7EB" Data="{StaticResource GridPopupIconFilter}"></PathIcon>
-                                    </DockPanel>
-                                  
-                                </Button>
-                        </StackPanel>
+                                                </CheckBox>
+                                            </Border>
+                                            <TextBlock FontSize="11" Grid.Column="1" VerticalAlignment="Center" FontFamily="{StaticResource Roboto}"
+                                                       Foreground="{StaticResource Primary}"
+                                                       Text="No alias"/>
+                                    
+                                           
+                                        </Grid>
+                                        <Grid ColumnDefinitions="30,10,*" Width="180" VerticalAlignment="Bottom">
+                                            <Border Grid.Column="0">
+                                                <TextBox Text="{Binding AliasCountFilterIndivitual}">
+                                        
+                                                </TextBox>
+                                            </Border>
+                                            <TextBlock FontSize="11" Grid.Column="2" VerticalAlignment="Center" FontFamily="{StaticResource Roboto}"
+                                                       Foreground="{StaticResource Primary}"
+                                                       Text="Aliase number"/>
+                                    
+                                           
+                                        </Grid>
+                                        
+                                        
+                                      
+                                        <Border Grid.Column="8"
+                                                VerticalAlignment="Bottom">
+                                            <Button  VerticalAlignment="Bottom"
+                                                     Background="#eeeeee"
+                                                     CornerRadius="100"
+                                                     Command="{Binding ResetFilterTableCommand}"
+                                                     BorderThickness="3"
+                                                     Content="Reset"
+                                                    >
+                                            </Button>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
                         <DataGrid
+                            x:Name="DataGrid"
+                            Height="550"
+                            KeyDown="DataGrid_OnKeyDown"
                             Grid.Row="1" ItemsSource="{Binding EmailsMailboxesDetailsTable ,Mode=TwoWay}" 
                             AutoGenerateColumns="False"
                             HorizontalAlignment="Center"
@@ -170,18 +287,56 @@
                                     <Setter Property="Background" Value="White" />
                                     <Setter Property="FontFamily" Value="{StaticResource Roboto}"></Setter>
                                 </Style>
+                                <Style Selector="DataGridCell">
+                                    <Setter Property="Padding" Value="10,5"/>
+                                </Style>
                             </DataGrid.Styles>
                             <DataGrid.Columns>
                                 <DataGridTextColumn  Header="EmailAddress" Foreground="Black" Binding="{Binding EmailAddress}" Width="Auto"/>
-                                <DataGridTextColumn Header="Mailbox Count" Foreground="Black" Binding="{Binding MailboxesCount}" Width="Auto"/>
-                                <DataGridTextColumn Header="Nickname" Foreground="Black" Binding="{Binding NickName}" Width="Auto"/>
-                                <DataGridTextColumn Header="Aliasesss" Foreground="Black" Binding="{Binding Aliases}" Width="*"/> <!-- Stretch to available space -->
+                                <DataGridTextColumn  Header="Group" Foreground="Black" Binding="{Binding GroupName}" Width="Auto"/>
+                                <DataGridTextColumn Header="Mailbox Count" Foreground="Black" Binding="{Binding  ActiveAliases.Count}" Width="Auto"/>
+                                <DataGridTextColumn Header="inactive" Foreground="Black" Binding="{Binding InactiveAliases.Count}" Width="Auto"/>
+                                <DataGridTextColumn Header="packs" Foreground="Black" Binding="{Binding TotalPacks}" Width="Auto"/>
+                                <DataGridTextColumn Header="pack active" Foreground="Black" Binding="{Binding ActivePackNumber}" Width="Auto"/>
+                                <DataGridTemplateColumn Header="Nickname">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="3" Margin="1,0,1,0" Background="#55251D" CornerRadius="8">
+                                                <TextBlock FontSize="14" FontFamily="{StaticResource Roboto}" Text="{Binding NickName}" Foreground="White"  FontWeight="Bold"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Active Aliases">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ItemsControl ItemsSource="{Binding ActiveAliases}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="3" Margin="1,0,1,0" Background="White" CornerRadius="8">
+                                                            <TextBlock FontSize="12" FontFamily="{StaticResource Roboto}" Text="{Binding}" Foreground="Black" />
+                                                        </Border>
+                                                       
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
                             </DataGrid.Columns>
                         </DataGrid>
+                        
                     </StackPanel>
                     
                 </Border>
                 
+                <!--
                 <Grid
                     Grid.Row="3" Grid.Column="0" ColumnDefinitions="*,*" Background="LightGray">
                     <TextBox  IsReadOnly="True"
@@ -191,122 +346,9 @@
                               TextWrapping="Wrap" Foreground="#78290F" Text="{Binding SuccessMessage}"></TextBox>
                     
                 </Grid>
+                -->
 
             </Grid>
-        
-          <Popup IsLightDismissEnabled="True" 
-                   Width="350"
-                   Height="550"
-                   PlacementTarget="{Binding ElementName=GridFilterButton}" 
-                   IsOpen="{Binding IsGridPopupOpen, Mode=TwoWay}">
-                        <Border BorderBrush="#CFD2CD" BorderThickness="1" Background="{StaticResource LightGrey}"
-                            CornerRadius="15"
-                            Padding="15"
-                            Width="350"
-                            Height="550"
-                          >
-                                <Grid RowDefinitions="30, 2,2*, 1,*, 1,*,40"
-                            >
-                                <TextBlock Text="Filter"
-                                           FontFamily="{StaticResource Roboto}"
-                                           Foreground="{StaticResource Primary}"
-                                           FontWeight="Bold"
-                                           HorizontalAlignment="Center"/>
-                                <Border Grid.Row="1" Background="{StaticResource Primary}" />
-                                <Border Grid.Row="2"
-                                        Padding="7,10">
-                                    <Grid RowDefinitions="30,*">
-                                    
-                                        <TextBlock FontFamily="{StaticResource Roboto}"
-                                                   Foreground="{StaticResource Primary}"
-                                                   Text="by Group"/>
-                                         
-                                    
-                                        <Border Grid.Row="1" >
-                                            <ComboBox   HorizontalAlignment="Stretch"
-                                                       VerticalAlignment="Center" 
-                                                       PlaceholderText="Group"
-                                                       Background="{StaticResource MainWhite}"
-                                                       Foreground="{StaticResource Primary}"
-                                                       ItemsSource="{Binding Groups}"
-                                                       SelectedItem="{Binding SelectedEmailGroup}">
-                                                        
-                                            </ComboBox>
-                                        </Border>
-                                      
-                                    </Grid>
-                                </Border>
-                                
-                                <Border Grid.Row="4"
-                                        Padding="7,10">
-                                    <Grid RowDefinitions="30,*">
-                                                        
-                                        <Border >
-                                            <TextBlock FontFamily="{StaticResource Roboto}"
-                                                       Foreground="{StaticResource Primary}"
-                                                       Text="Alias number"
-                                                                 
-                                            />
-                                        </Border>
-                                                       
-                                               
-                                        <Border Grid.Row="1" >
-                                            <TextBox Height="30"
-                                                     Background="{StaticResource MainWhite}"
-                                                     Foreground="{StaticResource Primary}"
-                                                     BorderThickness="0"
-                                                     Watermark="alias number"
-                                                     Padding="6"
-                                                     Text="{Binding AliasCountFilter, Mode=TwoWay}"></TextBox>
-                                        </Border>
-                                                  
-                                    </Grid>
-                                </Border>
-                                <Border Grid.Row="3" Background="{StaticResource Primary}" />
-                                
-                                <Border Grid.Row="5" Background="{StaticResource Primary}" />
-                                <Border Grid.Row="6"
-                                       >
-                                  
-                                        <DockPanel>
-                                            <Button Cursor="Hand" HorizontalAlignment="Left" Content="Apply" Command="{Binding FilterTableCommand}">
-                                                <Button.Styles>
-                                                    <Style Selector="Button">
-                                                        <Setter Property="Background" Value="{StaticResource Primary}" />
-                                                        <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
-                                                    </Style>
-                                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="{StaticResource MainWhite}" />
-                                                        <Setter Property="Foreground" Value="{StaticResource Secondary}" />
-                                                    </Style>
-                                                    <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="{StaticResource MainWhite}" />
-                                                        <Setter Property="Foreground" Value="{StaticResource Secondary}" />
-                                                    </Style>
-                                                </Button.Styles>
-
-                                            </Button>
-                                            <Button HorizontalAlignment="Right" Content="reset" Command="{Binding ResetFilterTableCommand}" >
-                                                <Button.Styles>
-                                                    <Style Selector="Button">
-                                                        <Setter Property="Background" Value="{StaticResource MainRed}" />
-                                                        <Setter Property="Foreground" Value="{StaticResource MainWhite}" />
-                                                    </Style>
-                                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="{StaticResource MainWhite}" />
-                                                        <Setter Property="Foreground" Value="{StaticResource MainRed}" />
-                                                    </Style>
-                                                    <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                        <Setter Property="Background" Value="{StaticResource MainWhite}" />
-                                                        <Setter Property="Foreground" Value="{StaticResource MainRed}" />
-                                                    </Style>
-                                                </Button.Styles>
-                                            </Button>
-                                        </DockPanel>
-                                </Border>
-                        </Grid>
-                    </Border>
-                </Popup>
     </Grid>
             
                     

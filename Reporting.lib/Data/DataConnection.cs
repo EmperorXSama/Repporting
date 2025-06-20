@@ -22,7 +22,7 @@ public class DataConnection : IDataConnection
     
         using IDbConnection connection = new SqlConnection(connectionString);
     
-        var rows = await connection.QueryAsync<T>(storeProcedure, param, commandType: CommandType.StoredProcedure);
+        var rows = await connection.QueryAsync<T>(storeProcedure, param, commandType: CommandType.StoredProcedure,commandTimeout:180);
     
         return rows;
     }
@@ -42,7 +42,7 @@ public class DataConnection : IDataConnection
             storeProcedure, 
             map,
             param, 
-            commandType: CommandType.StoredProcedure,
+            commandType: CommandType.StoredProcedure,commandTimeout:180,
             splitOn: splitOn
         );
 
@@ -63,7 +63,7 @@ public class DataConnection : IDataConnection
             storeProcedure, 
             map,
             param, 
-            commandType: CommandType.StoredProcedure,
+            commandType: CommandType.StoredProcedure,commandTimeout:180,
             splitOn: splitOn
         );
 
@@ -84,7 +84,7 @@ public class DataConnection : IDataConnection
             storeProcedure, 
             map,
             param, 
-            commandType: CommandType.StoredProcedure,
+            commandType: CommandType.StoredProcedure,commandTimeout:180,
             splitOn: splitOn
         );
 
@@ -103,7 +103,7 @@ public class DataConnection : IDataConnection
         var result = await connection.QueryAsync<T>(
             storeProcedure, 
             param, 
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,commandTimeout:180
         );
 
         return result;
@@ -118,7 +118,7 @@ public class DataConnection : IDataConnection
         var newId = await connection.QuerySingleOrDefaultAsync<int>(
             storeProcedure, 
             param, 
-            commandType: CommandType.StoredProcedure
+            commandType: CommandType.StoredProcedure,commandTimeout:180
         );
 
         // If no result is found, return 0 or some default value

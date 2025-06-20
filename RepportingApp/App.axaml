@@ -27,6 +27,7 @@
          </ResourceDictionary>
          <FontFamily x:Key="Roboto">avares://RepportingApp/Assets/Font#Roboto</FontFamily>
          <helper:BooleanToWidthConverter x:Key="BooleanToWidthConverter"/>
+         <converters:IntToBoolConverter x:Key="IntToBoolConverter"/>
          <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter"/>
          <converters:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
          <helper:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

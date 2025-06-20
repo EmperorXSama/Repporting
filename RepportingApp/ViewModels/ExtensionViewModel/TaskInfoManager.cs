@@ -71,6 +71,17 @@ public class TaskInfoManager :INotifyPropertyChanged
             .SelectMany(tasks => tasks)
             .FirstOrDefault(t => t.TaskId ==TaskId);
     }
+    public TaskInfoUiModel? GetTaskSavedById(Guid TaskId )
+    {
+        var taskCollectionsToSearch = new[]
+        {
+            GetTasks(TaskCategory.Saved),
+        };
+
+        return taskCollectionsToSearch
+            .SelectMany(tasks => tasks)
+            .FirstOrDefault(t => t.TaskId ==TaskId);
+    }
     
     public void AddTask(TaskCategory category, TaskInfoUiModel TaskInfoUiModel)
     {

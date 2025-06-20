@@ -181,60 +181,80 @@ namespace RepportingApp.CoreSystem.Multithread
         }
 
         // Process a looping batch of tasks with specified interval
-        private async Task ProcessLoopingTaskBatch<T>(Guid taskId, IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize, TimeSpan interval ,TaskCategory category,CancellationToken cancellationToken)
-        {
-            try
-            {
-              
-                var taskInfo = await WaitForTaskInfo(taskId, TaskCategory.Campaign, TimeSpan.FromSeconds(5));
-                if (taskInfo == null)
-                {
-                    // Handle the case where the task is not added within the timeout
-                    throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
-                }
-            
-                    
-                    // Process the batch of items in chunks
-                    var itemBatches = items.Batch(batchSize);
-                    foreach (var batch in itemBatches)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested(); // Check for cancellation before processing each batch
+        private async Task ProcessLoopingTaskBatch<T>(
+    Guid taskId,
+    IEnumerable<T> items,
+    Func<T, CancellationToken, Task<string>> processFunc,
+    int batchSize,
+    TaskCategory category,
+    Func<DateTime> getNextScheduledTime,
+    CancellationToken cancellationToken)
+{
+    try
+    {
+        var taskInfo = await WaitForTaskInfo(taskId, TaskCategory.Campaign, TimeSpan.FromSeconds(5));
+        if (taskInfo == null)
+            throw new InvalidOperationException("TaskInfo was not added to the collection in time.");
 
-                        var batchTasks = batch.Select(async item =>
-                        {
-                            try
-                            {
-                                string result = await processFunc(item, cancellationToken);
-                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, success: true,result,category: category));
-                            }
-                            catch (Exception ex) when (ex is not OperationCanceledException)
-                            {
-                                // Only handle non-cancellation exceptions at the item level
-                                ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, success: false,null,category: category));
-                            }
-                        }).ToList();
-                        // Signal completion of the batch if no cancellation was requested
-                        await Task.WhenAll(batchTasks); // Wait for the current batch to complete
-                        BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, null));
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var now = DateTime.Now;
+            var nextRunTime = getNextScheduledTime();
+
+            if (nextRunTime > now)
+            {
+                taskInfo.ItemSuccesMessasges.Clear();
+                taskInfo.WorkingStatus = TaskStatus.Waiting;
+                var delay = nextRunTime - now;
+                while (delay > TimeSpan.Zero)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                    delay = nextRunTime - DateTime.Now;
+                    taskInfo.TimeUntilNextRun = delay;
+                }
+            }
+            taskInfo.WorkingStatus = TaskStatus.Running;
+            var itemBatches = items.Batch(batchSize);
+            foreach (var batch in itemBatches)
+            {
+                var batchTasks = batch.Select(async item =>
+                {
+                    try
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        string result = await processFunc(item, cancellationToken);
+                        ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, null, true, result, category));
                     }
-                    
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        ItemProcessed?.Invoke(this, new ItemProcessedEventArgs(taskId, item, ex, false, null, category));
+                    }
+                }).ToList();
+
+                await Task.WhenAll(batchTasks);
+                BatchCompleted?.Invoke(this, new BatchCompletedEventArgs(taskId, null));
             }
-            catch (OperationCanceledException)
-            {
-                // Handle task batch cancellation
-                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Looping batch process was cancelled")));
-            }
-            catch (Exception ex)
-            {
-                TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, ex));
-            }
-            finally
-            {
-                _cancellationTokens.TryRemove(taskId, out _);
-                
-            }
-            TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
         }
+    }
+    catch (OperationCanceledException)
+    {
+        TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, new TaskCanceledException("Looping batch process was cancelled")));
+    }
+    catch (Exception ex)
+    {
+        TaskErrored?.Invoke(this, new TaskErrorEventArgs(taskId, ex));
+    }
+    finally
+    {
+        _cancellationTokens.TryRemove(taskId, out _);
+    }
+
+    TaskCompleted?.Invoke(this, new TaskCompletedEventArgs(taskId));
+}
+
         public Guid StartLoopingTask(Func<CancellationToken, Task> taskFunc, TimeSpan interval)
         {
             var taskId = Guid.NewGuid();
@@ -246,17 +266,24 @@ namespace RepportingApp.CoreSystem.Multithread
             return taskId;
         }
         // New StartLoopingTaskBatch method
-        public Guid StartLoopingTaskBatch<T>(IEnumerable<T> items, Func<T, CancellationToken, Task<string>> processFunc, int batchSize,TaskCategory taskCategory, TimeSpan interval)
+        public Guid StartLoopingTaskBatch<T>(
+            IEnumerable<T> items,
+            Func<T, CancellationToken, Task<string>> processFunc,
+            int batchSize,
+            TaskCategory taskCategory,
+            Func<DateTime> getNextScheduledTime)
         {
             var taskId = Guid.NewGuid();
             var cts = new CancellationTokenSource();
             _cancellationTokens[taskId] = cts;
 
-            _taskQueue.Enqueue(() => ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, interval,taskCategory ,cts.Token));
-            TryDequeueTask();
+            _taskQueue.Enqueue(() =>
+                ProcessLoopingTaskBatch(taskId, items, processFunc, batchSize, taskCategory, getNextScheduledTime, cts.Token));
 
+            TryDequeueTask();
             return taskId;
         }
+
 
         private async Task ProcessLoopingTask(Guid taskId, Func<CancellationToken, Task> taskFunc, TimeSpan interval, CancellationToken cancellationToken)
         {

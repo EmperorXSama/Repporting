@@ -16,7 +16,7 @@ public interface IMailBoxRequests
     Task<ReturnTypeObject> ProcessCollectAlias(EmailAccount emailAccount);
 
     Task<ReturnTypeObject> CreateAliaseManagerInitializer(EmailAccount emailAccount, int count, string nickname,
-        string customName);
+        string customName , List<string> aliases = null);
 
     Task<ReturnTypeObject> DeleteAliases(EmailAccount emailAccount, bool deleteExtra);
 }
@@ -105,7 +105,7 @@ public async Task<ReturnTypeObject> DeleteAliases(EmailAccount emailAccount, boo
     {
         return new ReturnTypeObject
         {
-            ReturnedValue = null,
+            ReturnedValue = "nothing deleted",
             Message = deleteExtra ? "No extra aliases to delete" : "No aliases to delete"
         };
     }
@@ -169,30 +169,57 @@ private async Task<string> DeleteAliasesMain(EmailAccount emailAccount,List<int>
 #region Create Aliases
 
 
-public async Task<ReturnTypeObject> CreateAliaseManagerInitializer(EmailAccount emailAccount,int count,string nickname,string customName)
+public async Task<ReturnTypeObject> CreateAliaseManagerInitializer(EmailAccount emailAccount,int count,string nickname,string customName,List<string>? aliases = null)
 {
     CheckEmailMetaData(emailAccount);
-    var result = await CreateAliaseManager(emailAccount , count, nickname, customName);
+    var result = new ReturnTypeObject();
+    if (aliases == null)
+    {
+         result = await CreateAliaseManager(emailAccount , count, nickname, customName);
+    }
+    else
+    {
+         result = await CreateAliaseManager(emailAccount , customName, nickname,aliases);
+    }
+   
     return result;
 }
-public async  Task<ReturnTypeObject> CreateAliaseManager(EmailAccount emailAccount,int count,string nickname,string customName)
+public async  Task<ReturnTypeObject> CreateAliaseManager(EmailAccount emailAccount,int count,string nickname,string customName,string? costumeAliase = null)
 {
-    var aliases = string.Empty;
+    var aliase = string.Empty;
     for (int i = 0; i < count; i++)
     {
         await Task.Delay(1200);
-         aliases =  await CreateAliases(emailAccount,nickname,customName);
+        aliase =  await CreateAliases(emailAccount,nickname,customName,costumeAliase);
     }
    
     return new ReturnTypeObject
     {
-        ReturnedValue = aliases,
+        ReturnedValue = aliase,
+        Message =
+            $"we have retrieved aliases from {emailAccount.EmailAddress} "
+    };
+}
+public async  Task<ReturnTypeObject> CreateAliaseManager(EmailAccount emailAccount,string customName,string nickname,List<string>? aliases)
+{
+    var aliase = string.Empty;
+    for (int i = 0; i < aliases!.Count; i++)
+    {
+        await Task.Delay(1200);
+        var part1 = aliases[i].Split('@').FirstOrDefault();
+        var part2 = part1.Split('-').LastOrDefault();
+        aliase =  await CreateAliases(emailAccount,nickname,customName,part2!);
+    }
+   
+    return new ReturnTypeObject
+    {
+        ReturnedValue = aliase,
         Message =
             $"we have retrieved aliases from {emailAccount.EmailAddress} "
     };
 }
 
-private async Task<string> CreateAliases(EmailAccount emailAccount,string nickname,string customName)
+private async Task<string> CreateAliases(EmailAccount emailAccount,string nickname,string customName,string? customAlias = null)
 {
     var headers = PopulateHeaders(emailAccount);
 
@@ -201,7 +228,16 @@ private async Task<string> CreateAliases(EmailAccount emailAccount,string nickna
     
     return await retryPolicy.ExecuteAsync(async () =>
     {
-        var alias = StringExtension.GetRandomString(13);
+        var alias = string.Empty;
+        if (customAlias != null)
+        {
+            alias = customAlias;
+        }
+        else
+        {
+            alias = StringExtension.GetRandomString(13);
+        }
+    
         // Generate endpoint and payload
         string getEndpoint = GenerateEndpoint(emailAccount, MailBoxEndpointType.Create);
         string getPayload = PayloadManager.CreateAliasePayload(emailAccount.MetaIds.MailId,nickname,alias,customName);
@@ -379,14 +415,14 @@ private async Task<string> GetAliases(EmailAccount emailAccount)
         return accountMailboxesInfo;
     });
 }
-private List<MailBoxDto> ParseAliases(string aliases,int id)
+private List<MailBoxDto> ParseAliases(string aliases, int id)
 {
     var mailboxes = new List<MailBoxDto>();
 
     var parts = aliases.Split(';');
     foreach (var part in parts)
     {
-        var match = Regex.Match(part, @"^(\d+):([^:]+):(.+)$");
+        var match = Regex.Match(part, @"^(\d+):([^:]+):(.*)$");
         if (match.Success && match.Groups[1].Value != "1")
         {
             mailboxes.Add(new MailBoxDto

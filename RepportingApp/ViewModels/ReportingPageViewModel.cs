@@ -224,6 +224,10 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             },
         };
     }
+    
+
+    public bool IsLoadNext { get; }
+
     public async Task LoadDataIfFirstVisitAsync(bool ignorecache = false)
     {
         try
@@ -1101,8 +1105,13 @@ private void OnItemProcessed(object? sender, ItemProcessedEventArgs e)
                     .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) // Split by newline
                     .Select(e => e.Trim())
                     .ToHashSet(); // Convert to HashSet for fast lookup
+                var normalizedEnteredEmails = enteredEmails
+                    .Select(e => e.Trim().ToLower())
+                    .ToHashSet();
 
-                var tempraryG = EmailAccounts.Where(email => enteredEmails.Contains(email.EmailAddress)).ToList();
+                var tempraryG = EmailAccounts
+                    .Where(email => normalizedEnteredEmails.Contains(email.EmailAddress.Trim().ToLower()))
+                    .ToList();
                 return tempraryG.ToObservableCollection();
             }
             
@@ -1153,7 +1162,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
     try
     {
         // assign proxies to email
-        await LoadEmailsFromDb();
+        //await LoadEmailsFromDb();
         if (!SelectedProcesses.Any())
         {
             ErrorIndicator = new ErrorIndicatorViewModel();
@@ -1328,121 +1337,147 @@ private async Task ReadAllEmailsInboxMessagesAsync()
         
        
     }
-    [ObservableProperty]
-    private TimeSpan _timeUntilNextRun; 
-    [ObservableProperty]
-    private string _state; 
-    [ObservableProperty]
-    private int _tour;   
-    [ObservableProperty]
-    private int _Totalrepitition;  
+    
     [ObservableProperty]
     private bool isRunning;
-
-    private async Task AddSingleCampaignTaskAsync()
+    private DateTime GetNextScheduledTime(List<TimeSpan> scheduledTimes)
     {
-        try
+        var now = DateTime.Now;
+        var todayTimes = scheduledTimes
+            .Select(t => DateTime.Today + t)
+            .Select(dt => dt < now ? dt.AddDays(1) : dt) // move to next day if already passed
+            .OrderBy(dt => dt);
+
+        return todayTimes.First();
+    }
+    [ObservableProperty]
+    private TimeSpan _selectedTime; 
+    [ObservableProperty]
+    private TimeSpan _selectedTimeRemove;
+    [ObservableProperty]
+    private string _timeText = "12:00";
+    [RelayCommand]
+    private void ParseTime()
+    {
+        if (TimeSpan.TryParse(TimeText, out var parsed))
+            SelectedTime = parsed;
+        if (!ScheduledTimes.Contains(SelectedTime))
+            ScheduledTimes.Add(SelectedTime);
+    }
+    public ObservableCollection<TimeSpan> ScheduledTimes { get; } = new();
+    [RelayCommand]
+    private void RemoveTime()
+    {
+        ScheduledTimes.Remove(SelectedTimeRemove);
+        SelectedTimeRemove = default;
+
+    }
+    [RelayCommand]
+    private void RemoveTimeAll()
+    {
+        ScheduledTimes.Clear();
+        SelectedTimeRemove = default;
+
+    }
+private async Task AddSingleCampaignTaskAsync()
+{
+    try
+    {
+        //await LoadEmailsFromDb();
+
+        if (!SelectedProcesses.Any())
         {
-            await LoadEmailsFromDb();
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
+            return;
+        }
 
-            Totalrepitition = ReportingSettingsValuesDisplay.Repetition;
-            TimeSpan interval = TimeSpan.FromSeconds(ReportingSettingsValuesDisplay.RepetitionDelay);
-            if (!SelectedProcesses.Any())
+        var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
+        var distributedBatches = proxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
+
+        if (!distributedBatches.Any())
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
+            return;
+        }
+
+        if (SelectedProcesses[0] == null)
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Process Selection Issue",
+                "The process Selected have no correspondent Logic.");
+            return;
+        }   
+        if (!ScheduledTimes.Any())
+        {
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowErrorIndecator("Timer error",
+                "Please select at least one scheduled time.");
+            return;
+        }
+        
+
+        Func<DateTime> getNextScheduledTime = () =>
+        {
+            var now = DateTime.Now;
+            return ScheduledTimes
+                .Select(t => DateTime.Today.Add(t))
+                .Select(dt => dt < now ? dt.AddDays(1) : dt)
+                .OrderBy(dt => dt)
+                .First();
+        };
+
+        IsRunning = true;
+        var results = new List<ReturnTypeObject> { new ReturnTypeObject { Message = "Nothing inside" } };
+            foreach (var processName in SelectedProcesses)
             {
-                ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("Process Issue", "No process has been selected.");
-                return;
-            }
-
-            var emailsGroupToWork = new List<EmailAccount>(FilterEmailsBySelectedGroups());
-            //emailsGroupToWork.WriteListLine();
-            var distributedBatches = proxyListManager.DistributeEmailsBySubnetSingleList(emailsGroupToWork);
-            //distributedBatches.WriteListLine("EmailBatches2");
-            if (!distributedBatches.Any())
-            {
-                ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("Process Issue", "The group selected contains no emails.");
-                return;
-            }
-
-
-            if (SelectedProcesses[0] == null)
-            {
-                ErrorIndicator = new ErrorIndicatorViewModel();
-                await ErrorIndicator.ShowErrorIndecator("Process Selection Issue",
-                    "The process Selected have no correspondent Logic.");
-                return;
-            }
-
-            var results = new List<ReturnTypeObject>() { new ReturnTypeObject() { Message = "Nothing inside" } };
-            Tour = 0;
-            while (Tour < ReportingSettingsValuesDisplay.Repetition)
-            {
-                IsRunning = true;
-                State = "Running";
-                foreach (var processName in SelectedProcesses)
-                {
-                    var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches,
-                        async (emailAccount, cancellationToken) =>
+                var taskId = _taskManager.StartLoopingTaskBatch(distributedBatches,
+                    async (emailAccount, cancellationToken) =>
+                    {
+                        if (_processsMapping.TryGetValue(processName, out var processFunction))
                         {
-                            if (_processsMapping.TryGetValue(processName, out var processFunction))
+                            results = await processFunction(emailAccount);
+                            foreach (var result in results)
                             {
-                                results = await processFunction(emailAccount);
-                                foreach (var result in results)
+                                if (processName == "CollectMessagesCount")
                                 {
-                                    if (processName == "CollectMessagesCount")
-                                    {
-                                        await PostCollectMessages(
-                                            emailAccount.EmailAddress,
-                                            (ObservableCollection<FolderMessages>)result.ReturnedValue
-                                        );
-                                    }
+                                    await PostCollectMessages(
+                                        emailAccount.EmailAddress,
+                                        (ObservableCollection<FolderMessages>)result.ReturnedValue
+                                    );
                                 }
-
-                                return string.Join("\n", results.Select(r => r.Message));
                             }
 
                             return string.Join("\n", results.Select(r => r.Message));
-                        }, ReportingSettingsValuesDisplay.Thread, TaskCategory.Campaign, interval);
+                        }
 
-                    await CreateAnActiveTask(TaskCategory.Campaign, TaskCategory.Saved, TakInfoType.Batch, taskId,
-                        processName, Statics.UploadFileColor, Statics.UploadFileSoftColor,
-                        distributedBatches.ToObservableCollection());
-                    await _taskManager.WaitForTaskCompletion(taskId);
-                    await LoadEmailsFromDb();
-                }
-            
-                Tour++;
-                State = "Waiting";
-                DateTime nextRunTime = DateTime.UtcNow + interval;
+                        return "No matching process function found.";
+                    },
+                    ReportingSettingsValuesDisplay.Thread,
+                    TaskCategory.Campaign,
+                    getNextScheduledTime);
 
-                while (DateTime.UtcNow < nextRunTime)
-                {
-                    var remainingTime = nextRunTime - DateTime.UtcNow;
+                await CreateAnActiveTask(TaskCategory.Campaign, TaskCategory.Saved, TakInfoType.Batch, taskId,
+                    processName, Statics.UploadFileColor, Statics.UploadFileSoftColor,
+                    distributedBatches.ToObservableCollection());
 
-                    TimeUntilNextRun = remainingTime;
-
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                }
-
+                await _taskManager.WaitForTaskCompletion(taskId);
+                await LoadEmailsFromDb();
             }
-
-            await LoadDataAsync(true);
-        }
-        catch (Exception e)
-        {
-            ErrorIndicator = new ErrorIndicatorViewModel();
-            await ErrorIndicator.ShowErrorIndecator("Campaign Issue", e.Message);
-        }
-        finally
-        {
-            Tour = 0;
-            IsRunning = false;
-        }
-       
-        
-       
     }
+    catch (Exception e)
+    {
+        ErrorIndicator = new ErrorIndicatorViewModel();
+        await ErrorIndicator.ShowErrorIndecator("Campaign Issue", e.Message);
+    }
+    finally
+    {
+        IsRunning = false;
+    }
+}
+
+
     #endregion
     private StartProcessNotifierModel GetStartProcessNotifierModel()
     {
@@ -1493,9 +1528,7 @@ private async Task ReadAllEmailsInboxMessagesAsync()
         private bool _isAfterChecked;
         [ObservableProperty]
         private DateTimeOffset? _selectedDate = DateTimeOffset.UtcNow; // Nullable to allow for no selection.
-
-        [ObservableProperty]
-        private TimeSpan? _selectedTime = DateTime.UtcNow.TimeOfDay; // Nullable to allow for no selection.
+        
         [RelayCommand]
         private async Task FilterTable()
         {

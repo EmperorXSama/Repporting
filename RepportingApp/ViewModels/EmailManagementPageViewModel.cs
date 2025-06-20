@@ -130,11 +130,13 @@ private async Task DownloadEmailsAsync()
 [ObservableProperty] private int _availableProxies = 0;
 [ObservableProperty] private int _usedProxies = 0;
     [ObservableProperty] private bool _isLoading;
+    public bool IsLoadNext { get; set; } = false;
+
     public async Task LoadDataIfFirstVisitAsync(bool ignorecache = false)
     {
         try
         {
-            if (!IsLoading)
+            if (!IsLoading )
             {
                 IsLoading = true;
                 // Load data here

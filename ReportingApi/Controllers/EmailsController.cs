@@ -32,33 +32,56 @@ namespace ReportingApi.Controllers
             {
                 await _emailService.AddEmailsToGroupWithMetadataAsync(request.EmailAccounts,request.emailMetadata, request.GroupId, request.GroupName);
                 return Ok();
-                return Ok();
             }
             catch (Exception e)
             {
               return BadRequest(e.Message);
             }
-        } 
-        
-        [HttpPost("UpdateEmailMetadata")]
-        public async Task<IActionResult> UpdateEmailMetadata([FromBody] List<EmailMetadataDto> metadataList)
-        {
-            if (metadataList == null || !metadataList.Any())
-            {
-                return BadRequest("No metadata provided.");
-            }
+        }
 
+        #region mailboxes
+
+        
+        [HttpPost("ActivateMailboxPack")]
+        public async Task<IActionResult> ActivateMailboxPack([FromBody] ActivateMailboxPackRequest request)
+        {
             try
             {
-                await _emailService.UpdateEmailMetadataBatchAsync(metadataList);
-                return Ok("Metadata updated successfully.");
+                await _emailService.SetMailboxPackActiveAsync(request.EmailAddresses, request.PackNumber);
+                return Ok();
             }
             catch (Exception ex)
             {
-                return BadRequest($"Error updating metadata: {ex.Message}");
+                return BadRequest(ex.Message);
             }
         }
-
+        [HttpPost("DeActivateMailboxesOnDelete")]
+        public async Task<IActionResult> DeActivateMailboxesOnDeleteCall([FromBody] ActivateMailboxPackRequest request)
+        {
+            try
+            {
+                await _emailService.DeActivateMailboxesOnDelete(request.EmailAddresses);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
+        [HttpPost("AddMailBoxes")]
+        public async Task<IActionResult> AddMailBoxes([FromBody] List<MailBoxDto> mailBoxDtos)
+        {
+            try
+            {
+                await _emailService.AddMailBoxesAsync(mailBoxDtos);
+                return Ok("Mailboxes added successfully.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error: {e.Message}");
+            }
+        }
         [HttpPost("AddNetworkLogs")]
         public async Task<IActionResult> AddNetworkLogs([FromBody] List<NetworkLogDto> networkLogs)
         {
@@ -84,24 +107,35 @@ namespace ReportingApi.Controllers
             return await _emailService.GetAllEmailsWithMailboxesDetails();
             
         }   
-        [HttpDelete("DeleteAllMailboxes")]
-        public async Task DeleteAllMailboxes()
+        [HttpPost("DeleteAllMailboxes")]
+        public async Task DeleteAllMailboxes([FromBody] ActivateMailboxPackRequest request)
         {
-            await _emailService.DeleteAllMailboxes();
+            await _emailService.DeleteAllMailboxes(request.EmailAddresses);
         }
-        [HttpPost("AddMailBoxes")]
-        public async Task<IActionResult> AddMailBoxes([FromBody] List<MailBoxDto> mailBoxDtos)
+        #endregion
+       
+
+        
+        [HttpPost("UpdateEmailMetadata")]
+        public async Task<IActionResult> UpdateEmailMetadata([FromBody] List<EmailMetadataDto> metadataList)
         {
+            if (metadataList == null || !metadataList.Any())
+            {
+                return BadRequest("No metadata provided.");
+            }
+
             try
             {
-                await _emailService.AddMailBoxesAsync(mailBoxDtos);
-                return Ok("Mailboxes added successfully.");
+                await _emailService.UpdateEmailMetadataBatchAsync(metadataList);
+                return Ok("Metadata updated successfully.");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return BadRequest($"Error: {e.Message}");
+                return BadRequest($"Error updating metadata: {ex.Message}");
             }
         }
+        
+       
 
         [HttpPost("FailEmails")]
         public async Task<IActionResult> AddEmailsToFailTable([FromBody] IEnumerable<FailedEmailDto> failedEmails)

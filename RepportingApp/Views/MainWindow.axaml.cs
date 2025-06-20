@@ -11,7 +11,7 @@ public partial class MainWindow : Window
 #if DEBUG
         this.AttachDevTools();
 #endif
-        this.Width = 1620;
+        this.Width = 1720;
         this.Height = 900;
     }
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)

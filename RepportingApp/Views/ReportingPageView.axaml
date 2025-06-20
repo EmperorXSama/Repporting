@@ -475,15 +475,14 @@
                                                 </DockPanel>
                                              
                                                 <StackPanel Grid.Row="1" Spacing="10">
-                                                    <ComboBox Grid.Row="1" ItemsSource="{Binding Folders}"
-                                                              Cursor="Hand"
-                                                              FontFamily="{StaticResource Roboto}"
-                                                              HorizontalAlignment="Stretch"
-                                                              HorizontalContentAlignment="Center"
-                                                              BorderBrush="{StaticResource Read}"
-                                                              BorderThickness="1"
-                                                              SelectedItem="{Binding SelectedFolders, Mode=TwoWay}"
-                                                              PlaceholderText="Select Folder"/>
+                                                    <ListBox Grid.Row="1"
+                                                             ItemsSource="{Binding Folders}"
+                                                             Cursor="Hand"
+                                                             FontFamily="{StaticResource Roboto}"
+                                                             SelectionMode="Multiple"
+                                                             BorderBrush="{StaticResource CollectData}"
+                                                             BorderThickness="1"
+                                                             SelectionChanged="OnSelectionChanged"/>
                                                     <StackPanel Spacing="4">
                                                         <!--contain -->
                                                         <components1:MMRIThreashold />
@@ -589,7 +588,7 @@
                          
                         Margin="7,0,0,0"
                         >
-                    <Grid RowDefinitions="300,*" >
+                    <Grid RowDefinitions="*,400" >
                         <Border Grid.Row="0"
                                 Margin="0,40,0,0"
                                Padding="10,0">
@@ -618,19 +617,7 @@
 
                                           
                                             <TabItem Header="Campaign" FontSize="14" >
-                                                <StackPanel >
-                                                    <Grid IsVisible="{Binding IsRunning}">
-                                                        <TextBlock  HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding Tour}"></TextBlock>
-                                                            <TextBlock>/</TextBlock>
-                                                            <TextBlock Text="{Binding ReportingSettingsValuesDisplay.Repetition}"></TextBlock>
-                                                        </TextBlock>
-                                                        <TextBlock Text="{Binding State}" HorizontalAlignment="Center"></TextBlock>
-                                                        <TextBlock Foreground="Olive" FontFamily="{StaticResource Roboto}" FontWeight="Black" Text="{Binding TimeUntilNextRun, Converter={StaticResource TimeSpanToStringConverter}}" HorizontalAlignment="Right" />
-                                                    </Grid>
-                                                    
                                                     <taskCardDesign:CampaignTasks />
-                                                </StackPanel>
                                                
                                             </TabItem>
                                         </TabControl>
@@ -641,7 +628,31 @@
                                 </Border>
                             </Grid>
                         </Border>
-                       
+                        <StackPanel Grid.Row="1" Margin="20" Spacing="10">
+                            <!-- Time input and Add button -->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox Watermark="Enter time (e.g. 13:30)"
+                                             Text="{Binding TimeText, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Content="Set Time" Command="{Binding ParseTimeCommand}" />
+                                </StackPanel>
+                        
+                            <!-- List of scheduled times -->
+                            <ListBox ItemsSource="{Binding ScheduledTimes}"
+                                     SelectedItem="{Binding  SelectedTimeRemove}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate >
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding}" />
+                                           
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Button Background="#E07A5F" Foreground="AliceBlue" Content="Remove"
+                                    Command="{Binding RemoveTimeCommand}"/>
+                            <Button Background="#D85531" Foreground="AliceBlue" Content="Clear"
+                                    Command="{Binding RemoveTimeAllCommand}"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
                 <Border Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Background="{StaticResource LightGrey}" />

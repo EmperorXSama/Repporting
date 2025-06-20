@@ -98,22 +98,31 @@ public class EmailService : IEmailService
     }
     public async Task AddMailBoxesAsync(IEnumerable<MailBoxDto> mailBoxDtos)
     {
-        var table = new DataTable();
-        table.Columns.Add("MailboxEmail", typeof(string));
-        table.Columns.Add("EmailId", typeof(int));
-        table.Columns.Add("IdDelete", typeof(string));
-        table.Columns.Add("CostumeName", typeof(string));
+        // Group mailboxes by EmailId
+        var groupedMailBoxes = mailBoxDtos.GroupBy(mb => mb.EmailId);
 
-        foreach (var mailbox in mailBoxDtos)
+        foreach (var group in groupedMailBoxes)
         {
-            table.Rows.Add(mailbox.MailboxEmail, mailbox.EmailId, mailbox.IdDelete, mailbox.CostumeName);
+            var table = new DataTable();
+            table.Columns.Add("MailboxEmail", typeof(string));
+            table.Columns.Add("EmailId", typeof(int));
+            table.Columns.Add("IdDelete", typeof(string));
+            table.Columns.Add("CostumeName", typeof(string));
+
+            foreach (var mailbox in group)
+            {
+                table.Rows.Add(mailbox.MailboxEmail, mailbox.EmailId, mailbox.IdDelete, mailbox.CostumeName);
+            }
+
+            var parameters = new 
+            {
+                EmailId = group.Key, // Get EmailId from the group
+                MailBoxes = table.AsTableValuedParameter("MailBoxType")
+            };
+
+            await _dbConnection.SaveDataAsync("[dbo].[AddMailBoxes]", parameters);
         }
-
-        var parameters = new { MailBoxes = table.AsTableValuedParameter("MailBoxType") };
-
-        await _dbConnection.SaveDataAsync("[dbo].[AddMailBoxes]", parameters);
     }
-
 
 public async Task AddEmailsToGroupWithMetadataAsync(
     IEnumerable<CreateEmailAccountDto> emails,
@@ -191,7 +200,17 @@ public async Task AddEmailsToGroupWithMetadataAsync(
     }   
     public async Task<IEnumerable<EmailMailboxDetails>> GetAllEmailsWithMailboxesDetails()
     {
-        var results = await _dbConnection.LoadDataAsync<EmailMailboxDetails, dynamic>("[dbo].[GetEmailDetails]", new {});
+        var results = await _dbConnection.LoadDataAsync<EmailMailboxDetails, dynamic>(
+            "[dbo].[GetEmailDetails]", 
+            new {}
+        );
+
+        // Convert CSV to List<string>
+        foreach (var item in results)
+        {
+            item.ProcessAliases();
+        }
+
 
         return results;
     }  
@@ -362,6 +381,7 @@ public async Task AddEmailsToGroupWithMetadataAsync(
             throw new Exception("Email text cannot be empty");
 
         // Create a DataTable for the table-valued parameter
+        // Create a DataTable for the table-valued parameter
         var table = new DataTable();
         table.Columns.Add("EmailAddress", typeof(string));
 
@@ -378,9 +398,66 @@ public async Task AddEmailsToGroupWithMetadataAsync(
         return deletedCount; // Return the number of deleted emails
     }
 
-    public async Task DeleteAllMailboxes()
+    public async Task DeleteAllMailboxes(List<string> emailAddresses)
     {
-        await _dbConnection.SaveDataAsync("[dbo].[DeleteAllMailBoxes]",new {});
+        var emailTable = new DataTable();
+        emailTable.Columns.Add("EmailAddress", typeof(string));
+
+        foreach (var email in emailAddresses.Distinct())
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+                emailTable.Rows.Add(email);
+        }
+
+        var parameters = new
+        {
+            EmailList = emailTable.AsTableValuedParameter("EmailListType")
+        };
+
+        await _dbConnection.SaveDataAsync("[dbo].[DeleteAllMailBoxes]", parameters);
+    }
+    public async Task SetMailboxPackActiveAsync(List<string> emailAddresses, int packNumber)
+    {
+        var emailTable = new DataTable();
+        emailTable.Columns.Add("EmailAddress", typeof(string));
+
+        foreach (var email in emailAddresses.Distinct())
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+                emailTable.Rows.Add(email);
+        }
+
+        var parameters = new
+        {
+            EmailList = emailTable.AsTableValuedParameter("EmailListType"),
+            PackNumber = packNumber
+        };
+
+        await _dbConnection.SaveDataAsync(
+            "[dbo].[SetMailboxPackActive]",
+            parameters
+        );
+    }
+    public async Task DeActivateMailboxesOnDelete(List<string> emailAddresses)
+    {
+        var emailTable = new DataTable();
+        emailTable.Columns.Add("EmailAddress", typeof(string));
+
+        foreach (var email in emailAddresses.Distinct())
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+                emailTable.Rows.Add(email);
+        }
+
+        var parameters = new
+        {
+            EmailList = emailTable.AsTableValuedParameter("EmailListType"),
+        };
+
+        await _dbConnection.SaveDataAsync(
+            "[dbo].[DeActivateMailboxesOnDelete]",
+            parameters
+        );
     }
 
 }

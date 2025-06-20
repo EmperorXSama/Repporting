@@ -1821,7 +1821,8 @@
           "Dapper": "2.1.35",
           "Microsoft.Data.SqlClient": "6.0.0-preview2.24304.8",
           "Microsoft.Extensions.Configuration": "8.0.0",
-          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0"
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Newtonsoft.Json": "13.0.3"
         },
         "runtime": {
           "Reporting.lib.dll": {
