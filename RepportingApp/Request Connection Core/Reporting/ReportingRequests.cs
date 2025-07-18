@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using Newtonsoft.Json.Linq;
 using Polly;
 using Reporting.lib.Models.Secondary;
 using RepportingApp.CoreSystem.ProxyService;
@@ -84,7 +85,7 @@ public async   Task<ReturnTypeObject> ProcessGetMessagesFromDir(EmailAccount ema
         {
             ReturnedValue = messages,
             Message =
-                $"Number of retrieved messages in {folderName}: {messages.Count}\nTotal number of messages: {count}"
+                $"Number of retrieved messages in {folderName}: {messages.Count}"
         };
     });
 }
@@ -134,40 +135,68 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(Emai
 }
 
 
-public async Task<List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount emailAccount, MarkMessagesAsReadConfig config, string directoryId = Statics.ArchiveDir)
+public async Task<List<ReturnTypeObject>> MoveMessagesToTargetDirectory(EmailAccount emailAccount, MarkMessagesAsReadConfig config,  List<string> directoryIds , string toDirectoryId)
 {
-    if (config.PreReportingSettings.MaxMessagesToRead <= 0) return new List<ReturnTypeObject>();
-    var retryPolicy = Policy
-        .Handle<SocketException>()
-        .Or<HttpRequestException>()
-        .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection") )
-        .WaitAndRetryAsync(
-            retryCount: 3,
-            retryAttempt => TimeSpan.FromSeconds(1),
-            (exception, timeSpan, retryCount, context) =>
-            {
-                var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
-                emailAccount.Proxy = reservedProxyInUse;
-            }
-        );
-
-    return await retryPolicy.ExecuteAsync(async () =>
+    var results = new List<ReturnTypeObject>();
+    foreach (var fromDirectoryId in directoryIds)
     {
-        CheckEmailMetaData(emailAccount);
-        var messages = await GetMessagesFromFolder(emailAccount, directoryId);
+        var retryPolicy = Policy
+            .Handle<SocketException>()
+            .Or<HttpRequestException>()
+            .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection") )
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                retryAttempt => TimeSpan.FromSeconds(1),
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                    emailAccount.Proxy = reservedProxyInUse;
+                }
+            );
 
-        var result = await SendMessagesToArchive(
-            emailAccount,
-            messages,
-            config.BulkThreshold,
-            config.BulkChunkSize,
-            config.SingleThreshold,
-            config.PreReportingSettings.MinMessagesToArchive,
-            config.PreReportingSettings.MaxMessagesToArchive
-        );
+        var result =  await retryPolicy.ExecuteAsync(async () =>
+        {
+            CheckEmailMetaData(emailAccount);
+            var messages = await GetMessagesFromFolder(emailAccount, fromDirectoryId);
+            if (messages.Count <= 0) return new ReturnTypeObject { Message = "No messages found." };
+            string messageResult = string.Empty;
+            if (toDirectoryId == Statics.ArchiveDir)
+            {
+                messageResult = await SendMessagesToArchive(
+                    emailAccount,
+                    messages,
+                    config.BulkThreshold,
+                    config.BulkChunkSize,
+                    config.SingleThreshold,
+                    config.PreReportingSettings.MinMessagesToArchive,
+                    config.PreReportingSettings.MaxMessagesToArchive
+                );
+            }else if (toDirectoryId == Statics.TrashDir)
+            {
+                messageResult = await SendMessagesToTrash(
+                    emailAccount,
+                    messages,
+                    config.BulkThreshold,
+                    config.BulkChunkSize,
+                    config.SingleThreshold,
+                    config.PreReportingSettings.MinMessagesToArchive,
+                    config.PreReportingSettings.MaxMessagesToArchive
+                );
+            }
+        
 
-        return new  List<ReturnTypeObject> {new ReturnTypeObject(){ Message = result }};
-    });
+            return new ReturnTypeObject { Message = messageResult };
+        });
+        results.Add(result);
+    }
+    var numberOfMessagesInTrash = await GetTotalNumberOfMessagesInaFolder(emailAccount,"4");
+    if (numberOfMessagesInTrash != 0 && numberOfMessagesInTrash != null)
+    {
+        var deletionResult = await DeleteMessagesPermanent(emailAccount, numberOfMessagesInTrash.ToString());
+        results.Add(new ReturnTypeObject { Message =deletionResult });
+    }
+    
+    return results;
 }
 
 public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAccount emailAccount, MarkMessagesAsReadConfig config)
@@ -206,7 +235,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
         if (config.PreReportingSettings.IsPreReporting)
         {
             await ProcessMarkMessagesAsReadFromDirs(emailAccount, config,new List<string>(){Statics.InboxDir});
-            await ProcessArchiveMessages(emailAccount, config);
+            await MoveMessagesToTargetDirectory(emailAccount, config,new List<string>(){Statics.InboxDir},Statics.ArchiveDir);
         }
 
         while (true)
@@ -299,8 +328,119 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
             }
             return result;
         });
+    }  
+    public static int? GetFolderTotalTyped(string jsonString, string folderId)
+    {
+        try
+        {
+            var data = JsonConvert.DeserializeObject<SyncRootObject>(jsonString);
+            var folder = data.result.responses[0].response.result.folders
+                .FirstOrDefault(f => f.id == folderId);
+        
+            return folder?.total;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deserializing JSON: {ex.Message}");
+            return null;
+        }
     }
+    private async Task<int?> GetTotalNumberOfMessagesInaFolder(EmailAccount emailAccount, string dirId)
+    {
+        var headers = PopulateHeaders(emailAccount);
 
+        // Define a retry policy for specific exceptions.
+        var retryPolicy = Policy
+            .Handle<SocketException>() // Catch socket errors
+            .Or<HttpRequestException>() // Catch network-related errors
+            .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection")) // Catch proxy-related errors
+            .WaitAndRetryAsync(
+                retryCount: 3, // Retry only once
+                retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                    emailAccount.Proxy = reservedProxyInUse;
+                }
+            );
+
+
+        var result =  await retryPolicy.ExecuteAsync(async () =>
+        {
+            // Generate endpoint and payload
+            string endpoint = GenerateEndpoint(emailAccount, EndpointType.Sync);
+            string payload = PayloadManager.GetFoldersInformation(emailAccount.MetaIds.MailId);
+
+            // Call the API
+            string response = await _apiConnector.PostDataAsync<string>(
+                emailAccount,
+                endpoint,
+                payload,
+                headers,
+                emailAccount.Proxy
+            );
+
+            int? totalTyped = GetFolderTotalTyped(response, dirId);
+            return totalTyped;
+        });
+        return result;
+    }
+private async Task<string> DeleteMessagesPermanent(EmailAccount emailAccount, string messagesNumber)
+    {
+        var headers = PopulateHeaders(emailAccount);
+
+        // Define a retry policy for specific exceptions.
+        var retryPolicy = Policy
+            .Handle<SocketException>() // Catch socket errors
+            .Or<HttpRequestException>() // Catch network-related errors
+            .Or<Exception>(ex => ex.Message.Contains("Proxy error") || ex.Message.Contains("connection")) // Catch proxy-related errors
+            .WaitAndRetryAsync(
+                retryCount: 3, // Retry only once
+                retryAttempt => TimeSpan.FromSeconds(1), // Wait 2 seconds before retry
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    var reservedProxyInUse = proxyListManager.GetRandomDifferentSubnetProxyDb(emailAccount.Proxy);
+                    emailAccount.Proxy = reservedProxyInUse;
+                }
+            );
+
+
+        var result =  await retryPolicy.ExecuteAsync(async () =>
+        {
+            // Generate endpoint and payload
+            string endpoint = GenerateEndpoint(emailAccount, EndpointType.Delete);
+            string payload = PayloadManager.GetPermanentDeletePayload(emailAccount.MetaIds.MailId,messagesNumber);
+
+            // Call the API
+            string response = await _apiConnector.PostDataAsync<string>(
+                emailAccount,
+                endpoint,
+                payload,
+                headers,
+                emailAccount.Proxy
+            );
+
+            return CheckDeletionStatus(response);
+        });
+        return result;
+    }
+    public static string CheckDeletionStatus(string jsonResponse)
+    {
+        try
+        {
+            JObject jsonData = JObject.Parse(jsonResponse);
+            var failedRequests = jsonData["result"]["status"]["failedRequests"] as JArray;
+        
+            return failedRequests != null && failedRequests.Count == 0 
+                ? "success deletion" 
+                : "fail deletion";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing response: {ex.Message}");
+            return "fail deletion";
+        }
+    }
 
     #region Pre reporting calls
     
@@ -521,6 +661,113 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
      
         emailAccount.Stats.LastArchivedCount = marked;
         return $"{marked} of {numberOfMessagesToMarkAsRead} messages has been sent as archive ";
+    }  
+     private async Task<string> SendMessagesToTrash(EmailAccount emailAccount, 
+        IEnumerable<FolderMessages> messages,
+        int  bulkThreshold,int bulkChunkSize,int singleThreshold,int minMessagesValue,int maxMessagesValue)
+    {
+        emailAccount.ApiResponses.Clear();
+        var headers = PopulateHeaders(emailAccount);
+        int marked = 0;
+        int numberOfMessagesToMarkAsRead = RandomGenerator.GetRandomBetween2Numbers(minMessagesValue, maxMessagesValue);
+        ObservableCollection<FolderMessages> messagesToTrash = new ObservableCollection<FolderMessages>();
+        var folderMessagesEnumerable = messages.ToList();
+        for (int i = 0; i < numberOfMessagesToMarkAsRead; i++)
+        {
+            int index = RandomGenerator.GetRandomBetween2Numbers(0, folderMessagesEnumerable.Count() - 1);
+            messagesToTrash.Add(folderMessagesEnumerable[index]);
+            if (messagesToTrash.Count >= numberOfMessagesToMarkAsRead)
+            {
+                break;
+            }
+        }
+        await BulkProcessor<FolderMessages>.ProcessItemsAsync(messagesToTrash,
+
+            async (bulkMessages) =>
+            {
+                var messagesEnumerable = bulkMessages as FolderMessages[] ?? bulkMessages.ToArray();
+                try
+                {
+                    var inboxMessagesEnumerable = bulkMessages as FolderMessages[] ?? messagesEnumerable.ToArray();
+                    var messageIds = inboxMessagesEnumerable.Select(m => m.id).ToList();
+
+                    // Create the payload
+                    string payload = PayloadManager.MoveMessagesToTrashBulkPayload(emailAccount.MetaIds.MailId, messageIds);
+                    string endpoint = GenerateEndpoint(emailAccount, EndpointType.Move);
+                    PopulateHeaders(emailAccount);
+
+                    // Send the request
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
+                    var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
+
+                    // Ensure the request was successful
+                    responseMessage?.EnsureSuccessStatusCode();
+
+                    // Increment the marked count and add a success message
+                    marked += inboxMessagesEnumerable.Count();
+                    string firstId = messagesEnumerable.First().headers.subject;
+                    string lastId = messagesEnumerable.Last().headers.subject;
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[BulkTrashMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"Successfully Trash {inboxMessagesEnumerable.Count()} messages. IDs: {firstId} to {lastId} \n"
+                    ));
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors and add an error message to the responses
+                    string firstId = messagesEnumerable.FirstOrDefault()?.id ?? "N/A";
+                    string lastId = messagesEnumerable.LastOrDefault()?.id ?? "N/A";
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[BulkTrashMessages] {DateTime.UtcNow.ToString("g")}",
+                        $"Failed to Trash messages. IDs: {firstId} to {lastId}. Error: {ex.Message} \n"
+                    ));
+                }
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            },
+            async (singleMessages) =>
+            {
+                try
+                {
+                    string payload = PayloadManager.MoveMessageToTrashSinglePayload(emailAccount.MetaIds.MailId, singleMessages.id);
+                    string endpoint = GenerateEndpoint(emailAccount, EndpointType.Move);
+                    PopulateHeaders(emailAccount);
+
+                    // Send the request
+                    string response = await _apiConnector.PostDataAsync<string>(emailAccount,endpoint, payload, headers, emailAccount.Proxy);
+                    var responseMessage = JsonConvert.DeserializeObject<HttpResponseMessage>(response);
+
+                    // Ensure the request was successful
+                    responseMessage?.EnsureSuccessStatusCode();
+                    // Increment the marked count and add a success message
+                    marked++;
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[TrashMessage] {DateTime.UtcNow.ToString("g")}", 
+                        $"{marked} out of {messagesToTrash.Count()} id: {singleMessages.headers.subject} \n"
+                    ));
+                    
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors and add an error message to the responses
+                    emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
+                        $"[ReadMessage] {DateTime.UtcNow.ToString("g")}",
+                        $"Failed to mark message id: {singleMessages.id}. Error: {ex.Message} \n"
+                    ));
+                    
+                }
+                
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            },
+            bulkThreshold: bulkThreshold,
+            bulkChunkSize: bulkChunkSize,
+            singleThreshold: singleThreshold
+            
+            
+            );
+        
+     
+        emailAccount.Stats.LastArchivedCount = marked;
+        return $"{marked} of {messagesToTrash.Count} messages has been sent as archive ";
     }
     #endregion
 
@@ -653,6 +900,10 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
                 $"https://mail.yahoo.com/ws/v3/batch?name=folderChange.getList&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",  
             EndpointType.Move =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=messages.move&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+            EndpointType.Delete =>
+                $"https://mail.yahoo.com/ws/v3/batch?name=messages.delete&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+            EndpointType.Sync =>
+                $"https://mail.yahoo.com/ws/v3/batch?name=mailbox.sync&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.OtherEndpoint =>
                 $"https://mail.yahoo.com/ws/v3/batch?name=messages.OtherEndpoint&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             _ => throw new ArgumentException("Invalid endpoint type", nameof(endpointType))
@@ -690,6 +941,8 @@ public enum EndpointType
     ReadFlagUpdate,
     UnifiedUpdate,
     ReadSync,
+    Sync,
     Move,
+    Delete,
     OtherEndpoint
 }

@@ -1,28 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Avalonia.Data.Converters;
-using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using DataAccess.Enums;
-using DataAccess.Helpers.ExtensionMethods;
-using DataAccess.Models;
+﻿using DataAccess.Enums;
 using LiveChartsCore;
-using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-using RepportingApp.CoreSystem.ApiSystem;
-using RepportingApp.CoreSystem.Broadcast;
 using RepportingApp.GeneralData;
 using RepportingApp.ViewModels.Charts;
-using SkiaSharp;
 
 
 namespace RepportingApp.ViewModels;

@@ -10,8 +10,8 @@ public interface IReportingRequests
     Task<List<ReturnTypeObject>> ProcessMarkMessagesAsReadFromDirs(EmailAccount emailAccount,
         MarkMessagesAsReadConfig config, List<string> directoryIds);
 
-    Task< List<ReturnTypeObject>> ProcessArchiveMessages(EmailAccount emailAccount,
-        MarkMessagesAsReadConfig config, string directoryId = "1");
+    Task<List<ReturnTypeObject>> MoveMessagesToTargetDirectory(EmailAccount emailAccount,
+        MarkMessagesAsReadConfig config, List<string> directoryIds, string toDirectoryId);
 
     Task<List<ReturnTypeObject>>
         ProcessGetMessagesFromDirs(EmailAccount emailAccount, IEnumerable<string> directoryIds);

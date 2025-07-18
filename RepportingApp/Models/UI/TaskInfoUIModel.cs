@@ -153,6 +153,56 @@ public partial class TaskInfoUiModel : ObservableObject
             DownloadValue = "Error: " + e.Message;
         }
     }
+[RelayCommand]
+    private void DownloadSuccessEmails()
+    {
+        try
+        {
+            if (ItemSuccesMessasges == null || !ItemSuccesMessasges.Any())
+            {
+                DownloadValue = "No failed messages to download.";
+                return;
+            }
+
+            // Create a list of email credentials
+            var failedEmails = ItemSuccesMessasges
+                .Where(info => info.Email != null) // Ensure Email is not null
+                .Select(info =>
+                {
+                    var proxy = info.Email.Proxy;
+                    var proxyDetails = proxy != null
+                        ? $"{proxy.ProxyIp};{proxy.Port};{proxy.Username};{proxy.Password}"
+                        : "No Proxy";
+                    return $"{info.Email.Id};{info.Email.EmailAddress};{info.Email.Password};;{proxyDetails};{info.Email.Group.GroupName};{info.Message}";
+                })
+                .ToList();
+
+            if (!failedEmails.Any())
+            {
+                DownloadValue = "No valid emails to download.";
+                return;
+            }
+
+            // Convert to a single string
+            string content = string.Join(Environment.NewLine, failedEmails);
+
+            // Ensure the directory exists before saving the file
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Results");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string filePath = Path.Combine(directoryPath, "SuccessEmails.txt");
+            File.WriteAllText(filePath, content);
+
+            DownloadValue = "Download complete: " + filePath;
+        }
+        catch (Exception e)
+        {
+            DownloadValue = "Error: " + e.Message;
+        }
+    }
 
     #endregion
     

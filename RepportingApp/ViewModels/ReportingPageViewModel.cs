@@ -2,7 +2,6 @@
 using Reporting.lib.Models.DTO;
 using RepportingApp.CoreSystem.FileSystem;
 using RepportingApp.CoreSystem.ProxyService;
-
 namespace RepportingApp.ViewModels;
 
 public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
@@ -46,6 +45,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private bool _isReportingChoiceSelected;
     [ObservableProperty] private bool _isMMRIChoiceSelected;
     [ObservableProperty] private bool _isCollectDataSelected;
+    [ObservableProperty] private bool _isTrashSelected;
     [ObservableProperty] private bool _isArchiveChoiceSelected;
   
 
@@ -219,7 +219,13 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             {"ArchiveMessages",async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    return await _reportingRequests.ProcessArchiveMessages(emailAcc,ArchiveMessagesConfig);
+                    return await _reportingRequests.MoveMessagesToTargetDirectory(emailAcc,ArchiveMessagesConfig,FolderIds,Statics.ArchiveDir);
+                }
+            }, 
+            {"TrashMessages",async (emailAcc) =>
+                {
+                    if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
+                    return await _reportingRequests.MoveMessagesToTargetDirectory(emailAcc,ArchiveMessagesConfig,FolderIds,Statics.TrashDir);
                 }
             },
         };
@@ -308,6 +314,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         IsMMRIChoiceSelected = SelectedProcessesUi.IsMMRI;
         IsCollectDataSelected = SelectedProcessesUi.IsGetSpamNumbersSelected;
         IsArchiveChoiceSelected = SelectedProcessesUi.IsArchiveSelected;
+        IsTrashSelected = SelectedProcessesUi.IsDeleteSpamSelected;
         foreach (var mapping in processIconMapping)
         {
             var isSelected = mapping.Key(SelectedProcessesUi);

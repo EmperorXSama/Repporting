@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 
 namespace RepportingApp.ViewModels;
 
@@ -176,97 +177,170 @@ private async Task DownloadEmailsAsync()
     
     
     [ObservableProperty] private string _emailInputAssign;
-    [RelayCommand]
-    private async Task AssignProxiesAndSaveToFileAsync()
+
+[RelayCommand]
+private async Task AssignProxiesAndSaveToFileAsync()
+{
+    try
     {
-        try
+        bool isOverwriting = false;
+        if (string.IsNullOrWhiteSpace(EmailInputAssign))
         {
-            bool isOverwriting = false;
-            if (string.IsNullOrWhiteSpace(EmailInputAssign))
+            isOverwriting = true;
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string filePath = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "Profiles.txt");
+
+            if (!File.Exists(filePath))
             {
-                isOverwriting = true;
-                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string filePath = Path.Combine(desktopPath, "YahooEmails", "Repporting", "Data", "Profiles.txt");
-
-                if (!File.Exists(filePath))
-                {
-                    ErrorMessage = "Profiles.txt not found!";
-                    return;
-                }
-
-                EmailInputAssign = await File.ReadAllTextAsync(filePath);
-            }
-
-            // Parse input into email accounts
-            var emailAccounts = EmailInputAssign.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(line => line.Split(';'))
-                .Where(parts => parts.Length >= 2)
-                .Select(parts => new EmailAccount
-                {
-                    EmailAddress = parts[0].Trim(),
-                    Password = parts[1].Trim()
-                })
-                .ToList();
-
-            if (emailAccounts.Count == 0)
-            {
-                ErrorMessage = "No valid emails found!";
+                ErrorMessage = "Profiles.txt not found!";
                 return;
             }
 
-            // Get available proxies
-            var availableProxies = CentralProxyList.Where(p => p.Availability).ToList();
-            var allProxies = CentralProxyList.ToList();
-
-            // Step 1: Assign available proxies first
-            int proxyIndex = 0;
-            foreach (var email in emailAccounts)
-            {
-                if (proxyIndex < availableProxies.Count)
-                {
-                    email.Proxy = availableProxies[proxyIndex];
-                    proxyIndex++;
-                }
-                else
-                {
-                    break; // No more available proxies
-                }
-            }
-
-            // Step 2: If emails remain without a proxy, redistribute all proxies
-            if (emailAccounts.Any(e => e.Proxy == null))
-            {
-                var remainingEmails = emailAccounts.Where(e => e.Proxy == null).ToList();
-                
-                // Rearrange proxies to spread subnets apart
-                var shuffledProxies = RearrangeProxiesBySubnet(allProxies);
-
-                int shuffledIndex = 0;
-                foreach (var email in remainingEmails)
-                {
-                    email.Proxy = shuffledProxies[shuffledIndex % shuffledProxies.Count];
-                    shuffledIndex++;
-                }
-            }
-
-           
-            if (isOverwriting)
-            {
-                // Step 3: Save the processed email list to "assignedFinish.txt"
-                await SaveEmailsToFileAsync(emailAccounts,isOverwriting);
-                
-                SuccessMessage = "Proxies assigned and file saved successfully!";
-            }
-            EmailInputAssign = string.Join(Environment.NewLine, emailAccounts.Select(e => $"{e.EmailAddress};{e.Password};;{e.Proxy.ProxyIp};{e.Proxy.Port};{e.Proxy.Username};{e.Proxy.Password}"));
-
-         
+            EmailInputAssign = await File.ReadAllTextAsync(filePath);
         }
-        catch (Exception ex)
+
+        // Parse input into email accounts
+        var emailAccounts = EmailInputAssign.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Split(';'))
+            .Where(parts => parts.Length >= 2)
+            .Select(parts => new EmailAccount
+            {
+                EmailAddress = parts[0].Trim(),
+                Password = parts[1].Trim()
+            })
+            .ToList();
+
+        if (emailAccounts.Count == 0)
         {
-            ErrorMessage = $"Error: {ex.Message}";
+            ErrorMessage = "No valid emails found!";
+            return;
+        }
+
+        // Get available proxies first, then all proxies
+        var availableProxies = CentralProxyList.Where(p => p.Availability).ToList();
+        var allProxies = CentralProxyList.ToList();
+
+        // Step 1: Try to assign available proxies first
+        await AssignProxiesWithTesting(emailAccounts, availableProxies);
+
+        // Step 2: If emails still need proxies, use all proxies with subnet arrangement
+        var emailsWithoutProxies = emailAccounts.Where(e => e.Proxy == null).ToList();
+        if (emailsWithoutProxies.Any())
+        {
+            // Get unused proxies and arrange by subnet
+            var usedProxies = emailAccounts.Where(e => e.Proxy != null).Select(e => e.Proxy).ToList();
+            var unusedProxies = allProxies.Except(usedProxies).ToList();
+            var shuffledProxies = RearrangeProxiesBySubnet(unusedProxies);
+
+            await AssignProxiesWithTesting(emailsWithoutProxies, shuffledProxies);
+        }
+
+        // Step 3: If still emails without proxies, reuse working proxies
+        var finalEmailsWithoutProxies = emailAccounts.Where(e => e.Proxy == null).ToList();
+        if (finalEmailsWithoutProxies.Any())
+        {
+            var workingProxies = emailAccounts.Where(e => e.Proxy != null).Select(e => e.Proxy).ToList();
+            
+            if (workingProxies.Any())
+            {
+                for (int i = 0; i < finalEmailsWithoutProxies.Count; i++)
+                {
+                    finalEmailsWithoutProxies[i].Proxy = workingProxies[i % workingProxies.Count];
+                }
+            }
+            else
+            {
+                ErrorMessage = "No working proxies found for email assignment!";
+                return;
+            }
+        }
+
+        if (isOverwriting)
+        {
+            // Save the processed email list to "assignedFinish.txt"
+            await SaveEmailsToFileAsync(emailAccounts, isOverwriting);
+            SuccessMessage = "Proxies assigned and file saved successfully!";
+        }
+        
+        EmailInputAssign = string.Join(Environment.NewLine, emailAccounts.Select(e => 
+            $"{e.EmailAddress};{e.Password};;{e.Proxy.ProxyIp};{e.Proxy.Port};{e.Proxy.Username};{e.Proxy.Password}"));
+    }
+    catch (Exception ex)
+    {
+        ErrorMessage = $"Error: {ex.Message}";
+    }
+}
+// Method to assign proxies with on-demand testing
+private async Task AssignProxiesWithTesting(List<EmailAccount> emailAccounts, List<Proxy> proxyPool)
+{
+    int emailIndex = 0;
+    int proxyIndex = 0;
+
+    while (emailIndex < emailAccounts.Count && proxyIndex < proxyPool.Count)
+    {
+        var currentProxy = proxyPool[proxyIndex];
+        
+        // Test the proxy only when we're about to assign it
+        bool isProxyWorking = await TestProxyAsync(currentProxy);
+        
+        if (isProxyWorking)
+        {
+            // Proxy works, assign it to the email
+            emailAccounts[emailIndex].Proxy = currentProxy;
+            emailIndex++; // Move to next email
+        }
+        // If proxy failed, just move to next proxy (don't increment emailIndex)
+        
+        proxyIndex++; // Always move to next proxy
+    }
+}
+
+// Fast proxy testing method
+private async Task<bool> TestProxyAsync(Proxy proxy)
+{
+    try
+    {
+        // Skip testing if we already know it's working
+        if (proxy.YahooConnectivity == "Working")
+        {
+            return true;
+        }
+
+        using (var httpClient = new HttpClient())
+        {
+            var proxyUri = new Uri($"http://{proxy.ProxyIp}:{proxy.Port}");
+            var webProxy = new WebProxy(proxyUri);
+            
+            if (!string.IsNullOrEmpty(proxy.Username) && !string.IsNullOrEmpty(proxy.Password))
+            {
+                webProxy.Credentials = new NetworkCredential(proxy.Username, proxy.Password);
+            }
+
+            var httpClientHandler = new HttpClientHandler()
+            {
+                Proxy = webProxy,
+                UseProxy = true
+            };
+
+            using (var proxyClient = new HttpClient(httpClientHandler))
+            {
+                proxyClient.Timeout = TimeSpan.FromSeconds(5); // 5 second timeout
+                
+                var response = await proxyClient.GetAsync("http://httpbin.org/ip");
+                
+                // Update proxy status
+                proxy.YahooConnectivity = response.IsSuccessStatusCode ? "Working" : "Failed";
+                
+                return response.IsSuccessStatusCode;
+            }
         }
     }
-
+    catch (Exception ex)
+    {
+        proxy.YahooConnectivity = $"Failed: {ex.Message}";
+        return false;
+    }
+}
     /// <summary>
     /// Saves the list of emails with assigned proxies to "assignedFinish.txt".
     /// </summary>

@@ -210,12 +210,6 @@ C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\scopedcss\
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets\msbuild.ReportingApi.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets\msbuild.ReportingApi.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
-C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets\msbuild.build.ReportingApi.props
-C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.ReportingApi.props
-C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.ReportingApi.props
-C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\Reportin.A55629C7.Up2Date
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\ReportingApi.dll
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\refint\ReportingApi.dll
@@ -262,3 +256,4 @@ C:\Users\khali\RiderProjects\Repporting\ReportingApi\bin\Debug\net8.0\runtimes\w
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\bin\Debug\net8.0\Reporting.lib.dll
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\bin\Debug\net8.0\Reporting.lib.pdb
 C:\Users\khali\RiderProjects\Repporting\ReportingApi\bin\Debug\net8.0\CommunityToolkit.Mvvm.dll
+C:\Users\khali\RiderProjects\Repporting\ReportingApi\obj\Debug\net8.0\staticwebassets.build.json.cache

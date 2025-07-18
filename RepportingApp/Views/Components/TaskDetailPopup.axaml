@@ -103,6 +103,16 @@
                         
                     </StackPanel>
                    
+                </Button> 
+                <Button Background="Transparent"  Command="{Binding DownloadSuccessEmailsCommand}" VerticalAlignment="Bottom" Cursor="Hand">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock >
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Download Success "></TextBlock>
+                                <PathIcon Data="{StaticResource Downloadicon}" Foreground="{StaticResource MainGreen}"></PathIcon>
+                            </StackPanel>
+                        </TextBlock>
+                    </StackPanel>
                 </Button>
                 <TextBlock HorizontalAlignment="Center" Text="{Binding DownloadValue}" TextWrapping="Wrap"></TextBlock>
                 </StackPanel>

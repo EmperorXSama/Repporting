@@ -8,11 +8,25 @@ public static class PayloadManager
             "{\"requests\":[{\"id\":\"GetMessageGroupList\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/messages/@.select==q?q=folderId%3A"+folderId+"%20acctId%3A1%20groupBy%3AconversationId%20count%3A"+count+"%20offset%3A0%20-folderType%3A(SYNC)-folderType%3A(INVISIBLE)%20-sort%3Adate\",\"method\":\"GET\",\"payloadType\":\"embedded\"},{\"id\":\"UnseenCountReset\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/decos/@.id==FTI\",\"method\":\"POST\",\"payload\":{\"id\":\"FTI\",\"counts\":[{\"accountId\":\"1\",\"unseen\":0}]}}],\"responseType\":\"json\"}";
         
     }  
+    public static string GetFoldersInformation(string id)
+    {
+        return
+            "{\"requests\":{\"id\":\"GetFolders\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+
+            "/folders\",\"method\":\"GET\",\"payloadType\":\"embedded\"},\"responseType\":\"json\"}";
+
+    }  
     public static string PrepareMailBoxPayload(string id)
     {
         return
             "{\"requests\":[{\"id\":\"GetMailboxAttribute_web.composeFontFamily\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==web.composeFontFamily\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_web.composeFontSize\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==web.composeFontSize\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_web.enableEnhancerLinkPreview\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==web.enableEnhancerLinkPreview\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_web.emojiRecentlyUsed\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==web.emojiRecentlyUsed\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_web.experimentalFeatures\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==web.experimentalFeatures\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_vacationPreferences\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==vacationPreferences\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_deliveryBlockedSenders\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==deliveryBlockedSenders\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_messageFilters\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==messageFilters\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_disposableAddressesPrefix\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==disposableAddressesPrefix\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_mailboxSize\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==mailboxSize\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_cp.consentEvents\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==cp.consentEvents\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_mailAutoForwardAllowed\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==mailAutoForwardAllowed\",\"method\":\"GET\"},{\"id\":\"GetMailboxAttribute_mailPremiumDeaAllowed\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/attributes/@.id==mailPremiumDeaAllowed\",\"method\":\"GET\"}],\"responseType\":\"json\"}";
         
+    }  
+    public static string GetPermanentDeletePayload(string id,string messagesNumber)
+    {
+        return
+            "{\"requests\":[{\"id\":\"UnifiedDeleteMessage_0\",\"uri\":\"/ws/v3/mailboxes/@.id==" + id +
+            "/messages/@.select==q?q=folderId%3A4%20count%3A"+messagesNumber+"&async=true\",\"method\":\"DELETE\"}],\"responseType\":\"json\"}";
+
     }   
     public static string CreateAliasePayload(string id , string nickName, string alias , string sendingName)
     {
@@ -130,7 +144,22 @@ public static class PayloadManager
         string listIds = GetIdsChain(new ObservableCollection<string>(messageIds));
         return
             "{\"requests\":[{\"id\":\"UnifiedUpdateMessage_0\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/messages/@.select==q?q=id%3A("+listIds+")\",\"method\":\"POST\",\"payloadType\":\"embedded\",\"payload\":{\"message\":{\"folder\":{\"id\":\"21\"}}}}],\"responseType\":\"json\"}";
-}
+    }
+    public static string MoveMessageToTrashSinglePayload(string id,string messageId)
+    {
+        return
+        "{\"requests\":[{\"id\":\"UnifiedUpdateMessage_0\",\"uri\":\"/ws/v3/mailboxes/@.id==" + id + 
+            "/messages/@.select==q?q=id%3A("+ messageId + 
+            ")\",\"method\":\"POST\",\"payloadType\":\"embedded\",\"payload\":{\"message\":{\"folder\":{\"id\":\"4\"}}}}],\"responseType\":\"json\"}";
+        
+    }
+
+    public static string MoveMessagesToTrashBulkPayload(string id, IEnumerable<string> messageIds)
+    {
+        string listIds = GetIdsChain(new ObservableCollection<string>(messageIds));
+        return
+            "{\"requests\":[{\"id\":\"UnifiedUpdateMessage_0\",\"uri\":\"/ws/v3/mailboxes/@.id=="+id+"/messages/@.select==q?q=id%3A("+listIds+")\",\"method\":\"POST\",\"payloadType\":\"embedded\",\"payload\":{\"message\":{\"folder\":{\"id\":\"4\"}}}}],\"responseType\":\"json\"}";
+    }
 
     #region MNS
 

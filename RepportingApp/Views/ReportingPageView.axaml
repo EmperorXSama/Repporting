@@ -494,6 +494,39 @@
                                             </Grid>
                                     
                                 </Border>  
+                                <!--Trash -->
+                                <Border Background="#3542494C" Padding="7"
+                                        IsVisible="{ Binding IsTrashSelected}">
+                                            <Grid RowDefinitions="30,Auto">
+                                                <DockPanel>
+                                                    <PathIcon Width="20" Height="20"    Foreground="{StaticResource Read}" Data="{StaticResource MarkReadIcon}" HorizontalAlignment="Left"></PathIcon>
+                                                    <TextBlock Text="Send Message to trash"
+                                                               FontFamily="{StaticResource Roboto}"
+                                                               HorizontalAlignment="Right"
+                                                               Foreground="{StaticResource Read}"
+                                                               FontWeight="Bold"></TextBlock>
+                                                </DockPanel>
+                                             
+                                                <StackPanel Grid.Row="1" Spacing="10">
+                                                    <ListBox Grid.Row="1"
+                                                             ItemsSource="{Binding Folders}"
+                                                             Cursor="Hand"
+                                                             FontFamily="{StaticResource Roboto}"
+                                                             SelectionMode="Multiple"
+                                                             BorderBrush="{StaticResource CollectData}"
+                                                             BorderThickness="1"
+                                                             SelectionChanged="OnSelectionChanged"/>
+                                                    <StackPanel Spacing="4">
+                                                        <!--contain -->
+                                                        <components1:MMRIThreashold />
+                                                    </StackPanel>    
+                                                   
+                                                   
+                                                </StackPanel>
+                                               
+                                            </Grid>
+                                    
+                                </Border>  
                                 <!--Archive messages-->
                                 <Border Background="#3578CEBD" Padding="7"
                                         IsVisible="{ Binding IsArchiveChoiceSelected}">
@@ -920,6 +953,7 @@
                                            <CheckBox Grid.Column="0" Content="Reporting" 
                                                      Command="{Binding ProcessesCheckedManagerCommand}" 
                                                      CommandParameter="IsReportingSelected"
+                                                   
                                                      IsChecked="{Binding SelectedProcessesUi.IsReportingSelected, Mode=TwoWay}"
                                                      Width="200"
                                                      Height="40">
@@ -939,7 +973,10 @@
                                                         </ControlTemplate>
                                                     </CheckBox.Template>
                                                 </CheckBox>
-                                           <CheckBox  Cursor="Hand"  Content="Disappearing" Command="{Binding ProcessesCheckedManagerCommand}" IsChecked="{Binding SelectedProcessesUi.IsMMRI}"
+                                           <CheckBox  Cursor="Hand"  Content="Disappearing"
+                                                      Command="{Binding ProcessesCheckedManagerCommand}"
+                                                      CommandParameter="TrashMessages"
+                                                      IsChecked="{Binding SelectedProcessesUi.IsDeleteSpamSelected}"
                                                       Width="200"
                                                       Height="40">
                                                     <CheckBox.Template>
