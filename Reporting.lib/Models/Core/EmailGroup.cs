@@ -5,10 +5,12 @@ public class EmailGroup
     public int? GroupId { get; set; }
     public string GroupName { get; set; }
     public string RdpIp { get; set; }
+    public DateTime CreatedDate { get; set; }  
     public int EmailCount { get; set; }  
+   
 
     public override string ToString()
     {
-        return $"{GroupName} - {RdpIp} - {EmailCount}";
+        return $"{GroupName} - {RdpIp} - {EmailCount} - {CreatedDate}";
     }
 }

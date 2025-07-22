@@ -58,6 +58,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/MNSThreashold.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/SusscessEndicator.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/khali/RiderProjects/Repporting/RepportingApp/Views/Components/TaskCardDesign/CampaignTasks.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

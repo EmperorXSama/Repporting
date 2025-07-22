@@ -7,6 +7,7 @@ public class ApiEndPoints
     private static readonly string BaseUrl = "http://95.217.183.87:2030/api";
     /*private static readonly string BaseUrl = "http://localhost:5164/api";*/
     public static string GetGroups => $"{BaseUrl}/Group";
+    public static string MoveEmails => $"{BaseUrl}/Group/MoveEmails";
     public static string PostGroup => $"{BaseUrl}/Group/AddGroup";
     public static string PostProxy => $"{BaseUrl}/Proxy/UploadProxies";
     public static string UpdateProxy => $"{BaseUrl}/Proxy/UpdateProxiesRC";

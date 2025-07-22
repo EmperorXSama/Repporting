@@ -17,56 +17,48 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Opacity="{Binding Opacity}">
-            <Border  CornerRadius="10"
-                     Padding="20,10">
+            <Border CornerRadius="10" Padding="20,10">
                 <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,250">
-                        <GradientStop Color="#FFFDE9E9" Offset="0.0" /> <!-- Light peach/pink at the top -->
-                        <GradientStop Color="White" Offset="1.0" />       <!-- White at the bottom -->
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,50">
+                        <GradientStop Color="#98daeb" Offset="0.0" />
+                        <GradientStop Color="White" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <Grid ColumnDefinitions="30,19,*" RowDefinitions="40,*" >
+                <Grid ColumnDefinitions="30,19,*" RowDefinitions="40,*">
                     
                     <Border Width="40" Height="40" Background="White"
                             CornerRadius="20"
-                            BoxShadow="0 0 5 1 #D86F6F"
-                            >
+                            BoxShadow="{Binding BoxShadowColor, StringFormat='0 0 5 1 {0}'}">
                         <PathIcon
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            Foreground="{StaticResource MainAlert}" Data="{StaticResource Warning}" />
+                            Foreground="{DynamicResource {Binding IconColor}}" 
+                            Data="{StaticResource Warning}" />
                     </Border>
-                    <!--<PathIcon
-                        VerticalAlignment="Top"
-                        Foreground="{Binding IconColor}" Data="{Binding Icon}" />-->
-                    <DockPanel Grid.Row="0" Grid.Column="2" >
+                    
+                    <DockPanel Grid.Row="0" Grid.Column="2">
                         <TextBlock Text="{Binding Title}"
                                    FontFamily="{StaticResource Roboto}"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource TextMain}"
-                                   />
-                        <Button 
-                                HorizontalAlignment="Right"
-                              
+                                   Foreground="{StaticResource TextMain}" />
+                        <Button HorizontalAlignment="Right"
                                 Background="Transparent"
                                 Command="{Binding CloseErrorIndecatorCommand}">
                             <PathIcon
                                 VerticalAlignment="Top"
-                                Foreground="{StaticResource MainAlert}" Data="{StaticResource CloseTaskIcon}" />
+                                Foreground="{DynamicResource {Binding CloseButtonColor}}" 
+                                Data="{StaticResource CloseTaskIcon}" />
                         </Button>
                     </DockPanel>
-                    <Border Grid.Row="1" Grid.Column="2"  Padding="10">
+                    
+                    <Border Grid.Row="1" Grid.Column="2" Padding="10">
                         <TextBlock Grid.Row="2" Text="{Binding Message}" 
                                    Foreground="{StaticResource TextMain}"
                                    TextWrapping="WrapWithOverflow"
                                    FontWeight="SemiLight"/>
                     </Border>
-                  
-              
                 </Grid>
             </Border>
-            
-       
         </Border>
     </Border>
 </UserControl>

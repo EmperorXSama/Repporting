@@ -157,11 +157,12 @@ public async Task<List<ReturnTypeObject>> MoveMessagesToTargetDirectory(EmailAcc
         var result =  await retryPolicy.ExecuteAsync(async () =>
         {
             CheckEmailMetaData(emailAccount);
-            var messages = await GetMessagesFromFolder(emailAccount, fromDirectoryId);
-            if (messages.Count <= 0) return new ReturnTypeObject { Message = "No messages found." };
+            
             string messageResult = string.Empty;
             if (toDirectoryId == Statics.ArchiveDir)
             {
+                var messages = await GetMessagesFromFolder(emailAccount, fromDirectoryId,config.PreReportingSettings.MaxMessagesToArchive);
+                if (messages.Count <= 0) return new ReturnTypeObject { Message = "No messages found." };
                 messageResult = await SendMessagesToArchive(
                     emailAccount,
                     messages,
@@ -173,14 +174,16 @@ public async Task<List<ReturnTypeObject>> MoveMessagesToTargetDirectory(EmailAcc
                 );
             }else if (toDirectoryId == Statics.TrashDir)
             {
+                var messages = await GetMessagesFromFolder(emailAccount, fromDirectoryId,config.PreReportingSettings.MaxMessagesToRead);
+                if (messages.Count <= 0) return new ReturnTypeObject { Message = "No messages found." };
                 messageResult = await SendMessagesToTrash(
                     emailAccount,
                     messages,
                     config.BulkThreshold,
                     config.BulkChunkSize,
                     config.SingleThreshold,
-                    config.PreReportingSettings.MinMessagesToArchive,
-                    config.PreReportingSettings.MaxMessagesToArchive
+                    config.PreReportingSettings.MinMessagesToRead,
+                    config.PreReportingSettings.MaxMessagesToRead
                 );
             }
         
@@ -280,7 +283,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
 
 
    
-    private async Task<ObservableCollection<FolderMessages>> GetMessagesFromFolder(EmailAccount emailAccount, string dirId)
+    private async Task<ObservableCollection<FolderMessages>> GetMessagesFromFolder(EmailAccount emailAccount, string dirId,int messageCount = 100)
     {
         var headers = PopulateHeaders(emailAccount);
 
@@ -304,7 +307,7 @@ public async Task<List<ReturnTypeObject>> ProcessMarkMessagesAsNotSpam(EmailAcco
         {
             // Generate endpoint and payload
             string endpoint = GenerateEndpoint(emailAccount, EndpointType.ReadSync);
-            string payload = PayloadManager.GetCorrectFolderPayload(emailAccount.MetaIds.MailId, dirId);
+            string payload = PayloadManager.GetCorrectFolderPayload(emailAccount.MetaIds.MailId, dirId,messageCount);
 
             // Call the API
             string response = await _apiConnector.PostDataAsync<string>(
@@ -750,8 +753,8 @@ private async Task<string> DeleteMessagesPermanent(EmailAccount emailAccount, st
                 {
                     // Handle errors and add an error message to the responses
                     emailAccount.ApiResponses.Add(new KeyValuePair<string, object>(
-                        $"[ReadMessage] {DateTime.UtcNow.ToString("g")}",
-                        $"Failed to mark message id: {singleMessages.id}. Error: {ex.Message} \n"
+                        $"[TrashMessage] {DateTime.UtcNow.ToString("g")}",
+                        $"Failed to TrashMessage id: {singleMessages.id}. Error: {ex.Message} \n"
                     ));
                     
                 }
@@ -767,7 +770,7 @@ private async Task<string> DeleteMessagesPermanent(EmailAccount emailAccount, st
         
      
         emailAccount.Stats.LastArchivedCount = marked;
-        return $"{marked} of {messagesToTrash.Count} messages has been sent as archive ";
+        return $"{marked} of {messagesToTrash.Count} messages has been sent as TrashMessage ";
     }
     #endregion
 

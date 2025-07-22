@@ -1,0 +1,72 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:RepportingApp.ViewModels"
+             xmlns:components="clr-namespace:RepportingApp.ViewModels.Components"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="components:SuccessEndicatoreViewModel"
+             x:Class="RepportingApp.Views.Components.SusscessEndicator">
+    
+    <Border Padding="10" IsVisible="True">
+        <Border Background="White" 
+                CornerRadius="15"
+                Padding="3"
+                Width="500"
+                Height="290"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Opacity="1">
+            <Border  CornerRadius="10"
+                     Padding="20,10">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,250">
+                        <GradientStop Color="#FFFDE9E9" Offset="0.0" /> <!-- Light peach/pink at the top -->
+                        <GradientStop Color="White" Offset="1.0" />       <!-- White at the bottom -->
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid ColumnDefinitions="30,19,*" RowDefinitions="40,*" >
+                    
+                    <Border Width="40" Height="40" Background="White"
+                            CornerRadius="20"
+                            BoxShadow="0 0 5 1 #D86F6F"
+                            >
+                        <PathIcon
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Foreground="{StaticResource MainGreen}" Data="{StaticResource Warning}" />
+                    </Border>
+                    <!--<PathIcon
+                        VerticalAlignment="Top"
+                        Foreground="{Binding IconColor}" Data="{Binding Icon}" />-->
+                    <DockPanel Grid.Row="0" Grid.Column="2" >
+                        <TextBlock Text="{Binding Title}"
+                                   FontFamily="{StaticResource Roboto}"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextMain}"
+                                   />
+                        <Button 
+                                HorizontalAlignment="Right"
+                              
+                                Background="Transparent"
+                                Command="{Binding CloseSuccessIndecatorCommand}">
+                            <PathIcon
+                                VerticalAlignment="Top"
+                                Foreground="{StaticResource MainGreen}" Data="{StaticResource CloseTaskIcon}" />
+                        </Button>
+                    </DockPanel>
+                    <Border Grid.Row="1" Grid.Column="2"  Padding="10">
+                        <TextBlock Grid.Row="2" Text="{Binding Message}" 
+                                   Foreground="{StaticResource TextMain}"
+                                   TextWrapping="WrapWithOverflow"
+                                   FontWeight="SemiLight"/>
+                    </Border>
+                  
+              
+                </Grid>
+            </Border>
+            
+       
+        </Border>
+    </Border>
+</UserControl>

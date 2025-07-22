@@ -1,5 +1,6 @@
 ﻿using DataAccess.Enums;
 using Reporting.lib.Models.DTO;
+using ReportingApi.Models;
 using RepportingApp.CoreSystem.FileSystem;
 using RepportingApp.CoreSystem.ProxyService;
 namespace RepportingApp.ViewModels;
@@ -53,6 +54,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     private ObservableCollection<string> _reportingselectedProcessesToIcon = new ObservableCollection<string>();
 
     [ObservableProperty] public ErrorIndicatorViewModel _errorIndicator = new ErrorIndicatorViewModel();
+    [ObservableProperty] public SuccessEndicatoreViewModel _successIndicator = new SuccessEndicatoreViewModel();
     
     // process selector popup
     [ObservableProperty] private bool _isCampaignSelected = false;
@@ -225,7 +227,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
             {"TrashMessages",async (emailAcc) =>
                 {
                     if (emailAcc == null) throw new ArgumentNullException(nameof(emailAcc));
-                    return await _reportingRequests.MoveMessagesToTargetDirectory(emailAcc,ArchiveMessagesConfig,FolderIds,Statics.TrashDir);
+                    return await _reportingRequests.MoveMessagesToTargetDirectory(emailAcc,MarkMessagesAsReadConfig,FolderIds,Statics.TrashDir);
                 }
             },
         };
@@ -274,6 +276,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
         // Efficiently update observable collections
         Groups = groups.ToObservableCollection();
+        InitializeSelectableGroups();
         NetworkItems = emails.ToObservableCollection();
         EmailDiaplysTable = new ObservableCollection<EmailAccount>(NetworkItems);
         EmailAccounts = emails.ToObservableCollection();
@@ -490,7 +493,7 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
                 NewGroupName = string.Empty;
                 RdpIp = string.Empty;
-
+                await ReconnectToApi();
      
         }
         catch (Exception e)
@@ -536,6 +539,137 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
        
             
     }
+ [ObservableProperty] private ObservableCollection<SelectableEmailGroup> _selectableGroups = new();
+[ObservableProperty] private EmailGroup? _selectedDestinationGroup;
+[ObservableProperty] private bool _canMoveEmails = false;
+[ObservableProperty] private bool _showMoveInfo = false;
+[ObservableProperty] private int _selectedSourceGroupsCount = 0;
+[ObservableProperty] private int _totalEmailsToMove = 0;
+
+// Call this method when you load/refresh groups
+private void InitializeSelectableGroups()
+{
+    SelectableGroups.Clear();
+    foreach (var group in Groups)
+    {
+        var selectableGroup = new SelectableEmailGroup { Group = group };
+        selectableGroup.SelectionChanged += OnGroupSelectionChanged;
+        SelectableGroups.Add(selectableGroup);
+    }
+    UpdateComputedProperties();
+}
+
+private void OnGroupSelectionChanged(SelectableEmailGroup group, bool isSelected)
+{
+    UpdateComputedProperties();
+}
+
+partial void OnSelectedDestinationGroupChanged(EmailGroup? value)
+{
+    UpdateComputedProperties();
+}
+
+partial void OnIsEnabledChanged(bool value)
+{
+    UpdateComputedProperties();
+}
+
+private void UpdateComputedProperties()
+{
+    var selectedGroups = SelectableGroups.Where(g => g.IsSelected).ToList();
+    var hasSourceGroups = selectedGroups.Any();
+    var hasDestination = SelectedDestinationGroup != null;
+    var noDuplicates = hasSourceGroups && hasDestination && 
+                       !selectedGroups.Any(sg => sg.GroupId == SelectedDestinationGroup!.GroupId);
+
+    CanMoveEmails = hasSourceGroups && hasDestination && noDuplicates && IsEnabled;
+    ShowMoveInfo = hasSourceGroups && hasDestination && noDuplicates;
+    SelectedSourceGroupsCount = selectedGroups.Count;
+    TotalEmailsToMove = selectedGroups.Sum(g => g.EmailCount);
+}
+
+[RelayCommand]
+private async Task MoveEmailsBetweenGroups()
+{
+    try
+    {
+        IsEnabled = false;
+        
+        var selectedGroups = SelectableGroups.Where(g => g.IsSelected).ToList();
+        
+        if (!selectedGroups.Any())
+        {
+            throw new Exception("Please select at least one source group");
+        }
+
+        if (SelectedDestinationGroup == null)
+        {
+            throw new Exception("Please select a destination group");
+        }
+
+        if (selectedGroups.Any(sg => sg.GroupId == SelectedDestinationGroup.GroupId))
+        {
+            throw new Exception("Source and destination groups cannot be the same");
+        }
+
+        // Debug logging
+        System.Diagnostics.Debug.WriteLine($"Moving {TotalEmailsToMove} emails from {SelectedSourceGroupsCount} groups");
+        foreach (var group in selectedGroups)
+        {
+            System.Diagnostics.Debug.WriteLine($"  - {group.GroupName}: {group.EmailCount} emails");
+        }
+
+        // Convert to comma-separated string for API
+        var sourceGroupNames = string.Join(",", selectedGroups.Select(g => g.GroupName));
+
+        var moveRequest = new MoveEmailsRequest
+        {
+            SourceGroupNames = sourceGroupNames,
+            DestinationGroupName = SelectedDestinationGroup.GroupName
+        };
+
+        var result = await _apiConnector.PostDataObjectAsync<MoveEmailsResult>(ApiEndPoints.MoveEmails, moveRequest);
+
+        if (result.Status == "SUCCESS")
+        {
+            var message = result.Message;
+            if (!string.IsNullOrEmpty(result.NotFoundGroups))
+            {
+                message += $"\nNote: Some groups were not found: {result.NotFoundGroups}";
+            }
+
+            ErrorIndicator = new ErrorIndicatorViewModel();
+            await ErrorIndicator.ShowIndicatorAndWait("Move Complete", message, IndicatorType.Success);
+            
+            await ReconnectToApi();
+            ClearMoveSelection();
+        }
+        else
+        {
+            throw new Exception(result.Message);
+        }
+    }
+    catch (Exception e)
+    {
+        ErrorIndicator = new ErrorIndicatorViewModel();
+        await ErrorIndicator.ShowIndicatorAndWait("Move Emails Failed", e.Message, IndicatorType.Error);
+    }
+    finally
+    {
+        IsEnabled = true;
+    }
+}
+
+[RelayCommand]
+private void ClearMoveSelection()
+{
+    foreach (var group in SelectableGroups)
+    {
+        group.IsSelected = false;
+    }
+    SelectedDestinationGroup = null;
+}
+
     #endregion
 
     #region Upload File/Data Func

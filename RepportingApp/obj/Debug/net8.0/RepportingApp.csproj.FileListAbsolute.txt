@@ -166,3 +166,17 @@ C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Polly.dll
 C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Polly.Core.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.CommandLine.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Configuration.UserSecrets.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Hosting.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.Configuration.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.Console.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.Debug.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.EventLog.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Logging.EventSource.dll
+C:\Users\khali\RiderProjects\Repporting\RepportingApp\bin\Debug\net8.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll

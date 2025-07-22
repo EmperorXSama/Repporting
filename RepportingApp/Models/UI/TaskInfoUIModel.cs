@@ -103,6 +103,7 @@ public partial class TaskInfoUiModel : ObservableObject
     {
         IsConsoleNeeded = false;
     }
+    
     [RelayCommand]
     private void DownloadFailedEmails()
     {
@@ -146,7 +147,14 @@ public partial class TaskInfoUiModel : ObservableObject
             string filePath = Path.Combine(directoryPath, "FailedEmails.txt");
             File.WriteAllText(filePath, content);
 
-            DownloadValue = "Download complete: " + filePath;
+            // Open the file in the default text editor
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = filePath,
+                UseShellExecute = true
+            });
+
+            DownloadValue = "Download complete and file opened: " + filePath;
         }
         catch (Exception e)
         {
@@ -195,7 +203,11 @@ public partial class TaskInfoUiModel : ObservableObject
 
             string filePath = Path.Combine(directoryPath, "SuccessEmails.txt");
             File.WriteAllText(filePath, content);
-
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = filePath,
+                UseShellExecute = true
+            });
             DownloadValue = "Download complete: " + filePath;
         }
         catch (Exception e)

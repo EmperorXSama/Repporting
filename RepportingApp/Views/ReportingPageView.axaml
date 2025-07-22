@@ -317,7 +317,117 @@
                                            VerticalAlignment="Center"
                                            Foreground="{StaticResource TextMain}"
                                            FontWeight="Bold"></TextBlock>
-                                
+                               <Border Margin="10" 
+        Padding="12" 
+        Background="White"
+        BorderBrush="{StaticResource LightGrey}" 
+        BorderThickness="1"
+        CornerRadius="6">
+
+    <StackPanel Spacing="12">
+
+        <TextBlock Text="Move Emails (Multi-Select)" 
+                   FontSize="14" 
+                   FontWeight="Bold" 
+                   Foreground="{StaticResource Primary}"/>
+
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto" >
+            
+            <!-- Source Groups Multi-Select -->
+            <StackPanel Grid.Row="0" Spacing="5">
+                <TextBlock Text="From Groups:" FontWeight="Medium" FontSize="12"/>
+                <Border BorderBrush="{StaticResource LightGrey}" 
+                        BorderThickness="1" 
+                        CornerRadius="4" 
+                        Height="80">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding SelectableGroups}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}"
+                                              Margin="5,2">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <TextBlock Text="{Binding GroupName}" FontWeight="Medium"/>
+                                            <TextBlock Text="(" Foreground="Gray"/>
+                                            <TextBlock Text="{Binding EmailCount}" Foreground="#2274A5" FontWeight="Bold"/>
+                                            <TextBlock Text=")" Foreground="Gray"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+
+            <!-- Arrow -->
+            <TextBlock Grid.Row="1" 
+                       Text="↓ Move To ↓" 
+                       FontSize="12" 
+                       FontWeight="Bold"
+                       Foreground="{StaticResource Primary}"
+                       HorizontalAlignment="Center"/>
+
+            <!-- Destination Group Single-Select -->
+            <StackPanel Grid.Row="2" Spacing="5">
+                <TextBlock Text="To Group:" FontWeight="Medium" FontSize="12"/>
+                <ComboBox ItemsSource="{Binding Groups}"
+                          SelectedItem="{Binding SelectedDestinationGroup}"
+                          PlaceholderText="Select destination group..."
+                          Height="35">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <TextBlock Text="{Binding GroupName}" FontWeight="Medium"/>
+                                <TextBlock Text="(" Foreground="Gray"/>
+                                <TextBlock Text="{Binding EmailCount}" Foreground="#2274A5" FontWeight="Bold"/>
+                                <TextBlock Text=")" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                <Button Content="Move Emails"
+                        Background="{StaticResource Primary}"
+                        Foreground="White"
+                        Padding="15,5"
+                        Command="{Binding MoveEmailsBetweenGroupsCommand}"
+                        IsEnabled="{Binding CanMoveEmails}"/>
+                
+                <Button Content="Clear"
+                        Background="Transparent"
+                        Foreground="{StaticResource Primary}"
+                        BorderBrush="{StaticResource Primary}"
+                        BorderThickness="1"
+                        Padding="15,5"
+                        Command="{Binding ClearMoveSelectionCommand}"/>
+            </StackPanel>
+
+            <!-- Info Panel -->
+            <Border Grid.Row="4" 
+                    Background="#F8F9FA"
+                    BorderBrush="#DEE2E6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="8"
+                    IsVisible="{Binding ShowMoveInfo}">
+                <TextBlock FontSize="12" Foreground="#495057">
+                    <Run Text="Moving"/>
+                    <Run Text="{Binding TotalEmailsToMove}" Foreground="#2274A5" FontWeight="Bold"/>
+                    <Run Text="emails from"/>
+                    <Run Text="{Binding SelectedSourceGroupsCount}" Foreground="#2274A5" FontWeight="Bold"/>
+                    <Run Text="selected groups"/>
+                </TextBlock>
+            </Border>
+
+        </Grid>
+
+    </StackPanel>
+
+</Border>
                              <StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <PathIcon
@@ -337,6 +447,8 @@
                                             </StackPanel>
                                         </ToolTip.Tip>
                                     </PathIcon>
+                                
+
                                     <TextBlock
                                         FontFamily="{StaticResource Roboto}"
                                         FontSize="14"
@@ -344,37 +456,40 @@
                                         FontWeight="SemiLight"
                                         Text="Group Selection"/>
                                 </StackPanel>
-                                <Border  Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1" >
-                                      <Grid       ColumnDefinitions="*"
-                                            Background="white">
-                                          <StackPanel>
-                                              <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                                            VerticalScrollBarVisibility="Auto"
-                                                            MaxHeight="200"> <!-- Adjust height as needed -->
-                                                  <ListBox HorizontalAlignment="Stretch"
-                                                           VerticalAlignment="Center"
-                                                           Background="{StaticResource MainWhite}"
-                                                           Foreground="{StaticResource Primary}"
-                                                           ItemsSource="{Binding Groups}"
-                                                           SelectionMode="Multiple"
-                                                           SelectedItems="{Binding SelectedEmailGroupForTask}">
-                                                      <ListBox.ItemTemplate>
-                                                          <DataTemplate>
-                                                              <StackPanel Orientation="Horizontal">
-                                                                  <TextBlock FontWeight="Bold" Text="{Binding GroupName}" Margin="0,0,5,0"/>
-                                                                  <TextBlock Text="-" Margin="0,0,5,0"/>
-                                                                  <TextBlock Text="{Binding RdpIp}"/>
-                                                                  <TextBlock Text="-" Margin="0,0,5,0"/>
-                                                                  <TextBlock FontWeight="Bold" Foreground="#2274A5" Text="{Binding EmailCount}"/>
-                                                              </StackPanel>
-                                                          </DataTemplate>
-                                                      </ListBox.ItemTemplate>
-                                                  </ListBox>
-                                              </ScrollViewer>
-                                          </StackPanel>
-
-                                </Grid>
-                                </Border>
+                                 <Border  Margin="1" BorderBrush="{StaticResource LightGrey}" BorderThickness="1" >
+                                     <Grid ColumnDefinitions="*" Background="white">
+                                         <StackPanel>
+                                             <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                           VerticalScrollBarVisibility="Auto"
+                                                           MaxHeight="200"> <!-- Adjust height as needed -->
+                                                 <ListBox HorizontalAlignment="Stretch"
+                                                          VerticalAlignment="Center"
+                                                          Background="{StaticResource MainWhite}"
+                                                          Foreground="{StaticResource Primary}"
+                                                          ItemsSource="{Binding Groups}"
+                                                          SelectionMode="Multiple"
+                                                          SelectedItems="{Binding SelectedEmailGroupForTask}">
+                                                     <ListBox.ItemTemplate>
+                                                         <DataTemplate>
+                                                             <StackPanel Orientation="Horizontal">
+                                                                 <TextBlock FontWeight="Bold" Text="{Binding GroupName}" Margin="0,0,5,0"/>
+                                                                 <TextBlock Text="-" Margin="0,0,5,0"/>
+                                                                 <TextBlock Text="{Binding RdpIp}" Margin="0,0,5,0"/>
+                                                                 <TextBlock Text="-" Margin="0,0,5,0"/>
+                                                                 <TextBlock FontWeight="Bold" Foreground="#2274A5" Text="{Binding EmailCount}" Margin="0,0,5,0"/>
+                                                                 <TextBlock Text="-" Margin="0,0,5,0"/>
+                                                                 <TextBlock FontWeight="Normal" 
+                                                                            Foreground="#666666" 
+                                                                            Text="{Binding CreatedDate, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" 
+                                                                            Margin="0,0,5,0"/>
+                                                             </StackPanel>
+                                                         </DataTemplate>
+                                                     </ListBox.ItemTemplate>
+                                                 </ListBox>
+                                             </ScrollViewer>
+                                         </StackPanel>
+                                     </Grid>
+                                 </Border>
                             </StackPanel>
                                 <!--collect data-->
                                 <Border Background="#35C695EF" Padding="7"
@@ -989,7 +1104,7 @@
                                                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
                                                                     <PathIcon   Foreground="#EE2F69" Data="{StaticResource DeleteSpamIcon}" Width="20" Height="20" HorizontalAlignment="Center"/>
                                                                    
-                                                                    <TextBlock Text="Delete Spam" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" 
+                                                                    <TextBlock Text="Delete Messages" HorizontalAlignment="Center" FontFamily="{StaticResource Roboto}" FontWeight="Bold" 
                                                                         Foreground="{TemplateBinding IsChecked, Converter={StaticResource SelectedForgroundConverter}}"/>
                                                                     <!--<TextBlock Text="Alert is sent as soon as person disappears." FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>-->
                                                                 </StackPanel>
@@ -1128,8 +1243,8 @@
           
                                             </StackPanel> 
                                         </Border>
-                                        <Border Grid.Column="2" >
-                                            <Grid >
+                                        <Border Grid.Row="0" Grid.Column="2" >
+                                            <!--<Grid >
                                                 <TextBlock
                                                     FontFamily="{StaticResource Roboto}"
                                                     FontSize="17"
@@ -1176,7 +1291,7 @@
                                                   
                                                 </Button>
 
-                                                <!-- Popup that shows when IsPopupOpen is true -->
+                                                ~1~ Popup that shows when IsPopupOpen is true @1@
                                                 <Popup IsLightDismissEnabled="True" 
                                                        Width="350"
                                                        Height="550"
@@ -1311,9 +1426,9 @@
                                                         </Grid>
                                                     </Border>
                                                 </Popup>
-                                            </Grid>
+                                            </Grid>-->
                                         </Border>
-                                        <DataGrid Grid.Row="1" Grid.Column="2"
+                                        <!--<DataGrid Grid.Row="1" Grid.Column="2"
                                                       ItemsSource="{Binding EmailDiaplysTable ,Mode=TwoWay}" 
                                                       AutoGenerateColumns="False"
                                                       GridLinesVisibility="All"
@@ -1338,7 +1453,7 @@
                                                 <DataGridTextColumn Header="last read" Foreground="Black" Binding="{Binding Stats.LastReadCount}" Width="*"/>
                                                 <DataGridTextColumn Header="last reported count" Foreground="Black" Binding="{Binding Stats.LastNotSpamCount}" Width="*"/>
                                             </DataGrid.Columns>
-                                        </DataGrid>
+                                        </DataGrid>-->
                                        
                                         
                                     </Grid>

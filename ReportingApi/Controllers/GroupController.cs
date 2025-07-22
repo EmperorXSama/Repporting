@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Reporting.lib.Data.Services.Group;
 using Reporting.lib.Models.Core;
+using Reporting.lib.Models.Secondary;
+using ReportingApi.Models;
 
 namespace ReportingApi.Controllers
 {
@@ -21,15 +23,36 @@ namespace ReportingApi.Controllers
         {
             return await _groupService.GetAllGroups();
         }
+
         [HttpPost("AddGroup")]
         public async Task<int> Post([FromBody] EmailGroup newGroup)
         {
-            return await _groupService.AddGroup(newGroup.GroupName,newGroup.RdpIp);
+            return await _groupService.AddGroup(newGroup.GroupName, newGroup.RdpIp);
         }
+
         [HttpPost("DeleteGroup")]
         public async Task<bool> Post([FromBody] int groupId)
         {
             return await _groupService.DeleteGroup(groupId);
+        }
+
+        // Updated to handle both single and multi-group moves
+        [HttpPost("MoveEmails")]
+        public async Task<IActionResult> MoveEmails([FromBody] MoveEmailsRequest request)
+        {
+            // This now handles both single group ("GroupA") and multi-group ("GroupA,GroupB,GroupC") 
+            var result = await _groupService.MoveEmailsBetweenMultipleGroups(
+                request.SourceGroupNames, 
+                request.DestinationGroupName);
+            
+            if (result.Status == "SUCCESS")
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
         }
     }
 }

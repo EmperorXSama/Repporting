@@ -18,6 +18,7 @@
         <entry key="RepportingApp/Views/Components/MMRIThreashold.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/MNSThreashold.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/MailboxFilterPopup.axaml" value="RepportingApp/RepportingApp.csproj" />
+        <entry key="RepportingApp/Views/Components/SusscessEndicator.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/TaskCardDesign/CampaignTasks.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/TaskCardDesign/NormalTasks.axaml" value="RepportingApp/RepportingApp.csproj" />
         <entry key="RepportingApp/Views/Components/TaskDetailPopup.axaml" value="RepportingApp/RepportingApp.csproj" />
