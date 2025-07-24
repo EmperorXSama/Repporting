@@ -317,112 +317,161 @@
                                            VerticalAlignment="Center"
                                            Foreground="{StaticResource TextMain}"
                                            FontWeight="Bold"></TextBlock>
-                               <Border Margin="10" 
-        Padding="12" 
+                          <!-- Super Compact Inline Version -->
+<Border Margin="15" 
+        Padding="16" 
         Background="White"
-        BorderBrush="{StaticResource LightGrey}" 
+        BorderBrush="#E5E7EB" 
         BorderThickness="1"
         CornerRadius="6">
 
     <StackPanel Spacing="12">
-
-        <TextBlock Text="Move Emails (Multi-Select)" 
-                   FontSize="14" 
-                   FontWeight="Bold" 
-                   Foreground="{StaticResource Primary}"/>
-
-        <Grid RowDefinitions="Auto,Auto,Auto,Auto" >
+        
+        <!-- Header with inline info -->
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <TextBlock Text="Move Emails" 
+                       FontSize="14" 
+                       FontWeight="Medium" 
+                       VerticalAlignment="Center"/>
             
-            <!-- Source Groups Multi-Select -->
-            <StackPanel Grid.Row="0" Spacing="5">
-                <TextBlock Text="From Groups:" FontWeight="Medium" FontSize="12"/>
-                <Border BorderBrush="{StaticResource LightGrey}" 
-                        BorderThickness="1" 
-                        CornerRadius="4" 
-                        Height="80">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding SelectableGroups}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected}"
-                                              Margin="5,2">
-                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                            <TextBlock Text="{Binding GroupName}" FontWeight="Medium"/>
-                                            <TextBlock Text="(" Foreground="Gray"/>
-                                            <TextBlock Text="{Binding EmailCount}" Foreground="#2274A5" FontWeight="Bold"/>
-                                            <TextBlock Text=")" Foreground="Gray"/>
-                                        </StackPanel>
-                                    </CheckBox>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Border>
-            </StackPanel>
-
-            <!-- Arrow -->
-            <TextBlock Grid.Row="1" 
-                       Text="↓ Move To ↓" 
-                       FontSize="12" 
-                       FontWeight="Bold"
-                       Foreground="{StaticResource Primary}"
-                       HorizontalAlignment="Center"/>
-
-            <!-- Destination Group Single-Select -->
-            <StackPanel Grid.Row="2" Spacing="5">
-                <TextBlock Text="To Group:" FontWeight="Medium" FontSize="12"/>
-                <ComboBox ItemsSource="{Binding Groups}"
-                          SelectedItem="{Binding SelectedDestinationGroup}"
-                          PlaceholderText="Select destination group..."
-                          Height="35">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                <TextBlock Text="{Binding GroupName}" FontWeight="Medium"/>
-                                <TextBlock Text="(" Foreground="Gray"/>
-                                <TextBlock Text="{Binding EmailCount}" Foreground="#2274A5" FontWeight="Bold"/>
-                                <TextBlock Text=")" Foreground="Gray"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-            </StackPanel>
-
+            <!-- Inline Info -->
+            <TextBlock Grid.Column="1" 
+                       FontSize="11" 
+                       Foreground="#6B7280"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding ShowMoveInfo}">
+                <Run Text="{Binding TotalEmailsToMove}"/>
+                <Run Text="emails •"/>
+                <Run Text="{Binding SelectedSourceGroupsCount}"/>
+                <Run Text="groups"/>
+            </TextBlock>
+            
             <!-- Action Buttons -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
-                <Button Content="Move Emails"
-                        Background="{StaticResource Primary}"
+            <StackPanel Grid.Column="2" 
+                        Orientation="Horizontal" 
+                        Spacing="6">
+                <Button Content="Move"
+                        Padding="12,4"
+                        FontSize="12"
+                        Background="#2563EB"
                         Foreground="White"
-                        Padding="15,5"
+                        CornerRadius="4"
                         Command="{Binding MoveEmailsBetweenGroupsCommand}"
                         IsEnabled="{Binding CanMoveEmails}"/>
                 
                 <Button Content="Clear"
+                        Padding="12,4"
+                        FontSize="12"
                         Background="Transparent"
-                        Foreground="{StaticResource Primary}"
-                        BorderBrush="{StaticResource Primary}"
+                        Foreground="#6B7280"
+                        BorderBrush="#D1D5DB"
                         BorderThickness="1"
-                        Padding="15,5"
+                        CornerRadius="4"
                         Command="{Binding ClearMoveSelectionCommand}"/>
             </StackPanel>
+        </Grid>
 
-            <!-- Info Panel -->
-            <Border Grid.Row="4" 
-                    Background="#F8F9FA"
-                    BorderBrush="#DEE2E6"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Padding="8"
-                    IsVisible="{Binding ShowMoveInfo}">
-                <TextBlock FontSize="12" Foreground="#495057">
-                    <Run Text="Moving"/>
-                    <Run Text="{Binding TotalEmailsToMove}" Foreground="#2274A5" FontWeight="Bold"/>
-                    <Run Text="emails from"/>
-                    <Run Text="{Binding SelectedSourceGroupsCount}" Foreground="#2274A5" FontWeight="Bold"/>
-                    <Run Text="selected groups"/>
-                </TextBlock>
-            </Border>
+        <!-- Horizontal Layout for dropdowns -->
+        <Grid ColumnDefinitions="*,Auto,*">
+            
+            <!-- From Multi-Select -->
+            <Grid Grid.Column="0">
+                <Button Background="#F9FAFB"
+                        BorderBrush="#D1D5DB"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="10,6"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Command="{Binding ToggleSourceDropdownCommand}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock Grid.Column="0" 
+                                   Text="From: " 
+                                   FontSize="11" 
+                                   Foreground="#6B7280"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" 
+                                   VerticalAlignment="Center" 
+                                   FontSize="12"
+                                   FontWeight="Medium">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} selected">
+                                    <Binding Path="SelectedSourceGroupsCount"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <PathIcon Grid.Column="2" 
+                                  Data="M19 9l-7 7-7-7" 
+                                  Width="10" 
+                                  Height="10"
+                                  Foreground="#6B7280"
+                                  Margin="4,0,0,0"/>
+                    </Grid>
+                </Button>
+                
+                <!-- Multi-Select Popup -->
+                <Popup IsOpen="{Binding IsSourceDropdownOpen}"
+                       PlacementMode="Bottom"
+                       PlacementTarget="{Binding $parent[Button]}">
+                    <Border Background="White"
+                            BorderBrush="#D1D5DB"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            BoxShadow="0 2 4 0 #0000001A"
+                            MaxHeight="150">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding SelectableGroups}"
+                                          Margin="2">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}"
+                                                  Margin="4,2"
+                                                  FontSize="11">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{Binding GroupName}"/>
+                                                <TextBlock Text="{Binding EmailCount, StringFormat='({0})'}" 
+                                                           Foreground="#2563EB" 
+                                                           FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </Popup>
+            </Grid>
 
+            <!-- Arrow -->
+            <TextBlock Grid.Column="1" 
+                       Text="→" 
+                       FontSize="16" 
+                       Foreground="#2563EB"
+                       VerticalAlignment="Center"/>
+
+            <!-- To Single-Select -->
+            <ComboBox Grid.Column="2"
+                      ItemsSource="{Binding Groups}"
+                      SelectedItem="{Binding SelectedDestinationGroup}"
+                      PlaceholderText="To: Select destination..."
+                      FontSize="12"
+                      Padding="10,6"
+                      Background="#F9FAFB"
+                      BorderBrush="#D1D5DB"
+                      CornerRadius="4">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding GroupName}" FontSize="11"/>
+                            <TextBlock Text="{Binding EmailCount, StringFormat='({0})'}" 
+                                       Foreground="#2563EB" 
+                                       FontWeight="SemiBold"
+                                       FontSize="11"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
         </Grid>
 
     </StackPanel>

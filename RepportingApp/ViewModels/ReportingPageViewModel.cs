@@ -669,7 +669,20 @@ private void ClearMoveSelection()
     }
     SelectedDestinationGroup = null;
 }
+[ObservableProperty] private bool _isSourceDropdownOpen = false;
 
+[RelayCommand]
+private void ToggleSourceDropdown()
+{
+    IsSourceDropdownOpen = !IsSourceDropdownOpen;
+}
+
+// Optional: Close dropdown when clicking outside
+[RelayCommand]
+private void CloseDropdowns()
+{
+    IsSourceDropdownOpen = false;
+}
     #endregion
 
     #region Upload File/Data Func

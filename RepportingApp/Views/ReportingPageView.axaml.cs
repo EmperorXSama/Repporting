@@ -12,6 +12,7 @@ using Avalonia.VisualTree;
 using ExCSS;
 using Microsoft.Extensions.DependencyInjection;
 using RepportingApp.ViewModels;
+using Color = Avalonia.Media.Color;
 using ReportingPageViewModel = RepportingApp.ViewModels.ReportingPageViewModel;
 
 namespace RepportingApp.Views;
@@ -26,7 +27,23 @@ public partial class ReportingPageView : UserControl
     }
     
     
-    
+    // In your View code-behind file (optional hover effects)
+
+    private void OnItemPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.Background = new SolidColorBrush(Color.Parse("#F3F4F6"));
+        }
+    }
+
+    private void OnItemPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.Background = Brushes.Transparent;
+        }
+    }
     public void ToggleSideMenu(object? sender, RoutedEventArgs routedEventArgs)
     {
         var viewModel = (ReportingPageViewModel)DataContext!;
