@@ -15,7 +15,6 @@ public partial class App : Application
     public static IServiceProvider _ServiceProvider;
     public static IConfiguration? Configuration;
     private IHost _host;
-    private IConfigurationMonitorService _configMonitor;
 
     public override void Initialize()
     {
@@ -55,21 +54,7 @@ public partial class App : Application
                 services.AddSingleton<IProxyApiService, ProxyApiService>();
                 services.AddSingleton<IMailBoxRequests, MailBoxRequests>();
                 services.AddSingleton<SystemConfigurationEstimator>();
-
-                // Add the configuration monitor service
-                services.AddSingleton<IConfigurationMonitorService>(provider =>
-                {
-                    var logger = provider.GetRequiredService<ILogger<AzureConfigurationMonitorService>>();
-                    var connectionString = "Endpoint=https://repporting.azconfig.io;Id=O1c2;Secret=8zQzxPiOz0SIStac2WRI8jRokcQSpaMpT6w0RGoXNJdAevuTbwRwJQQJ99BEAC5RqLJpihN2AAACAZACPiW7";
-                    
-                    // Use "NewSystemBeta" as the key name and check every 8 hours
-                    return new AzureConfigurationMonitorService(
-                        logger, 
-                        connectionString, 
-                        "NewSystemBeta", 
-                        TimeSpan.FromHours(8)
-                    );
-                });
+                
             });
 
         _host = hostBuilder.Build();
@@ -82,21 +67,7 @@ public partial class App : Application
         {
             // Start the host
             await _host.StartAsync();
-
-            // Get the configuration monitor service and start monitoring
-            _configMonitor = _host.Services.GetRequiredService<IConfigurationMonitorService>();
             
-            var startDate = new DateTime(2025, 8, 1);
-            if (DateTime.Today >= startDate)
-            {
-                await _configMonitor.StartMonitoringAsync();
-                Console.WriteLine("Configuration monitoring started.");
-            }
-            else
-            {
-                Console.WriteLine($"Configuration monitoring will start on {startDate:yyyy-MM-dd}. Current date: {DateTime.Today:yyyy-MM-dd}");
-            }
-
             // Resolve MainWindowViewModel from the DI container
             var mainWindowViewModel = _ServiceProvider.GetService<MainWindowViewModel>();
 
@@ -104,10 +75,7 @@ public partial class App : Application
             {
                 DataContext = mainWindowViewModel
             };
-
-            // Handle application shutdown
-            desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
-            desktop.Exit += OnApplicationExit;
+            
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -122,23 +90,5 @@ public partial class App : Application
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
     }
-
-    private async void OnApplicationExit(object sender, ControlledApplicationLifetimeExitEventArgs e)
-    {
-        try
-        {
-            Console.WriteLine("Application is shutting down...");
-            _configMonitor?.StopMonitoring();
-            
-            if (_host != null)
-            {
-                await _host.StopAsync(TimeSpan.FromSeconds(5));
-                _host.Dispose();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during application shutdown: {ex.Message}");
-        }
-    }
+    
 }

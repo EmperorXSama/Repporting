@@ -241,6 +241,7 @@ public partial class TaskInfoUiModel : ObservableObject
         // If no groups are defined, return null
         return null;
     }
+    
 }
 
 

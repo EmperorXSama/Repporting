@@ -24,8 +24,64 @@ public partial class ReportingPageView : UserControl
         InitializeComponent();
         DataContext = App.Services.GetRequiredService<ReportingPageViewModel>();
         AdjustGridColumns(true);
+        this.AttachedToVisualTree += OnAttachedToVisualTree;
+        this.DetachedFromVisualTree += OnDetachedFromVisualTree;
+    }
+     
+    private void OnAttachedToVisualTree(object sender, VisualTreeAttachmentEventArgs e)
+    {
+        var window = TopLevel.GetTopLevel(this) as Window;
+        if (window != null)
+        {
+            window.Deactivated += OnWindowDeactivated;
+            window.PositionChanged += OnWindowPositionChanged;
+        }
     }
     
+    private void OnDetachedFromVisualTree(object sender, VisualTreeAttachmentEventArgs e)
+    {
+        var window = TopLevel.GetTopLevel(this) as Window;
+        if (window != null)
+        {
+            window.Deactivated -= OnWindowDeactivated;
+            window.PositionChanged -= OnWindowPositionChanged;
+        }
+    }
+    
+    private void OnWindowDeactivated(object sender, EventArgs e)
+    {
+        // Close popup when window loses focus
+        if (DataContext is ReportingPageViewModel viewModel)
+        {
+            viewModel.IsGroupSelectionDropdownOpen = false;
+        }
+    }
+    
+    private void OnWindowPositionChanged(object sender, PixelPointEventArgs e)
+    {
+        // Close popup when window moves
+        if (DataContext is ReportingPageViewModel viewModel)
+        {
+            viewModel.IsGroupSelectionDropdownOpen = false;
+        }
+    }
+    
+    // Your existing pointer event handlers
+    private void OnGroupItemPointerEntered(object sender, PointerEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.Background = new SolidColorBrush(Color.Parse("#F3F4F6"));
+        }
+    }
+    
+    private void OnGroupItemPointerExited(object sender, PointerEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.Background = Brushes.Transparent;
+        }
+    }
     
     // In your View code-behind file (optional hover effects)
 
@@ -51,6 +107,32 @@ public partial class ReportingPageView : UserControl
         AdjustGridColumns(viewModel.IsMenuOpen);
     }
     
+
+// Alternative: If you want to apply the hover effect to the inner border instead
+    private void OnGroupItemPointerEnteredAlt(object? sender, PointerEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            // Find the inner border with background #F9FAFB
+            var checkBox = border.Child as CheckBox;
+            if (checkBox?.Content is Border innerBorder)
+            {
+                innerBorder.Background = new SolidColorBrush(Color.Parse("#EFF6FF"));
+            }
+        }
+    }
+
+    private void OnGroupItemPointerExitedAlt(object? sender, PointerEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            var checkBox = border.Child as CheckBox;
+            if (checkBox?.Content is Border innerBorder)
+            {
+                innerBorder.Background = new SolidColorBrush(Color.Parse("#F9FAFB"));
+            }
+        }
+    }
     private void AdjustGridColumns(bool isMenuOpen)
     {
         // Access the grid directly and modify its column definitions

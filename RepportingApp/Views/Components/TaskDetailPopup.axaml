@@ -33,7 +33,7 @@
                     </Expander.Header>
 
                     <!-- Grid Layout -->
-                    <Grid>
+                    <Grid MaxHeight="300">
                         <!-- Define a single row that takes available space -->
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -41,15 +41,25 @@
 
                         <!-- Scrollable ListBox -->
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ListBox ItemsSource="{Binding ItemSuccesMessasges}" Background="Transparent" SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
+                            <ListBox ItemsSource="{Binding ItemSuccesMessasges}" 
+                                     Background="Transparent" 
+                                     SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="White" Padding="9" CornerRadius="9" Cursor="Hand">
-                                            <TextBlock Text="{Binding Email.EmailAddress}" FontWeight="SemiLight" Foreground="{StaticResource TextMain}" FontFamily="{StaticResource Roboto}" />
+                                        <Border Background="White" 
+                                                Padding="9" 
+                                                CornerRadius="9" 
+                                                Cursor="Hand"
+                                                PointerPressed="OnItemPointerPressed">
+                                            <TextBlock Text="{Binding Email.EmailAddress}" 
+                                                       FontWeight="SemiLight" 
+                                                       Foreground="{StaticResource TextMain}" 
+                                                       FontFamily="{StaticResource Roboto}" />
                                         </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
+
                         </ScrollViewer>
                     </Grid>
                 </Expander>
@@ -69,7 +79,7 @@
                     </Expander.Header>
 
                     <!-- Grid Layout -->
-                    <Grid>
+                    <Grid MaxHeight="300">
                         <!-- Define a single row that takes available space -->
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -77,11 +87,20 @@
 
                         <!-- Scrollable ListBox -->
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ListBox ItemsSource="{Binding ItemFailedMessasges}" Background="Transparent" SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
+                            <ListBox ItemsSource="{Binding ItemFailedMessasges}" 
+                                     Background="Transparent" 
+                                     SelectedItem="{Binding ViewDetailSelectedMessage, Mode=TwoWay}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="White" Padding="9" CornerRadius="9" Cursor="Hand">
-                                            <TextBlock Text="{Binding Email.EmailAddress}" FontWeight="SemiLight" Foreground="{StaticResource TextMain}" FontFamily="{StaticResource Roboto}" />
+                                        <Border Background="White" 
+                                                Padding="9" 
+                                                CornerRadius="9" 
+                                                Cursor="Hand"
+                                                PointerPressed="OnItemPointerPressed">
+                                            <TextBlock Text="{Binding Email.EmailAddress}" 
+                                                       FontWeight="SemiLight" 
+                                                       Foreground="{StaticResource TextMain}" 
+                                                       FontFamily="{StaticResource Roboto}" />
                                         </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>

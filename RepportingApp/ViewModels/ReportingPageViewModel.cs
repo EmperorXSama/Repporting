@@ -165,8 +165,6 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
 
 
         TasksCount = _taskInfoManager.GetTasksCount();
-        //proxyListManager.UploadReservedProxyFile();
-        
 
     }
 
@@ -440,8 +438,112 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private string _newGroupName;
     [ObservableProperty] private string _rdpIp;
     [ObservableProperty] private EmailGroup? _selectedEmailGroup = new EmailGroup(); 
-    [ObservableProperty] private ObservableCollection<EmailGroup> _selectedEmailGroupForTask = new (); 
+    [ObservableProperty] private ObservableCollection<EmailGroup> _selectedEmailGroupForTask = new();
+
+// New properties for the dropdown functionality
+    [ObservableProperty] private bool _isGroupSelectionDropdownOpen = false;
+    [ObservableProperty] private bool _isAllGroupsSelected = false;
+    [ObservableProperty] private string _groupSearchText = string.Empty;
+    [ObservableProperty] private ObservableCollection<SelectableEmailGroup> _selectableTaskGroups = new();
+    [ObservableProperty] private ObservableCollection<SelectableEmailGroup> _filteredGroups = new();
+    private void InitializeSelectableTaskGroups()
+    {
+        SelectableTaskGroups.Clear();
+        foreach (var group in Groups)
+        {
+            var selectableGroup = new SelectableEmailGroup { Group = group };
+            selectableGroup.SelectionChanged += OnTaskGroupSelectionChanged;
+            SelectableTaskGroups.Add(selectableGroup);
+        }
+        UpdateFilteredGroups();
+        UpdateSelectAllState();
+    }
+    // Handle group selection changes
+private void OnTaskGroupSelectionChanged(SelectableEmailGroup group, bool isSelected)
+{
+    if (isSelected && !SelectedEmailGroupForTask.Contains(group.Group))
+    {
+        SelectedEmailGroupForTask.Add(group.Group);
+    }
+    else if (!isSelected && SelectedEmailGroupForTask.Contains(group.Group))
+    {
+        SelectedEmailGroupForTask.Remove(group.Group);
+    }
     
+    UpdateSelectAllState();
+}
+
+// Update the "Select All" checkbox state
+private void UpdateSelectAllState()
+{
+    var allSelected = SelectableTaskGroups.All(g => g.IsSelected);
+    var noneSelected = SelectableTaskGroups.All(g => !g.IsSelected);
+    
+    // This prevents the checkbox from showing indeterminate state
+    if (allSelected)
+        IsAllGroupsSelected = true;
+    else if (noneSelected)
+        IsAllGroupsSelected = false;
+}
+
+// Toggle dropdown visibility
+[RelayCommand]
+private void ToggleGroupSelectionDropdown()
+{
+    IsGroupSelectionDropdownOpen = !IsGroupSelectionDropdownOpen;
+}
+
+// Toggle select all groups
+[RelayCommand]
+private void ToggleSelectAllGroups()
+{
+    var shouldSelectAll = IsAllGroupsSelected == true;
+    
+    foreach (var group in SelectableTaskGroups)
+    {
+        group.IsSelected = shouldSelectAll;
+    }
+    
+    // Update the selected collection
+    SelectedEmailGroupForTask.Clear();
+    if (shouldSelectAll)
+    {
+        foreach (var group in Groups)
+        {
+            SelectedEmailGroupForTask.Add(group);
+        }
+    }
+}
+
+// Handle search text changes
+partial void OnGroupSearchTextChanged(string value)
+{
+    UpdateFilteredGroups();
+}
+
+// Filter groups based on search
+private void UpdateFilteredGroups()
+{
+    if (string.IsNullOrWhiteSpace(GroupSearchText))
+    {
+        FilteredGroups = new ObservableCollection<SelectableEmailGroup>(SelectableTaskGroups);
+    }
+    else
+    {
+        var filtered = SelectableTaskGroups
+            .Where(g => g.GroupName.Contains(GroupSearchText, StringComparison.OrdinalIgnoreCase) ||
+                       g.Group.RdpIp.Contains(GroupSearchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        
+        FilteredGroups = new ObservableCollection<SelectableEmailGroup>(filtered);
+    }
+}
+
+// Call this when Groups collection changes
+partial void OnGroupsChanged(ObservableCollection<EmailGroup> value)
+{
+    InitializeSelectableTaskGroups();
+}
     [RelayCommand]
     private void SelectNewGroup()
     {
