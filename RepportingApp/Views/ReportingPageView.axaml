@@ -509,10 +509,11 @@
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="13">
                     <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0} groups selected">
-                            <Binding Path="SelectedEmailGroupForTask.Count"/>
+                        <MultiBinding StringFormat="{}{0} emails selected">
+                            <Binding Path="TotalSelectedEmails"/>
                         </MultiBinding>
                     </TextBlock.Text>
+
                 </TextBlock>
                 <PathIcon Grid.Column="1" 
                           Data="M19 9l-7 7-7-7" 
