@@ -163,7 +163,10 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
         InitializeCommands();
         SubscribeToEvents();
 
-
+        SelectedEmailGroupForTask.CollectionChanged += (_, __) =>
+        {
+            OnPropertyChanged(nameof(TotalSelectedEmails));
+        };
         TasksCount = _taskInfoManager.GetTasksCount();
 
     }
@@ -438,7 +441,9 @@ public partial class ReportingPageViewModel : ViewModelBase, ILoadableViewModel
     [ObservableProperty] private string _newGroupName;
     [ObservableProperty] private string _rdpIp;
     [ObservableProperty] private EmailGroup? _selectedEmailGroup = new EmailGroup(); 
-    [ObservableProperty] private ObservableCollection<EmailGroup> _selectedEmailGroupForTask = new();
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalSelectedEmails))]
+    private ObservableCollection<EmailGroup> selectedEmailGroupForTask = new();
 
 // New properties for the dropdown functionality
     [ObservableProperty] private bool _isGroupSelectionDropdownOpen = false;
@@ -472,6 +477,11 @@ private void OnTaskGroupSelectionChanged(SelectableEmailGroup group, bool isSele
     
     UpdateSelectAllState();
 }
+
+
+public int TotalSelectedEmails => 
+    SelectedEmailGroupForTask.Sum(g => g.EmailCount);
+
 
 // Update the "Select All" checkbox state
 private void UpdateSelectAllState()

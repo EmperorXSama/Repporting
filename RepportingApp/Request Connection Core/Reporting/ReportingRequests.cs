@@ -869,6 +869,9 @@ private async Task<string> DeleteMessagesPermanent(EmailAccount emailAccount, st
     
     private Dictionary<string, string> PopulateHeaders(EmailAccount emailAccount)
     {
+        string referrer = emailAccount.EmailAddress.EndsWith("@aol.com", StringComparison.OrdinalIgnoreCase)
+            ? "https://mail.aol.com/"
+            : "https://mail.yahoo.com/";
         return new Dictionary<string, string>
         {
             { "accept", "application/json" },
@@ -892,23 +895,31 @@ private async Task<string> DeleteMessagesPermanent(EmailAccount emailAccount, st
     {
         emailAccount.MetaIds.YmreqId = YmriqId.GetYmreqid(emailAccount.MetaIds.YmreqId, 2).LastOrDefault()!;
         string hash = RandomGenerator.GenerateRandomHexString(8);
-        
+    
+        // Determine the base URL based on email domain
+        string baseUrl = emailAccount.EmailAddress.EndsWith("@aol.com", StringComparison.OrdinalIgnoreCase)
+            ? "https://mail.aol.com/ws/v3/batch"
+            : "https://mail.yahoo.com/ws/v3/batch"; 
+        string appId = emailAccount.EmailAddress.EndsWith("@aol.com", StringComparison.OrdinalIgnoreCase)
+            ? "AolMailNorrin"
+            : "YMailNorrin";
+    
         return endpointType switch
         {
             EndpointType.ReadFlagUpdate =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=messages.readFlagUpdate&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"{baseUrl}?name=messages.readFlagUpdate&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.UnifiedUpdate =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=messages.UnifiedUpdate&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}", 
+                $"{baseUrl}?name=messages.UnifiedUpdate&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}", 
             EndpointType.ReadSync =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=folderChange.getList&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",  
+                $"{baseUrl}?name=folderChange.getList&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",  
             EndpointType.Move =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=messages.move&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"{baseUrl}?name=messages.move&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.Delete =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=messages.delete&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"{baseUrl}?name=messages.delete&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.Sync =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=mailbox.sync&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"{baseUrl}?name=mailbox.sync&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             EndpointType.OtherEndpoint =>
-                $"https://mail.yahoo.com/ws/v3/batch?name=messages.OtherEndpoint&hash={hash}&appId=YMailNorrin&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
+                $"{baseUrl}?name=messages.OtherEndpoint&hash={hash}&appId={appId}&ymreqid={emailAccount.MetaIds.YmreqId}&wssid={emailAccount.MetaIds.Wssid}",
             _ => throw new ArgumentException("Invalid endpoint type", nameof(endpointType))
         };
     }
